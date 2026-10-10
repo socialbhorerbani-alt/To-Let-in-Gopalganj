@@ -8,6 +8,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
   <!-- EmailJS SDK -->
   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
@@ -17,28 +18,18 @@
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap');
-    body {
-      font-family: 'Hind Siliguri', sans-serif;
-    }
+    body { font-family: 'Hind Siliguri', sans-serif; }
     video::-internal-media-controls-download-button,
-    audio::-internal-media-controls-download-button {
-      display: none !important;
-    }
+    audio::-internal-media-controls-download-button { display: none !important; }
     video::-webkit-media-controls-enclosure,
-    audio::-webkit-media-controls-enclosure {
-      overflow: hidden;
-    }
+    audio::-webkit-media-controls-enclosure { overflow: hidden; }
     video::-webkit-media-controls-panel,
-    audio::-webkit-media-controls-panel {
-      width: calc(100% + 30px);
-    }
+    audio::-webkit-media-controls-panel { width: calc(100% + 30px); }
     @keyframes waveBar {
       0%, 100% { height: 6px; }
       50% { height: 18px; }
     }
-    .wave-playing span {
-      animation: waveBar 0.8s ease-in-out infinite;
-    }
+    .wave-playing span { animation: waveBar 0.8s ease-in-out infinite; }
     .wave-playing span:nth-child(2) { animation-delay: 0.15s; }
     .wave-playing span:nth-child(3) { animation-delay: 0.3s; }
     .wave-playing span:nth-child(4) { animation-delay: 0.45s; }
@@ -169,6 +160,54 @@
 
   <!-- ==================== MODALS ==================== -->
 
+  <!-- Modal: Image Lightbox -->
+  <div id="imageLightboxModal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-2 sm:p-4" onclick="closeImageLightbox()">
+    <button onclick="closeImageLightbox()" class="absolute top-4 right-4 text-white text-2xl bg-white/20 hover:bg-white/40 rounded-full w-10 h-10 flex items-center justify-center transition z-50">&times;</button>
+    <div class="relative max-w-4xl w-full max-h-[85vh] flex items-center justify-center" onclick="event.stopPropagation()">
+      <button id="lbPrevBtn" onclick="stepLightboxImage(-1)" class="absolute left-2 text-white bg-black/50 hover:bg-black/80 rounded-full w-10 h-10 flex items-center justify-center text-lg transition z-40">
+        <i class="fa-solid fa-chevron-left"></i>
+      </button>
+      <img id="lightboxImage" src="" class="max-w-full max-h-[80vh] object-contain rounded-xl shadow-2xl transition-all">
+      <button id="lbNextBtn" onclick="stepLightboxImage(1)" class="absolute right-2 text-white bg-black/50 hover:bg-black/80 rounded-full w-10 h-10 flex items-center justify-center text-lg transition z-40">
+        <i class="fa-solid fa-chevron-right"></i>
+      </button>
+      <div id="lightboxCounter" class="absolute bottom-2 text-white bg-black/60 px-3 py-1 rounded-full text-xs font-bold">1 / 1</div>
+    </div>
+  </div>
+
+  <!-- Modal: Video Player -->
+  <div id="videoModal" class="fixed inset-0 bg-slate-900/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 sm:p-6">
+    <div class="bg-black rounded-2xl w-full max-w-3xl overflow-hidden relative shadow-2xl border border-slate-800">
+      <div class="p-3 bg-slate-900 flex justify-between items-center text-white text-xs sm:text-sm font-bold border-b border-slate-800">
+        <span><i class="fa-solid fa-video text-rose-500 mr-1.5"></i> ভিডিও প্রিভিউ</span>
+        <button onclick="closeVideoModal()" class="text-white hover:text-rose-400 text-xl font-bold">&times;</button>
+      </div>
+      <div id="videoContainer" class="w-full aspect-video flex items-center justify-center bg-black"></div>
+    </div>
+  </div>
+
+  <!-- Modal: User Dashboard -->
+  <div id="userDashboardModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 md:p-6">
+    <div class="bg-white rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl border border-slate-100 flex flex-col max-h-[90vh]">
+      <div class="px-6 py-4 bg-emerald-700 text-white flex justify-between items-center">
+        <div>
+          <h3 class="text-base font-bold flex items-center gap-2">
+            <i class="fa-solid fa-circle-user text-lg"></i> আমার ড্যাশবোর্ড ও বিজ্ঞাপনসমূহ
+          </h3>
+          <span id="dashUserPhone" class="text-xs text-emerald-200"></span>
+        </div>
+        <button onclick="toggleDashboardModal(false)" class="text-white hover:text-slate-200 text-2xl font-bold">&times;</button>
+      </div>
+      <div class="p-3 bg-slate-100 border-b flex justify-between items-center">
+        <span class="text-xs font-bold text-slate-700">আমার প্রকাশিত বিজ্ঞাপন তালিকা</span>
+        <button onclick="toggleDashboardModal(false); openAdModalForCreate();" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-bold flex items-center gap-1 shadow-sm">
+          <i class="fa-solid fa-plus"></i> নতুন বিজ্ঞাপন
+        </button>
+      </div>
+      <div id="userAdsListContainer" class="p-4 overflow-y-auto space-y-3 flex-1"></div>
+    </div>
+  </div>
+
   <!-- Modal: Inbox -->
   <div id="inboxModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-4">
     <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl border border-slate-100 flex flex-col max-h-[85vh]">
@@ -182,7 +221,7 @@
     </div>
   </div>
 
-  <!-- Modal: Direct Chat Box (SMS + Voice SMS) -->
+  <!-- Modal: Direct Chat Box -->
   <div id="chatModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-2 sm:p-4">
     <div class="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl border border-slate-100 flex flex-col h-[90vh] max-h-[650px]">
       <div class="px-4 py-3 bg-emerald-700 text-white flex justify-between items-center flex-shrink-0 shadow-xs">
@@ -227,7 +266,7 @@
     </div>
   </div>
 
-  <!-- Modal: User Auth -->
+  <!-- Modal: User Auth (Auto Fill Off + Remember Me Checkbox + Forgot Password Link) -->
   <div id="authModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-slate-100">
       <div class="px-6 py-4 bg-emerald-600 text-white flex justify-between items-center">
@@ -242,40 +281,62 @@
         <button id="tabRegister" onclick="switchAuthTab('register')" class="flex-1 py-3 text-slate-500 hover:text-slate-700 font-semibold">নতুন অ্যাকাউন্ট</button>
       </div>
 
-      <form id="loginForm" onsubmit="handleUserLogin(event)" class="p-6 space-y-3.5 text-sm">
+      <form id="loginForm" onsubmit="handleUserLogin(event)" autocomplete="off" class="p-6 space-y-3.5 text-sm">
         <div>
           <label class="block font-medium text-slate-700 mb-1">মোবাইল নম্বর <span class="text-rose-500">*</span></label>
           <div class="relative">
             <span class="absolute left-3 top-3 text-slate-400 text-xs font-semibold">+88</span>
-            <input type="tel" id="loginPhone" required placeholder="017XXXXXXXX" value="01712345678" class="w-full pl-11 pr-3 py-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none text-slate-800">
+            <input type="tel" id="loginPhone" required placeholder="017XXXXXXXX" value="" autocomplete="off" class="w-full pl-11 pr-3 py-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none text-slate-800">
           </div>
         </div>
+
         <div>
           <label class="block font-medium text-slate-700 mb-1">পাসওয়ার্ড <span class="text-rose-500">*</span></label>
-          <input type="password" id="loginPassword" required placeholder="••••••••" value="123456" class="w-full p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+          <div class="relative">
+            <input type="password" id="loginPassword" required placeholder="পাসওয়ার্ড দিন" value="" autocomplete="new-password" class="w-full pl-3 pr-10 py-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+            <button type="button" onclick="togglePasswordVisibility('loginPassword', this)" class="absolute right-3 top-3 text-slate-400 hover:text-slate-600">
+              <i class="fa-solid fa-eye-slash text-sm"></i>
+            </button>
+          </div>
         </div>
-        <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold transition shadow-sm flex items-center justify-center gap-2">
+
+        <div class="flex items-center justify-between pt-1">
+          <label class="flex items-center gap-2 cursor-pointer select-none text-xs text-slate-600">
+            <input type="checkbox" id="rememberMeCheckbox" class="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500">
+            <span>আমাকে মনে রাখুন</span>
+          </label>
+          <button type="button" onclick="openForgotPasswordModal()" class="text-xs text-emerald-600 hover:text-emerald-800 font-semibold transition">
+            পাসওয়ার্ড ভুলে গেছেন?
+          </button>
+        </div>
+        
+        <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold transition shadow-sm flex items-center justify-center gap-2 mt-2">
           <span>লগইন করুন</span> <i class="fa-solid fa-arrow-right text-xs"></i>
         </button>
+
         <div class="pt-3 text-center">
-          <button type="button" onclick="openAdminLoginModal()" class="text-[11px] text-slate-400 hover:text-slate-600 transition inline-block">
+          <button type="button" onclick="openAdminLoginModal()" class="text-[11px] text-slate-400 hover:text-emerald-700 transition inline-block">
             <i class="fa-solid fa-shield-halved text-[10px] mr-1 opacity-60"></i> অ্যাডমিন লগইন
           </button>
         </div>
       </form>
 
-      <form id="registerForm" onsubmit="handleRegister(event)" class="p-6 space-y-3.5 text-sm hidden">
+      <form id="registerForm" onsubmit="handleRegister(event)" autocomplete="off" class="p-6 space-y-3.5 text-sm hidden">
         <div>
           <label class="block font-medium text-slate-700 mb-1">নাম <span class="text-rose-500">*</span></label>
-          <input type="text" id="regName" required placeholder="উদা: সুজন শিকদার" class="w-full p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+          <input type="text" id="regName" required placeholder="উদা: সুজন শিকদার" autocomplete="off" class="w-full p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+        </div>
+        <div>
+          <label class="block font-medium text-slate-700 mb-1">ইমেইল (OTP ও পাসওয়ার্ড পুনরুদ্ধারের জন্য) <span class="text-rose-500">*</span></label>
+          <input type="email" id="regEmail" required placeholder="example@gmail.com" autocomplete="off" class="w-full p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
         </div>
         <div>
           <label class="block font-medium text-slate-700 mb-1">মোবাইল নম্বর <span class="text-rose-500">*</span></label>
-          <input type="tel" id="regPhone" required placeholder="017XXXXXXXX" class="w-full p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+          <input type="tel" id="regPhone" required placeholder="017XXXXXXXX" autocomplete="off" class="w-full p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
         </div>
         <div>
           <label class="block font-medium text-slate-700 mb-1">পাসওয়ার্ড <span class="text-rose-500">*</span></label>
-          <input type="password" id="regPassword" required placeholder="কমপক্ষে ৪ সংখ্যা" class="w-full p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+          <input type="password" id="regPassword" required placeholder="কমপক্ষে ৪ সংখ্যা" autocomplete="new-password" class="w-full p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
         </div>
         <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold transition shadow-sm mt-2">অ্যাকাউন্ট তৈরি করুন</button>
       </form>
@@ -291,21 +352,75 @@
         </h3>
         <button onclick="toggleAdminLoginModal(false)" class="text-white hover:text-slate-300 text-xl font-bold">&times;</button>
       </div>
-      <form onsubmit="handleAdminLogin(event)" class="p-6 space-y-4 text-sm">
-        <div>
-          <label class="block font-medium text-slate-700 mb-1">অ্যাডমিন Email</label>
-          <input type="email" id="adminEmailInput" required value="admin@gmail.com" class="w-full p-2.5 rounded-lg border border-slate-200">
+      <form onsubmit="handleAdminLogin(event)" autocomplete="off" class="p-6 space-y-4 text-sm">
+        <div class="bg-amber-50 text-amber-800 text-xs p-2.5 rounded-lg border border-amber-200 flex items-start gap-2">
+          <i class="fa-solid fa-circle-info mt-0.5 text-amber-600"></i>
+          <span>অ্যাডমিন ইমেইল বা ফোন এবং পাসওয়ার্ড দিন।</span>
         </div>
         <div>
-          <label class="block font-medium text-slate-700 mb-1">অ্যাডমিন পাসওয়ার্ড</label>
-          <input type="password" id="adminPasswordInput" required value="admin" class="w-full p-2.5 rounded-lg border border-slate-200 font-medium">
+          <label class="block font-medium text-slate-700 mb-1">অ্যাডমিন Email / Phone <span class="text-rose-500">*</span></label>
+          <input type="text" id="adminEmailInput" required placeholder="admin@gmail.com বা 01700000000" autocomplete="off" class="w-full p-2.5 rounded-lg border border-slate-200 outline-none">
         </div>
-        <button type="submit" class="w-full py-2.5 bg-slate-900 hover:bg-black text-white rounded-lg font-bold transition">অ্যাডমিন হিসেবে প্রবেশ করুন</button>
+        <div>
+          <label class="block font-medium text-slate-700 mb-1">অ্যাডমিন পাসওয়ার্ড <span class="text-rose-500">*</span></label>
+          <input type="password" id="adminPasswordInput" required placeholder="পাসওয়ার্ড লিখুন" autocomplete="new-password" class="w-full p-2.5 rounded-lg border border-slate-200 font-medium outline-none">
+        </div>
+        <div class="text-right -mt-1">
+          <button type="button" onclick="openForgotPasswordModal()" class="text-xs text-emerald-600 hover:text-emerald-800 font-semibold">পাসওয়ার্ড ভুলে গেছেন?</button>
+        </div>
+        <button type="submit" class="w-full py-2.5 bg-slate-900 hover:bg-black text-white rounded-lg font-bold transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-lock-open text-xs"></i> <span>অ্যাডমিন হিসেবে প্রবেশ করুন</span>
+        </button>
       </form>
     </div>
   </div>
 
-  <!-- ==================== ADMIN PANEL MODAL (সম্পূর্ণ Add, Edit, Remove সহ) ==================== -->
+  <!-- Modal: Forgot Password (EmailJS OTP Recovery) -->
+  <div id="forgotPasswordModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-slate-100">
+      <div class="px-6 py-4 bg-emerald-600 text-white flex justify-between items-center">
+        <h3 class="text-base font-bold flex items-center gap-2">
+          <i class="fa-solid fa-key text-emerald-200"></i> পাসওয়ার্ড পুনরুদ্ধার
+        </h3>
+        <button onclick="toggleForgotPasswordModal(false)" class="text-white hover:text-slate-200 text-xl font-bold">&times;</button>
+      </div>
+
+      <!-- Step 1: Input Email & Send OTP -->
+      <div id="otpStep1" class="p-6 space-y-3.5 text-sm">
+        <p class="text-xs text-slate-600 leading-relaxed">
+          আপনার অ্যাকাউন্টে রেজিস্টার্ড Gmail/Email ঠিকানা দিন। EmailJS এর মাধ্যমে আপনার ইনবক্সে ৬ সংখ্যার ওটিপি (OTP) পাঠানো হবে।
+        </p>
+        <div>
+          <label class="block font-medium text-slate-700 mb-1">নিবন্ধিত ইমেইল ঠিকানা <span class="text-rose-500">*</span></label>
+          <input type="email" id="fpEmail" required placeholder="example@gmail.com" class="w-full p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none text-slate-800">
+        </div>
+        <button type="button" onclick="sendOtpViaEmail()" id="btnSendOtp" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold transition shadow-sm flex items-center justify-center gap-2">
+          <i class="fa-solid fa-paper-plane text-xs"></i> ইমেইলে OTP পাঠান
+        </button>
+      </div>
+
+      <!-- Step 2: Verify OTP & Enter New Password -->
+      <div id="otpStep2" class="p-6 space-y-3.5 text-sm hidden">
+        <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs p-2.5 rounded-lg flex items-center gap-2">
+          <i class="fa-solid fa-circle-check text-emerald-600 text-sm"></i>
+          <span>আপনার ইমেইলে ৬ সংখ্যার কোড পাঠানো হয়েছে।</span>
+        </div>
+        <div>
+          <label class="block font-medium text-slate-700 mb-1">৬ সংখ্যার OTP কোড <span class="text-rose-500">*</span></label>
+          <input type="text" id="fpInputOtp" maxlength="6" placeholder="123456" class="w-full p-2.5 rounded-lg border border-slate-200 text-center font-bold text-lg tracking-widest focus:ring-2 focus:ring-emerald-500 outline-none text-emerald-800">
+        </div>
+        <div>
+          <label class="block font-medium text-slate-700 mb-1">নতুন পাসওয়ার্ড সেট করুন <span class="text-rose-500">*</span></label>
+          <input type="password" id="fpNewPassword" placeholder="নতুন পাসওয়ার্ড লিখুন" class="w-full p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+        </div>
+        <button type="button" onclick="verifyOtpAndResetPassword()" id="btnResetPass" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold transition shadow-sm flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-check text-xs"></i> পাসওয়ার্ড পরিবর্তন নিশ্চিত করুন
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Admin Panel (সকল বিজ্ঞাপন, ইউজার ও এলাকা নিয়ন্ত্রণ) -->
   <div id="adminPanelModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 md:p-6">
     <div class="bg-white rounded-2xl w-full max-w-5xl overflow-hidden shadow-2xl border border-slate-100 flex flex-col max-h-[92vh]">
       <div class="px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
@@ -331,7 +446,7 @@
       </div>
 
       <div class="p-4 md:p-6 overflow-y-auto flex-1 space-y-4">
-        <!-- 1. ADMIN ADS SECTION -->
+        <!-- 1. ADMIN ADS -->
         <div id="adminAdsSection" class="space-y-3">
           <div class="flex justify-between items-center mb-2">
             <span class="text-xs font-bold text-slate-600">সকল বিজ্ঞাপনের তালিকা</span>
@@ -342,19 +457,18 @@
           <div id="adminAdsListContainer" class="space-y-3"></div>
         </div>
 
-        <!-- 2. ADMIN USERS SECTION -->
+        <!-- 2. ADMIN USERS -->
         <div id="adminUsersSection" class="hidden space-y-4">
-          <!-- Add User Form -->
           <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl">
             <h4 class="text-xs font-bold text-slate-700 mb-2 flex items-center gap-1">
               <i class="fa-solid fa-user-plus text-emerald-600"></i> নতুন ব্যবহারকারী যুক্ত করুন
             </h4>
             <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
-              <input type="text" id="adminNewUserName" placeholder="নাম" class="p-2 text-xs rounded-lg border border-slate-300 outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
-              <input type="tel" id="adminNewUserPhone" placeholder="মোবাইল নম্বর" class="p-2 text-xs rounded-lg border border-slate-300 outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
-              <input type="email" id="adminNewUserEmail" placeholder="ইমেইল (ঐচ্ছিক)" class="p-2 text-xs rounded-lg border border-slate-300 outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+              <input type="text" id="adminNewUserName" placeholder="নাম" class="p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
+              <input type="tel" id="adminNewUserPhone" placeholder="মোবাইল নম্বর" class="p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
+              <input type="email" id="adminNewUserEmail" placeholder="ইমেইল" class="p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
               <div class="flex gap-2">
-                <input type="text" id="adminNewUserPass" placeholder="পাসওয়ার্ড" class="flex-1 p-2 text-xs rounded-lg border border-slate-300 outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+                <input type="text" id="adminNewUserPass" placeholder="পাসওয়ার্ড" class="flex-1 p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
                 <button onclick="adminAddNewUser()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-sm whitespace-nowrap">
                   যুক্ত করুন
                 </button>
@@ -378,13 +492,12 @@
           </div>
         </div>
 
-        <!-- 3. ADMIN LOCATIONS SECTION -->
+        <!-- 3. ADMIN LOCATIONS -->
         <div id="adminLocationsSection" class="hidden space-y-4">
-          <!-- Add Location Box -->
           <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl flex flex-col sm:flex-row gap-3 items-end">
             <div class="flex-1 w-full">
               <label class="block text-xs font-semibold text-slate-700 mb-1">গোপালগঞ্জের নতুন এলাকা/স্থানের নাম যোগ করুন</label>
-              <input type="text" id="newLocationInput" placeholder="উদা: হরিদাসপুর বাজার" class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+              <input type="text" id="newLocationInput" placeholder="উদা: হরিদাসপুর বাজার" class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
             </div>
             <button onclick="addNewLocation()" class="w-full sm:w-auto px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-sm whitespace-nowrap">
               <i class="fa-solid fa-plus mr-1"></i> এলাকা যুক্ত করুন
@@ -507,11 +620,27 @@
           <div id="imagePreviewContainer" class="flex flex-wrap gap-2 mt-2 hidden"></div>
         </div>
 
-        <!-- Direct Video File (Max 500 MB) or URL -->
-        <div>
-          <label class="block font-medium text-slate-700 mb-1">ভিডিও ফাইল (সর্বোচ্চ ৫০০ MB) অথবা অনলাইন লিঙ্ক:</label>
-          <input type="file" id="formVideoFileInput" accept="video/*" onchange="validateVideoSize(this)" class="w-full p-1.5 border border-slate-200 rounded-lg text-xs mb-1.5">
-          <input type="url" id="formVideoUrl" placeholder="অথবা অনলাইন ভিডিও লিঙ্ক: https://..." class="w-full p-2 text-xs rounded-lg border border-slate-200">
+        <!-- Video Upload (Max 100 MB + Client Auto Compression) & Link -->
+        <div class="border border-slate-200 p-3 rounded-xl bg-slate-50 space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="block font-semibold text-slate-700 text-xs">
+              <i class="fa-solid fa-video text-rose-500 mr-1"></i> সরাসরি ভিডিও ফাইল (সর্বোচ্চ ১০০ MB):
+            </label>
+            <span class="text-[10px] bg-rose-100 text-rose-700 font-bold px-2 py-0.5 rounded">Max 100 MB</span>
+          </div>
+          <input type="file" id="formVideoFileInput" accept="video/*" class="w-full p-1.5 border border-slate-200 rounded-lg text-xs bg-white">
+          
+          <div id="videoCompressStatus" class="hidden text-[11px] font-bold text-amber-600 bg-amber-50 p-2 rounded border border-amber-200 flex items-center gap-1.5">
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            <span>ভিডিও ১০০ MB এর বেশি হওয়ায় কমপ্রেস করে ১০০ MB-এর নিচে নামানো হচ্ছে...</span>
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-600 text-xs mb-1">
+              অথবা যেকোনো প্ল্যাটফর্মের ভিডিও লিঙ্ক (YouTube, Facebook, Google Drive ইত্যাদি):
+            </label>
+            <input type="url" id="formVideoUrl" placeholder="ভিডিও লিঙ্ক দিন: https://..." class="w-full p-2 text-xs rounded-lg border border-slate-200 bg-white">
+          </div>
         </div>
 
         <div class="flex justify-end gap-2 pt-2 border-t">
@@ -522,17 +651,26 @@
     </div>
   </div>
 
-  <!-- Modal: Video Player -->
-  <div id="videoModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-black rounded-2xl w-full max-w-2xl overflow-hidden relative shadow-2xl">
-      <button onclick="closeVideoModal()" class="absolute top-3 right-3 text-white bg-black/60 hover:bg-black/90 rounded-full w-8 h-8 flex items-center justify-center text-lg z-20">&times;</button>
-      <div id="videoContainer" class="w-full aspect-video flex items-center justify-center bg-black select-none"></div>
-    </div>
-  </div>
-
   <!-- JavaScript Logic -->
   <script>
-    // 1. FIREBASE CONFIG
+    // ==========================================
+    // 1. EMAILJS CONFIGURATION (FORGET PASSWORD OTP)
+    // ==========================================
+    const EMAILJS_PUBLIC_KEY = "kKeUrs7wO9jJCFePf";
+    const EMAILJS_SERVICE_ID = "service_l9cc301";
+    const EMAILJS_TEMPLATE_ID = "template_6bq6spz";
+
+    try {
+      if (typeof emailjs !== "undefined" && EMAILJS_PUBLIC_KEY !== "YOUR_PUBLIC_KEY") {
+        emailjs.init(EMAILJS_PUBLIC_KEY);
+      }
+    } catch(e) {
+      console.warn("EmailJS init warning:", e);
+    }
+
+    // ==========================================
+    // 2. FIREBASE CONFIG
+    // ==========================================
     const firebaseConfig = {
       apiKey: "AIzaSyCXsm7jMaWdYIe-8Ya2IGvWMmICUNRL9Ms",
       authDomain: "to-let-gopalganj.firebaseapp.com",
@@ -564,11 +702,16 @@
     let listings = [];
     let users = JSON.parse(localStorage.getItem('tolet_users')) || [];
 
-    // Ensure Admin & Default User exist
-    let adminFound = users.find(u => u.email === 'admin@gmail.com' || u.role === 'admin');
+    // Ensure Admin & Default user
+    let adminFound = users.find(u => u.email === 'admin@gmail.com' || u.phone === '01700000000' || u.role === 'admin');
     if (!adminFound) {
       users.unshift({ name: "প্রধান অ্যাডমিন", phone: "01700000000", email: "admin@gmail.com", password: "admin", role: "admin" });
+    } else {
+      adminFound.role = 'admin';
+      adminFound.email = adminFound.email || 'admin@gmail.com';
+      adminFound.password = adminFound.password || 'admin';
     }
+
     let defaultUser = users.find(u => u.phone === '01712345678');
     if (!defaultUser) {
       users.push({ name: "আব্দুল করিম", phone: "01712345678", email: "karim@gmail.com", password: "123456", role: "user" });
@@ -578,21 +721,31 @@
     let currentUser = JSON.parse(localStorage.getItem('tolet_current_user')) || null;
     let cardImageIndexes = {};
 
+    // OTP states
+    let generatedOtp = null;
+    let otpTargetEmail = null;
+
+    // Lightbox State
+    let currentLightboxImages = [];
+    let currentLightboxIndex = 0;
+
     // Chat States
     let chats = JSON.parse(localStorage.getItem('tolet_chats')) || [];
     let currentChatKey = null;
     let activeChatListing = null;
     let activeChatRecipientPhone = null;
 
-    // Voice Recording States
+    // Voice States
     let mediaRecorder = null;
     let audioChunks = [];
     let recordingTimerInterval = null;
     let recordingSeconds = 0;
 
-    function isAdmin() { return currentUser && currentUser.role === 'admin'; }
+    function isAdmin() { 
+      return currentUser && (currentUser.role === 'admin' || currentUser.phone === '01700000000' || (currentUser.email && currentUser.email.toLowerCase() === 'admin@gmail.com')); 
+    }
 
-    // 2. FIRESTORE REALTIME LISTENER
+    // 3. FIRESTORE REALTIME LISTENER
     function listenToListings() {
       if (isFirebaseReady && firebaseDb) {
         firebaseDb.collection("listings").onSnapshot((snapshot) => {
@@ -607,6 +760,9 @@
           if (!document.getElementById('adminPanelModal').classList.contains('hidden')) {
             renderAdminAdsList();
           }
+          if (!document.getElementById('userDashboardModal').classList.contains('hidden')) {
+            renderUserAdsList();
+          }
         }, (error) => {
           console.warn("Firestore fetch error:", error);
           listings = JSON.parse(localStorage.getItem('gopalganj_tolet')) || [];
@@ -618,7 +774,102 @@
       }
     }
 
-    // 3. IMGBB IMAGE UPLOAD
+    // 4. FORGET PASSWORD WITH EMAILJS OTP
+    function openForgotPasswordModal() {
+      toggleAuthModal(false);
+      toggleAdminLoginModal(false);
+      document.getElementById('fpEmail').value = '';
+      document.getElementById('fpInputOtp').value = '';
+      document.getElementById('fpNewPassword').value = '';
+      document.getElementById('otpStep1').classList.remove('hidden');
+      document.getElementById('otpStep2').classList.add('hidden');
+      document.getElementById('forgotPasswordModal').classList.remove('hidden');
+    }
+
+    function toggleForgotPasswordModal(show) {
+      document.getElementById('forgotPasswordModal').classList.toggle('hidden', !show);
+    }
+
+    function sendOtpViaEmail() {
+      const email = document.getElementById('fpEmail').value.trim().toLowerCase();
+      if (!email) {
+        alert("দয়া করে আপনার নিবন্ধিত ইমেইল ঠিকানা লিখুন!");
+        return;
+      }
+
+      const user = users.find(u => (u.email && u.email.toLowerCase() === email));
+      if (!user) {
+        alert("এই ইমেইল দিয়ে কোনো অ্যাকাউন্ট পাওয়া যায়নি! সঠিক ইমেইল দিন।");
+        return;
+      }
+
+      generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+      otpTargetEmail = email;
+
+      const btn = document.getElementById('btnSendOtp');
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ওটিপি পাঠানো হচ্ছে...`;
+
+      const templateParams = {
+        to_email: email,
+        to_name: user.name || "ব্যবহারকারী",
+        otp_code: generatedOtp,
+        message: `আপনার টু-লেট গোপালগঞ্জ অ্যাকাউন্টের পাসওয়ার্ড পুনরুদ্ধারের ৬ সংখ্যার ওটিপি কোড হলো: ${generatedOtp}`
+      };
+
+      if (typeof emailjs !== "undefined" && EMAILJS_PUBLIC_KEY !== "YOUR_PUBLIC_KEY") {
+        emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
+          .then(() => {
+            handleOtpSentSuccess();
+          })
+          .catch((err) => {
+            console.warn("EmailJS Service notice:", err);
+            // Backup fallback OTP show
+            alert(`[ব্যাকআপ OTP নোটিশ]: আপনার ওটিপি কোড হলো: ${generatedOtp}`);
+            handleOtpSentSuccess();
+          });
+      } else {
+        setTimeout(() => {
+          alert(`[EmailJS ডেমো মোড ওটিপি]: আপনার OTP হলো: ${generatedOtp}`);
+          handleOtpSentSuccess();
+        }, 500);
+      }
+    }
+
+    function handleOtpSentSuccess() {
+      const btn = document.getElementById('btnSendOtp');
+      btn.disabled = false;
+      btn.innerHTML = `<i class="fa-solid fa-paper-plane text-xs"></i> ইমেইলে OTP পাঠান`;
+      document.getElementById('otpStep1').classList.add('hidden');
+      document.getElementById('otpStep2').classList.remove('hidden');
+    }
+
+    function verifyOtpAndResetPassword() {
+      const inputOtp = document.getElementById('fpInputOtp').value.trim();
+      const newPassword = document.getElementById('fpNewPassword').value.trim();
+
+      if (!inputOtp || inputOtp !== generatedOtp) {
+        alert("ভুল OTP কোড! আপনার ইমেইল ইনবক্স চেক করে সঠিক কোড দিন।");
+        return;
+      }
+      if (!newPassword || newPassword.length < 3) {
+        alert("কমপক্ষে ৩ অক্ষরের নতুন পাসওয়ার্ড দিন!");
+        return;
+      }
+
+      const userIndex = users.findIndex(u => (u.email && u.email.toLowerCase() === otpTargetEmail));
+      if (userIndex !== -1) {
+        users[userIndex].password = newPassword;
+        localStorage.setItem('tolet_users', JSON.stringify(users));
+        alert("পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে! এখন নতুন পাসওয়ার্ড দিয়ে লগইন করুন।");
+        toggleForgotPasswordModal(false);
+        toggleAuthModal(true);
+      } else {
+        alert("ব্যবহারকারী খুঁজে পাওয়া যায়নি!");
+      }
+    }
+
+    // 5. IMGBB IMAGE UPLOAD
     async function uploadToImgBB(file) {
       const apiKey = "4ac5668ba66709b8e8c1c641a57dcca9";
       const formData = new FormData();
@@ -636,33 +887,163 @@
       }
     }
 
-    // 4. MAX 500 MB VIDEO HANDLER
-    const MAX_VIDEO_BYTES = 500 * 1024 * 1024;
-    function validateVideoSize(input) {
-      if (input.files && input.files[0]) {
-        if (input.files[0].size > MAX_VIDEO_BYTES) {
-          alert("ভিডিও সাইজ ৫০০ MB এর বেশি হতে পারবে না!");
-          input.value = '';
-          return false;
-        }
+    // 6. VIDEO HANDLING (MAX 100 MB & AUTO COMPRESSION)
+    const MAX_TARGET_VIDEO_BYTES = 100 * 1024 * 1024; // 100 MB
+
+    async function handleVideoProcessing(file) {
+      if (!file) return "";
+      if (file.size <= MAX_TARGET_VIDEO_BYTES) {
+        return URL.createObjectURL(file);
       }
-      return true;
+
+      const statusEl = document.getElementById('videoCompressStatus');
+      if (statusEl) statusEl.classList.remove('hidden');
+
+      try {
+        const compressedBlob = await compressVideoClientSide(file);
+        if (statusEl) statusEl.classList.add('hidden');
+        return URL.createObjectURL(compressedBlob);
+      } catch (err) {
+        console.warn("Video compression skipped, using fallback:", err);
+        if (statusEl) statusEl.classList.add('hidden');
+        return URL.createObjectURL(file);
+      }
     }
 
-    function processVideoFile(file) {
-      return new Promise((resolve) => {
-        try {
-          const blobUrl = URL.createObjectURL(file);
-          resolve(blobUrl);
-        } catch(e) {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result);
-          reader.readAsDataURL(file);
-        }
+    function compressVideoClientSide(file) {
+      return new Promise((resolve, reject) => {
+        const video = document.createElement('video');
+        video.src = URL.createObjectURL(file);
+        video.muted = true;
+        video.playsInline = true;
+
+        video.onloadedmetadata = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          
+          const scale = Math.min(1, 720 / Math.max(video.videoWidth, video.videoHeight));
+          canvas.width = Math.round(video.videoWidth * scale);
+          canvas.height = Math.round(video.videoHeight * scale);
+
+          const stream = canvas.captureStream(24);
+          let recorder;
+          try {
+            recorder = new MediaRecorder(stream, {
+              mimeType: 'video/webm;codecs=vp8',
+              videoBitsPerSecond: 1500000
+            });
+          } catch(e) {
+            recorder = new MediaRecorder(stream);
+          }
+
+          const chunks = [];
+          recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+          recorder.onstop = () => {
+            const outBlob = new Blob(chunks, { type: 'video/webm' });
+            resolve(outBlob);
+          };
+
+          video.play();
+          recorder.start();
+
+          function drawFrame() {
+            if (!video.paused && !video.ended) {
+              ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+              requestAnimationFrame(drawFrame);
+            }
+          }
+          drawFrame();
+
+          video.onended = () => recorder.stop();
+          setTimeout(() => {
+            if (recorder.state === 'recording') recorder.stop();
+          }, 180000);
+        };
+
+        video.onerror = (e) => reject(e);
       });
     }
 
-    // 5. FORM SUBMISSION (Add / Edit Listing)
+    // 7. UNIVERSAL VIDEO LINK EMBEDDER
+    function playVideo(videoSrc) {
+      const modal = document.getElementById('videoModal');
+      const container = document.getElementById('videoContainer');
+      container.innerHTML = '';
+
+      if (!videoSrc) return;
+      const trimmed = videoSrc.trim();
+
+      // YouTube
+      const ytMatch = trimmed.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+      if (ytMatch) {
+        container.innerHTML = `<iframe class="w-full h-full aspect-video" src="https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+        modal.classList.remove('hidden');
+        return;
+      }
+
+      // Google Drive
+      if (trimmed.includes("drive.google.com")) {
+        const fileId = trimmed.match(/\/d\/([a-zA-Z0-9_-]+)/);
+        if (fileId) {
+          container.innerHTML = `<iframe class="w-full h-full aspect-video" src="https://drive.google.com/file/d/${fileId[1]}/preview" allow="autoplay"></iframe>`;
+          modal.classList.remove('hidden');
+          return;
+        }
+      }
+
+      // Facebook
+      if (trimmed.includes("facebook.com") || trimmed.includes("fb.watch")) {
+        container.innerHTML = `<iframe src="https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(trimmed)}&show_text=0&width=560" class="w-full h-full aspect-video" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>`;
+        modal.classList.remove('hidden');
+        return;
+      }
+
+      // Direct Video
+      container.innerHTML = `
+        <video controls autoplay class="w-full h-full max-h-[75vh] object-contain">
+          <source src="${trimmed}">
+          আপনার ব্রাউজার ভিডিও সাপোর্ট করছে না।
+        </video>
+      `;
+      modal.classList.remove('hidden');
+    }
+
+    function closeVideoModal() {
+      const modal = document.getElementById('videoModal');
+      document.getElementById('videoContainer').innerHTML = '';
+      modal.classList.add('hidden');
+    }
+
+    // 8. IMAGE LIGHTBOX
+    function openImageLightbox(images, startIndex = 0) {
+      if (!images || images.length === 0) return;
+      currentLightboxImages = images;
+      currentLightboxIndex = startIndex;
+      updateLightboxDisplay();
+      document.getElementById('imageLightboxModal').classList.remove('hidden');
+    }
+
+    function closeImageLightbox() {
+      document.getElementById('imageLightboxModal').classList.add('hidden');
+    }
+
+    function stepLightboxImage(step) {
+      currentLightboxIndex = (currentLightboxIndex + step + currentLightboxImages.length) % currentLightboxImages.length;
+      updateLightboxDisplay();
+    }
+
+    function updateLightboxDisplay() {
+      const imgEl = document.getElementById('lightboxImage');
+      const counterEl = document.getElementById('lightboxCounter');
+      imgEl.src = currentLightboxImages[currentLightboxIndex];
+      counterEl.textContent = `${currentLightboxIndex + 1} / ${currentLightboxImages.length}`;
+
+      const showArrows = currentLightboxImages.length > 1;
+      document.getElementById('lbPrevBtn').style.display = showArrows ? 'flex' : 'none';
+      document.getElementById('lbNextBtn').style.display = showArrows ? 'flex' : 'none';
+    }
+
+    // 9. FORM SUBMISSION
     async function handleFormSubmit(e) {
       e.preventDefault();
       const submitBtn = document.getElementById('submitBtn');
@@ -694,7 +1075,7 @@
       let videoUrl = document.getElementById('formVideoUrl').value.trim();
       const vidInput = document.getElementById('formVideoFileInput');
       if (vidInput && vidInput.files && vidInput.files[0]) {
-        videoUrl = await processVideoFile(vidInput.files[0]);
+        videoUrl = await handleVideoProcessing(vidInput.files[0]);
       } else if (!videoUrl && existingListing) {
         videoUrl = existingListing.video || "";
       }
@@ -744,13 +1125,72 @@
       if (!document.getElementById('adminPanelModal').classList.contains('hidden')) {
         renderAdminAdsList();
       }
+      if (!document.getElementById('userDashboardModal').classList.contains('hidden')) {
+        renderUserAdsList();
+      }
       alert("বিজ্ঞাপন সফলভাবে সংরক্ষণ করা হয়েছে!");
     }
 
-    // 6. ADMIN PANEL CONTROLS (Full Add, Edit, Remove for Ads, Users, Locations)
+    // 10. USER DASHBOARD
+    function openUserDashboard() {
+      if (!currentUser) {
+        alert("প্রথমে লগইন করুন!");
+        toggleAuthModal(true);
+        return;
+      }
+      document.getElementById('dashUserPhone').textContent = `নাম: ${currentUser.name} | মোবাইল: ${currentUser.phone}`;
+      renderUserAdsList();
+      toggleDashboardModal(true);
+    }
+
+    function toggleDashboardModal(show) {
+      document.getElementById('userDashboardModal').classList.toggle('hidden', !show);
+    }
+
+    function renderUserAdsList() {
+      const container = document.getElementById('userAdsListContainer');
+      container.innerHTML = '';
+
+      const myAds = isAdmin() ? listings : listings.filter(l => l.ownerPhone === currentUser.phone);
+
+      if (myAds.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-8 text-slate-400">
+            <i class="fa-solid fa-rectangle-ad text-3xl mb-2"></i>
+            <p class="text-xs">আপনার কোনো সক্রিয় বিজ্ঞাপন নেই।</p>
+          </div>
+        `;
+        return;
+      }
+
+      myAds.forEach(item => {
+        const row = document.createElement('div');
+        row.className = "flex items-center justify-between p-3.5 bg-slate-50 hover:bg-emerald-50/50 rounded-xl border border-slate-200 transition gap-3";
+        row.innerHTML = `
+          <div class="flex items-center gap-3 overflow-hidden">
+            <img src="${(item.images && item.images[0]) || 'https://via.placeholder.com/80'}" onclick='openImageLightbox(${JSON.stringify(item.images)})' class="w-12 h-12 rounded-lg object-cover bg-slate-200 flex-shrink-0 cursor-pointer hover:opacity-80">
+            <div class="truncate text-xs">
+              <h4 class="font-bold text-slate-800 text-sm truncate">${item.title}</h4>
+              <p class="text-slate-500">${item.area} • <span class="text-emerald-600 font-bold">৳${Number(item.rent).toLocaleString('bn-BD')}</span></p>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5 flex-shrink-0">
+            <button onclick="editListing('${item.id}'); toggleDashboardModal(false);" class="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold rounded-lg transition">
+              <i class="fa-solid fa-pen"></i> এডিট
+            </button>
+            <button onclick="removeListing('${item.id}')" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-semibold rounded-lg transition">
+              <i class="fa-solid fa-trash"></i> ডিলিট
+            </button>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    // 11. ADMIN PANEL CONTROLS
     function openAdminModal() {
       if (!isAdmin()) {
-        alert("অননুমোদিত অ্যাক্সেস!");
+        alert("অননুমোদিত অ্যাক্সেস! শুধুমাত্র অ্যাডমিন প্রবেশ করতে পারবেন।");
         return;
       }
       renderAdminAdsList();
@@ -759,13 +1199,8 @@
       toggleAdminModal(true);
     }
 
-    function toggleAdminModal(show) {
-      document.getElementById('adminPanelModal').classList.toggle('hidden', !show);
-    }
-
-    function toggleAdminEditUserModal(show) {
-      document.getElementById('adminEditUserModal').classList.toggle('hidden', !show);
-    }
+    function toggleAdminModal(show) { document.getElementById('adminPanelModal').classList.toggle('hidden', !show); }
+    function toggleAdminEditUserModal(show) { document.getElementById('adminEditUserModal').classList.toggle('hidden', !show); }
 
     function switchAdminTab(tab) {
       document.getElementById('adminAdsSection').classList.toggle('hidden', tab !== 'ads');
@@ -780,32 +1215,29 @@
       document.getElementById('adminTabLocations').className = (tab === 'locations') ? activeStyle : inactiveStyle;
     }
 
-    // --- Admin: Ads List & Operations ---
     function renderAdminAdsList() {
       const container = document.getElementById('adminAdsListContainer');
       container.innerHTML = '';
-
       if (listings.length === 0) {
         container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">কোনো বিজ্ঞাপন নেই।</p>`;
         return;
       }
-
       listings.forEach(item => {
         const row = document.createElement('div');
         row.className = "flex items-center justify-between p-3.5 bg-white rounded-xl border border-slate-200 shadow-sm gap-3";
         row.innerHTML = `
           <div class="flex items-center gap-3 overflow-hidden">
-            <img src="${(item.images && item.images[0]) || 'https://via.placeholder.com/80'}" class="w-12 h-12 rounded-lg object-cover bg-slate-100 flex-shrink-0">
+            <img src="${(item.images && item.images[0]) || 'https://via.placeholder.com/80'}" onclick='openImageLightbox(${JSON.stringify(item.images)})' class="w-12 h-12 rounded-lg object-cover bg-slate-100 flex-shrink-0 cursor-pointer">
             <div class="truncate text-xs">
               <h4 class="font-bold text-slate-800 text-sm truncate">${item.title}</h4>
               <p class="text-slate-500">${item.area} • মালিক: ${item.postedBy} (${item.phone}) • <span class="text-emerald-600 font-bold">৳${Number(item.rent).toLocaleString('bn-BD')}</span></p>
             </div>
           </div>
           <div class="flex items-center gap-2 flex-shrink-0">
-            <button onclick="editListing('${item.id}')" class="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold rounded-lg transition">
+            <button onclick="editListing('${item.id}'); toggleAdminModal(false);" class="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold rounded-lg transition">
               <i class="fa-solid fa-pen"></i> এডিট
             </button>
-            <button onclick="removeListing('${item.id}')" class="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-semibold rounded-lg transition">
+            <button onclick="removeListing('${item.id}');" class="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-semibold rounded-lg transition">
               <i class="fa-solid fa-trash"></i> ডিলিট
             </button>
           </div>
@@ -837,7 +1269,8 @@
         container.classList.remove('hidden');
         item.images.forEach((imgSrc, i) => {
           const thumb = document.createElement('div');
-          thumb.className = "relative w-14 h-14 rounded-lg overflow-hidden border border-slate-200 shadow-xs";
+          thumb.className = "relative w-14 h-14 rounded-lg overflow-hidden border border-slate-200 shadow-xs cursor-pointer";
+          thumb.onclick = () => openImageLightbox(item.images, i);
           thumb.innerHTML = `<img src="${imgSrc}" class="w-full h-full object-cover"><span class="absolute bottom-0 right-0 bg-black/60 text-white text-[9px] px-1 font-bold">#${i+1}</span>`;
           container.appendChild(thumb);
         });
@@ -857,11 +1290,11 @@
       }
       listings = listings.filter(item => item.id != id);
       localStorage.setItem('gopalganj_tolet', JSON.stringify(listings));
-      renderAdminAdsList();
       applyFilters();
+      if (!document.getElementById('adminPanelModal').classList.contains('hidden')) renderAdminAdsList();
+      if (!document.getElementById('userDashboardModal').classList.contains('hidden')) renderUserAdsList();
     }
 
-    // --- Admin: Users Operations (Add, Edit, Remove) ---
     function renderAdminUsersTable() {
       const tbody = document.getElementById('adminUsersTableBody');
       tbody.innerHTML = '';
@@ -899,14 +1332,8 @@
       const email = document.getElementById('adminNewUserEmail').value.trim().toLowerCase();
       const password = document.getElementById('adminNewUserPass').value.trim();
 
-      if (!name || !phone || !password) {
-        alert("দয়া করে নাম, মোবাইল নম্বর এবং পাসওয়ার্ড লিখুন!");
-        return;
-      }
-      if (users.find(u => u.phone === phone)) {
-        alert("এই মোবাইল নম্বর দিয়ে ইতিমধ্যে অ্যাকাউন্ট রয়েছে!");
-        return;
-      }
+      if (!name || !phone || !password) { alert("সব তথ্য পূরণ করুন!"); return; }
+      if (users.find(u => u.phone === phone)) { alert("মোবাইল নম্বরটি আগেই ব্যবহৃত হয়েছে!"); return; }
 
       const newUser = { name, phone, email, password, role: 'user' };
       users.push(newUser);
@@ -918,19 +1345,17 @@
       document.getElementById('adminNewUserPass').value = '';
 
       renderAdminUsersTable();
-      alert("ব্যবহারকারী সফলভাবে যুক্ত করা হয়েছে!");
+      alert("ব্যবহারকারী সফলভাবে যুক্ত হয়েছে!");
     }
 
     function adminEditUser(phone) {
       const user = users.find(u => u.phone === phone);
       if (!user) return;
-
       document.getElementById('editUserOldPhone').value = user.phone;
       document.getElementById('editUserName').value = user.name;
       document.getElementById('editUserEmail').value = user.email || '';
       document.getElementById('editUserPhone').value = user.phone;
       document.getElementById('editUserPassword').value = user.password;
-
       toggleAdminEditUserModal(true);
     }
 
@@ -938,13 +1363,11 @@
       e.preventDefault();
       const oldPhone = document.getElementById('editUserOldPhone').value;
       const index = users.findIndex(u => u.phone === oldPhone);
-
       if (index !== -1) {
         users[index].name = document.getElementById('editUserName').value.trim();
         users[index].email = document.getElementById('editUserEmail').value.trim().toLowerCase();
         users[index].phone = document.getElementById('editUserPhone').value.trim();
         users[index].password = document.getElementById('editUserPassword').value;
-
         localStorage.setItem('tolet_users', JSON.stringify(users));
         renderAdminUsersTable();
         toggleAdminEditUserModal(false);
@@ -953,14 +1376,13 @@
     }
 
     function adminDeleteUser(phone, name) {
-      if (!confirm(`আপনি কি "${name}" (${phone}) অ্যাকাউন্টটি ডিলিট করতে চান?`)) return;
+      if (!confirm(`"${name}" (${phone}) অ্যাকাউন্টটি মুছতে চান?`)) return;
       users = users.filter(u => u.phone !== phone);
       localStorage.setItem('tolet_users', JSON.stringify(users));
       renderAdminUsersTable();
       alert("অ্যাকাউন্ট ডিলিট করা হয়েছে!");
     }
 
-    // --- Admin: Locations Operations (Add, Edit, Remove) ---
     function renderAdminLocationsTable() {
       const tbody = document.getElementById('adminLocationsTableBody');
       tbody.innerHTML = '';
@@ -971,10 +1393,10 @@
           <td class="p-3 font-semibold text-slate-500 w-16">${index + 1}</td>
           <td class="p-3 font-bold text-slate-800">${loc}</td>
           <td class="p-3 text-center w-32 space-x-1">
-            <button onclick="editLocation(${index})" class="px-2 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded text-xs font-semibold" title="এডিট">
+            <button onclick="editLocation(${index})" class="px-2 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded text-xs font-semibold">
               <i class="fa-solid fa-pen"></i>
             </button>
-            <button onclick="deleteLocation(${index})" class="px-2 py-1 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded text-xs font-semibold" title="ডিলিট">
+            <button onclick="deleteLocation(${index})" class="px-2 py-1 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded text-xs font-semibold">
               <i class="fa-solid fa-trash"></i>
             </button>
           </td>
@@ -986,9 +1408,8 @@
     function addNewLocation() {
       const input = document.getElementById('newLocationInput');
       const val = input.value.trim();
-      if (!val) { alert("দয়া করে এলাকার নাম লিখুন!"); return; }
-      if (locations.includes(val)) { alert("এই এলাকাটি ইতিমধ্যে রয়েছে!"); return; }
-
+      if (!val) { alert("এলাকার নাম লিখুন!"); return; }
+      if (locations.includes(val)) { alert("এই এলাকাটি আগেই তালিকায় আছে!"); return; }
       locations.push(val);
       localStorage.setItem('gopalganj_locations', JSON.stringify(locations));
       input.value = '';
@@ -1002,14 +1423,10 @@
       const newName = prompt("এলাকার নতুন নাম লিখুন:", oldName);
       if (newName && newName.trim() && newName.trim() !== oldName) {
         const formatted = newName.trim();
-        listings.forEach(l => {
-          if (l.area === oldName) l.area = formatted;
-        });
+        listings.forEach(l => { if (l.area === oldName) l.area = formatted; });
         localStorage.setItem('gopalganj_tolet', JSON.stringify(listings));
-
         locations[index] = formatted;
         localStorage.setItem('gopalganj_locations', JSON.stringify(locations));
-
         renderAdminLocationsTable();
         refreshLocationDropdowns();
         applyFilters();
@@ -1025,7 +1442,7 @@
       applyFilters();
     }
 
-    // 7. CHAT & VOICE SYSTEM
+    // 12. CHAT & VOICE MESSAGING
     function getChatRoomKey(listingId, userA, userB) {
       const sorted = [userA, userB].sort();
       return `chat_${listingId}_${sorted[0]}_${sorted[1]}`;
@@ -1033,16 +1450,15 @@
 
     function openChatForListing(listingId) {
       if (!currentUser) {
-        alert("চ্যাট বা মেসেজ পাঠাতে হলে প্রথমে লগইন করুন।");
+        alert("চ্যাট করতে প্রথমে লগইন করুন!");
         toggleAuthModal(true);
         return;
       }
-
       const item = listings.find(l => l.id == listingId);
       if (!item) return;
 
       if (currentUser.phone === item.ownerPhone) {
-        alert("এটি আপনার নিজের বিজ্ঞাপন! ভাড়াটিয়াদের মেসেজ দেখতে ইনবক্স চেক করুন।");
+        alert("এটি আপনার নিজের বিজ্ঞাপন! মেসেজ দেখতে ইনবক্স চেক করুন।");
         openInboxModal();
         return;
       }
@@ -1075,15 +1491,13 @@
     function renderChatMessages() {
       const container = document.getElementById('chatMessagesContainer');
       container.innerHTML = '';
-
       const roomMessages = chats.filter(m => m.roomKey === currentChatKey);
 
       if (roomMessages.length === 0) {
         container.innerHTML = `
           <div class="text-center py-10">
             <i class="fa-regular fa-comment-dots text-3xl text-slate-300 mb-2 block"></i>
-            <p class="text-xs text-slate-500 font-medium">এখনো কোনো মেসেজ আদান-প্রদান হয়নি।</p>
-            <span class="text-[11px] text-slate-400">নিচে লিখে বা ভয়েস পাঠিয়ে কথা শুরু করুন।</span>
+            <p class="text-xs text-slate-500 font-medium">কোনো মেসেজ নেই। নিচে লিখে বা ভয়েস পাঠিয়ে শুরু করুন।</p>
           </div>
         `;
         return;
@@ -1098,7 +1512,7 @@
         if (msg.type === 'voice') {
           contentHtml = `
             <div class="flex items-center gap-2.5 px-3 py-2.5 rounded-2xl ${
-              isMe ? 'bg-gradient-to-r from-emerald-600 to-teal-700 text-white rounded-tr-none shadow-sm' : 'bg-white text-slate-800 rounded-tl-none border border-slate-200 shadow-xs'
+              isMe ? 'bg-gradient-to-r from-emerald-600 to-teal-700 text-white rounded-tr-none' : 'bg-white text-slate-800 rounded-tl-none border border-slate-200'
             } min-w-[210px]">
               <button onclick="playCustomVoice('audio_${idx}', this)" class="w-9 h-9 rounded-full ${isMe ? 'bg-white/20 text-white' : 'bg-emerald-600 text-white'} flex items-center justify-center transition flex-shrink-0">
                 <i class="fa-solid fa-play text-xs ml-0.5"></i>
@@ -1162,7 +1576,6 @@
 
       chats.push(newMsg);
       localStorage.setItem('tolet_chats', JSON.stringify(chats));
-
       input.value = '';
       renderChatMessages();
     }
@@ -1179,10 +1592,7 @@
         mediaRecorder = new MediaRecorder(stream);
         audioChunks = [];
 
-        mediaRecorder.ondataavailable = e => {
-          if (e.data.size > 0) audioChunks.push(e.data);
-        };
-
+        mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
         mediaRecorder.onstop = () => {
           if (audioChunks.length === 0) return;
           const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
@@ -1203,7 +1613,6 @@
               duration: formatSeconds(recordingSeconds),
               time: new Date().toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit' })
             };
-
             chats.push(newVoiceMsg);
             localStorage.setItem('tolet_chats', JSON.stringify(chats));
             renderChatMessages();
@@ -1219,7 +1628,6 @@
           recordingSeconds++;
           document.getElementById('recordingTimer').textContent = formatSeconds(recordingSeconds);
         }, 1000);
-
       } catch (err) {
         alert("মাইক্রোফোনের অনুমতি দিন!");
       }
@@ -1285,29 +1693,19 @@
 
     function openInboxModal() {
       if (!currentUser) {
-        alert("ইনবক্স দেখতে হলে প্রথমে লগইন করুন।");
+        alert("ইনবক্স দেখতে প্রথমে লগইন করুন!");
         toggleAuthModal(true);
         return;
       }
-
       const container = document.getElementById('inboxListContainer');
       container.innerHTML = '';
-
       const myMessages = chats.filter(m => m.senderPhone === currentUser.phone || m.recipientPhone === currentUser.phone);
       const uniqueRooms = {};
-      myMessages.forEach(m => {
-        if (!uniqueRooms[m.roomKey]) uniqueRooms[m.roomKey] = m;
-      });
-
+      myMessages.forEach(m => { if (!uniqueRooms[m.roomKey]) uniqueRooms[m.roomKey] = m; });
       const roomList = Object.values(uniqueRooms);
 
       if (roomList.length === 0) {
-        container.innerHTML = `
-          <div class="text-center py-10">
-            <i class="fa-solid fa-envelope-open-text text-3xl text-slate-300 mb-2 block"></i>
-            <p class="text-xs text-slate-500">আপনার কোনো চ্যাট বা মেসেজ নেই।</p>
-          </div>
-        `;
+        container.innerHTML = `<div class="text-center py-10 text-slate-400"><i class="fa-solid fa-envelope-open-text text-3xl mb-2"></i><p class="text-xs">আপনার কোনো চ্যাট বা মেসেজ নেই।</p></div>`;
       } else {
         roomList.forEach(m => {
           const partnerPhone = m.senderPhone === currentUser.phone ? m.recipientPhone : m.senderPhone;
@@ -1333,11 +1731,10 @@
           container.appendChild(row);
         });
       }
-
       toggleInboxModal(true);
     }
 
-    // 8. CARD RENDERING
+    // 13. CARD RENDERING
     function renderListings(items) {
       const container = document.getElementById('listingsContainer');
       const emptyState = document.getElementById('emptyState');
@@ -1365,7 +1762,7 @@
         card.innerHTML = `
           <div>
             <div class="relative h-48 w-full bg-slate-900 overflow-hidden group">
-              <img id="img-${item.id}" src="${imgs[0]}" alt="বাসার ছবি" class="w-full h-full object-cover">
+              <img id="img-${item.id}" src="${imgs[0]}" onclick='openImageLightbox(${JSON.stringify(imgs)}, cardImageIndexes["${item.id}"])' alt="বাসার ছবি" class="w-full h-full object-cover cursor-pointer hover:scale-105 transition duration-300" title="বড় করে দেখতে ক্লিক করুন">
               
               <div class="absolute top-3 left-3 z-10">
                 <span class="text-xs font-semibold px-2.5 py-1 rounded-full border bg-white/95 backdrop-blur shadow-sm ${badgeColor}">
@@ -1377,16 +1774,16 @@
                 <div class="absolute top-3 right-3 z-10 bg-black/60 text-white text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur">
                   <i class="fa-solid fa-camera mr-1"></i><span id="count-${item.id}">1/${imgs.length}</span>
                 </div>
-                <button onclick="slideImage('${item.id}', -1,${imgs.length})" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/80 text-white w-7 h-7 rounded-full flex items-center justify-center text-xs opacity-80 group-hover:opacity-100 transition z-10">
+                <button onclick="event.stopPropagation(); slideImage('${item.id}', -1,${imgs.length})" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/80 text-white w-7 h-7 rounded-full flex items-center justify-center text-xs opacity-80 group-hover:opacity-100 transition z-10">
                   <i class="fa-solid fa-chevron-left"></i>
                 </button>
-                <button onclick="slideImage('${item.id}', 1,${imgs.length})" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/80 text-white w-7 h-7 rounded-full flex items-center justify-center text-xs opacity-80 group-hover:opacity-100 transition z-10">
+                <button onclick="event.stopPropagation(); slideImage('${item.id}', 1,${imgs.length})" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/80 text-white w-7 h-7 rounded-full flex items-center justify-center text-xs opacity-80 group-hover:opacity-100 transition z-10">
                   <i class="fa-solid fa-chevron-right"></i>
                 </button>
               ` : ''}
 
               ${item.video ? `
-                <button onclick="playVideo('${item.video}')" class="absolute bottom-3 right-3 bg-rose-600/90 hover:bg-rose-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg backdrop-blur flex items-center gap-1.5 shadow transition z-10">
+                <button onclick='event.stopPropagation(); playVideo("${item.video}")' class="absolute bottom-3 right-3 bg-rose-600/90 hover:bg-rose-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg backdrop-blur flex items-center gap-1.5 shadow transition z-10">
                   <i class="fa-solid fa-play"></i> ভিডিও দেখুন
                 </button>
               ` : ''}
@@ -1442,50 +1839,51 @@
       if (counterEl) counterEl.textContent = `${cardImageIndexes[id] + 1}/${total}`;
     }
 
-    function playVideo(videoSrc) {
-      const modal = document.getElementById('videoModal');
-      const container = document.getElementById('videoContainer');
-      container.innerHTML = `
-        <video controls autoplay class="w-full h-full max-h-[75vh] object-contain">
-          <source src="${videoSrc}">
-          আপনার ব্রাউজার ভিডিও সাপোর্ট করছে না।
-        </video>
-      `;
-      modal.classList.remove('hidden');
-    }
-
-    function closeVideoModal() {
-      const modal = document.getElementById('videoModal');
-      document.getElementById('videoContainer').innerHTML = '';
-      modal.classList.add('hidden');
-    }
-
-    // 9. UI & AUTH
+    // 14. UI & AUTHENTICATION
     function updateAuthUI() {
       const authSection = document.getElementById('authSection');
       if (currentUser) {
         authSection.innerHTML = `
           <div class="flex items-center gap-1.5 bg-slate-100 py-1.5 px-3 rounded-lg border border-slate-200">
             ${isAdmin() ? `
-              <button onclick="openAdminModal()" class="text-xs font-bold text-amber-700 bg-amber-50 px-2 py-1 rounded border border-amber-200">
+              <button onclick="openAdminModal()" class="text-xs font-bold text-amber-700 bg-amber-50 px-2 py-1 rounded border border-amber-200 shadow-xs" title="অ্যাডমিন প্যানেল">
                 🛡️ অ্যাডমিন
               </button>
             ` : ''}
-            <span class="text-xs font-bold text-slate-800">${currentUser.name}</span>
-            <button onclick="logout()" class="text-[11px] text-red-500 ml-1 font-semibold">লগআউট</button>
+            <button onclick="openUserDashboard()" class="text-xs font-bold text-slate-800 hover:text-emerald-700 flex items-center gap-1 transition" title="আমার বিজ্ঞাপনসমূহ">
+              <i class="fa-solid fa-circle-user text-emerald-600"></i> ${currentUser.name}
+            </button>
+            <span class="text-slate-300">|</span>
+            <button onclick="logout()" class="text-[11px] text-red-500 font-semibold hover:text-red-700">লগআউট</button>
           </div>
         `;
       } else {
         authSection.innerHTML = `
-          <button onclick="toggleAuthModal(true)" class="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3.5 py-2 rounded-lg">
+          <button onclick="toggleAuthModal(true)" class="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3.5 py-2 rounded-lg hover:bg-emerald-100 transition">
             লগইন / সাইন-আপ
           </button>
         `;
       }
     }
 
-    function toggleAuthModal(show) { document.getElementById('authModal').classList.toggle('hidden', !show); }
-    function toggleAdminLoginModal(show) { document.getElementById('adminLoginModal').classList.toggle('hidden', !show); }
+    function toggleAuthModal(show) { 
+      document.getElementById('authModal').classList.toggle('hidden', !show); 
+      if (show) {
+        const savedPhone = localStorage.getItem('tolet_remember_phone') || '';
+        document.getElementById('loginPhone').value = savedPhone;
+        document.getElementById('loginPassword').value = '';
+        document.getElementById('rememberMeCheckbox').checked = !!savedPhone;
+      }
+    }
+
+    function toggleAdminLoginModal(show) { 
+      document.getElementById('adminLoginModal').classList.toggle('hidden', !show); 
+      if (show) {
+        document.getElementById('adminEmailInput').value = '';
+        document.getElementById('adminPasswordInput').value = '';
+      }
+    }
+
     function toggleAdModal(show) { document.getElementById('adModal').classList.toggle('hidden', !show); }
     function toggleInboxModal(show) { document.getElementById('inboxModal').classList.toggle('hidden', !show); }
     function toggleChatModal(show) { 
@@ -1501,40 +1899,84 @@
       document.getElementById('tabRegister').className = (tab === 'register') ? "flex-1 py-3 text-emerald-600 border-b-2 border-emerald-600 font-bold bg-white" : "flex-1 py-3 text-slate-500 font-semibold";
     }
 
+    function togglePasswordVisibility(inputId, btn) {
+      const input = document.getElementById(inputId);
+      const icon = btn.querySelector('i');
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'fa-solid fa-eye text-sm text-emerald-600';
+      } else {
+        input.type = 'password';
+        icon.className = 'fa-solid fa-eye-slash text-sm text-slate-400';
+      }
+    }
+
+    // USER LOGIN
     function handleUserLogin(e) {
       e.preventDefault();
       const phone = document.getElementById('loginPhone').value.trim();
       const password = document.getElementById('loginPassword').value;
+      const rememberMe = document.getElementById('rememberMeCheckbox').checked;
+
       let user = users.find(u => u.phone === phone && u.password === password);
-      if (!user) { alert("ভুল মোবাইল নম্বর বা পাসওয়ার্ড!"); return; }
+      if (!user) {
+        alert("ভুল মোবাইল নম্বর বা পাসওয়ার্ড! সঠিক তথ্য দিন।");
+        return;
+      }
+
+      if (rememberMe) {
+        localStorage.setItem('tolet_remember_phone', phone);
+      } else {
+        localStorage.removeItem('tolet_remember_phone');
+      }
+
       currentUser = user;
       localStorage.setItem('tolet_current_user', JSON.stringify(currentUser));
       toggleAuthModal(false);
       updateAuthUI();
+      alert(`স্বাগতম, ${currentUser.name}!`);
     }
 
+    // ADMIN LOGIN
     function handleAdminLogin(e) {
       e.preventDefault();
-      const email = document.getElementById('adminEmailInput').value.trim().toLowerCase();
-      const password = document.getElementById('adminPasswordInput').value;
-      let adminUser = users.find(u => (u.email.toLowerCase() === email || u.role === 'admin') && u.password === password);
-      if (!adminUser && email === "admin@gmail.com" && password === "admin") {
+      const inputVal = document.getElementById('adminEmailInput').value.trim().toLowerCase();
+      const password = document.getElementById('adminPasswordInput').value.trim();
+
+      let adminUser = users.find(u => 
+        (u.role === 'admin' || u.phone === '01700000000' || (u.email && u.email.toLowerCase() === 'admin@gmail.com')) &&
+        (u.phone === inputVal || (u.email && u.email.toLowerCase() === inputVal)) &&
+        u.password === password
+      );
+
+      if (!adminUser && (inputVal === "admin@gmail.com" || inputVal === "01700000000") && password === "admin") {
         adminUser = { name: "প্রধান অ্যাডমিন", phone: "01700000000", email: "admin@gmail.com", password: "admin", role: "admin" };
       }
-      if (!adminUser) { alert("ভুল অ্যাডমিন তথ্য!"); return; }
+
+      if (!adminUser) { 
+        alert("ভুল অ্যাডমিন তথ্য! নিশ্চিত করুন ইমেইল 'admin@gmail.com' এবং পাসওয়ার্ড 'admin'।"); 
+        return; 
+      }
+
       currentUser = adminUser;
       localStorage.setItem('tolet_current_user', JSON.stringify(currentUser));
       toggleAdminLoginModal(false);
       updateAuthUI();
       openAdminModal();
+      alert("অ্যাডমিন প্যানেলে সফলভাবে প্রবেশ করেছেন!");
     }
 
     function handleRegister(e) {
       e.preventDefault();
       const name = document.getElementById('regName').value.trim();
+      const email = document.getElementById('regEmail').value.trim().toLowerCase();
       const phone = document.getElementById('regPhone').value.trim();
       const password = document.getElementById('regPassword').value;
-      const newUser = { name, phone, password, role: 'user' };
+
+      if (users.find(u => u.phone === phone)) { alert("মোবাইল নম্বরটি আগেই ব্যবহৃত হয়েছে!"); return; }
+      if (users.find(u => u.email && u.email.toLowerCase() === email)) { alert("এই ইমেইল দিয়ে আগেই অ্যাকাউন্ট খোলা হয়েছে!"); return; }
+
+      const newUser = { name, email, phone, password, role: 'user' };
       users.push(newUser);
       localStorage.setItem('tolet_users', JSON.stringify(users));
       currentUser = newUser;
@@ -1549,6 +1991,7 @@
       localStorage.removeItem('tolet_current_user');
       updateAuthUI();
       toggleAdminModal(false);
+      toggleDashboardModal(false);
       toggleInboxModal(false);
       toggleChatModal(false);
     }
@@ -1559,12 +2002,13 @@
         toggleAuthModal(true);
         return;
       }
+      document.getElementById('listingForm').reset();
       document.getElementById('editListingId').value = '';
       document.getElementById('adModalTitle').textContent = 'নতুন বাসার বিজ্ঞাপন প্রকাশ করুন';
-      document.getElementById('listingForm').reset();
       document.getElementById('formPhone').value = currentUser.phone || '';
       document.getElementById('imagePreviewContainer').innerHTML = '';
       document.getElementById('imagePreviewContainer').classList.add('hidden');
+      document.getElementById('videoCompressStatus').classList.add('hidden');
       refreshLocationDropdowns();
       toggleAdModal(true);
     }
@@ -1600,6 +2044,15 @@
       }
     }
 
+    function filterByFooterArea(areaName) {
+      const areaFilter = document.getElementById('areaFilter');
+      if (areaFilter) {
+        areaFilter.value = areaName;
+        applyFilters();
+        window.scrollTo({ top: 400, behavior: 'smooth' });
+      }
+    }
+
     function applyFilters() {
       const search = document.getElementById('searchInput').value.toLowerCase();
       const area = document.getElementById('areaFilter').value;
@@ -1622,7 +2075,7 @@
       renderListings(listings);
     }
 
-    // App Init
+    // App Start
     refreshLocationDropdowns();
     updateAuthUI();
     listenToListings();
