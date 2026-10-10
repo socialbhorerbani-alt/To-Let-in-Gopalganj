@@ -12,7 +12,7 @@
   <!-- EmailJS SDK -->
   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
-  <!-- Firebase App & Firestore SDKs -->
+  <!-- Firebase App & Firestore -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
@@ -65,7 +65,7 @@
     </div>
   </header>
 
-  <!-- 3rd Party Top Leaderboard Banner (728x90) -->
+  <!-- 3rd Party Top Leaderboard Banner Slot (Syncs to all devices) -->
   <div id="thirdPartyTopBanner" class="max-w-7xl mx-auto px-3 sm:px-4 mt-3 w-full hidden">
     <a id="topBannerLink" href="#" target="_blank" rel="noopener noreferrer" class="block w-full overflow-hidden rounded-xl border border-slate-200 shadow-xs hover:opacity-95 transition bg-slate-100 text-center">
       <img id="topBannerImg" src="" alt="স্পন্সরড ব্যানার" class="mx-auto w-auto max-h-[90px] object-contain">
@@ -116,7 +116,7 @@
     </div>
   </section>
 
-  <!-- Main Content Layout (Responsive Listings + Clean Sidebar Ad Zone) -->
+  <!-- Main Content Layout (Responsive Listings + Sidebar Ads) -->
   <main class="max-w-7xl mx-auto px-3 sm:px-4 py-8 sm:py-10 flex-1 w-full">
     <div class="flex items-center justify-between mb-5 sm:mb-6">
       <h2 class="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">
@@ -138,7 +138,7 @@
         </div>
       </div>
 
-      <!-- Right Column: Clean Sidebar Ad Zone -->
+      <!-- Right Column: Clean Sidebar Ad Zone (Displays across PC, Tablet & Mobile) -->
       <aside id="sidebarAdZone" class="lg:col-span-4 xl:col-span-3 flex flex-col gap-4 sticky top-20 w-full">
         <div id="sidebarAdListContainer" class="flex flex-col gap-4 items-center w-full"></div>
       </aside>
@@ -211,9 +211,9 @@
     </div>
   </footer>
 
-  <!-- ==================== ALL MODALS (CLEAN & UNIQUE) ==================== -->
+  <!-- ==================== ALL MODALS ==================== -->
 
-  <!-- 1. Popup Ad Modal -->
+  <!-- Popup Ad Modal -->
   <div id="popupAdModal" class="fixed inset-0 bg-slate-900/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-4">
     <div class="bg-white rounded-2xl w-full max-w-sm sm:max-w-md overflow-hidden shadow-2xl border border-slate-200 relative">
       <button onclick="closePopupAd()" class="absolute top-2.5 right-2.5 bg-black/60 hover:bg-black/80 text-white w-7 h-7 rounded-full flex items-center justify-center text-sm z-20 transition">&times;</button>
@@ -233,7 +233,7 @@
     </div>
   </div>
 
-  <!-- 2. Image Lightbox Modal -->
+  <!-- Image Lightbox Modal -->
   <div id="imageLightboxModal" class="fixed inset-0 bg-black/95 backdrop-blur-md z-50 hidden flex items-center justify-center p-2 sm:p-4" onclick="closeImageLightbox()">
     <button onclick="closeImageLightbox()" class="absolute top-4 right-4 text-white text-2xl bg-white/20 hover:bg-white/40 rounded-full w-10 h-10 flex items-center justify-center transition z-50">&times;</button>
     <div class="relative max-w-4xl w-full max-h-[85vh] flex items-center justify-center" onclick="event.stopPropagation()">
@@ -248,7 +248,7 @@
     </div>
   </div>
 
-  <!-- 3. Video Player Modal (Sound Enabled & Download Blocked) -->
+  <!-- Video Player Modal -->
   <div id="videoModal" class="fixed inset-0 bg-slate-900/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 sm:p-6" oncontextmenu="return false;">
     <div class="bg-black rounded-2xl w-full max-w-3xl overflow-hidden relative shadow-2xl border border-slate-800">
       <div class="p-3 bg-slate-900 flex justify-between items-center text-white text-xs sm:text-sm font-bold border-b border-slate-800">
@@ -259,7 +259,7 @@
     </div>
   </div>
 
-  <!-- 4. Review & Ratings Modal -->
+  <!-- Review Modal -->
   <div id="reviewModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-4">
     <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl border border-slate-100 flex flex-col max-h-[88vh]">
       <div class="px-5 py-4 bg-emerald-600 text-white flex justify-between items-center">
@@ -296,7 +296,7 @@
     </div>
   </div>
 
-  <!-- 5. User Dashboard Modal -->
+  <!-- User Dashboard Modal -->
   <div id="userDashboardModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 md:p-6">
     <div class="bg-white rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl border border-slate-100 flex flex-col max-h-[90vh]">
       <div class="px-5 sm:px-6 py-4 bg-emerald-700 text-white flex justify-between items-center">
@@ -357,64 +357,7 @@
     </div>
   </div>
 
-  <!-- 6. Inbox Modal -->
-  <div id="inboxModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-4">
-    <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl border border-slate-100 flex flex-col max-h-[85vh]">
-      <div class="px-5 py-4 bg-emerald-600 text-white flex justify-between items-center">
-        <h3 class="text-base font-bold flex items-center gap-2">
-          <i class="fa-solid fa-inbox"></i> মেসেজ ইনবক্স
-        </h3>
-        <button onclick="toggleInboxModal(false)" class="text-white hover:text-slate-200 text-xl font-bold">&times;</button>
-      </div>
-      <div id="inboxListContainer" class="p-4 overflow-y-auto space-y-2 flex-1"></div>
-    </div>
-  </div>
-
-  <!-- 7. Direct Chat Modal -->
-  <div id="chatModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-2 sm:p-4">
-    <div class="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl border border-slate-100 flex flex-col h-[90vh] max-h-[650px]">
-      <div class="px-4 py-3 bg-emerald-700 text-white flex justify-between items-center flex-shrink-0 shadow-xs">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-full bg-emerald-800 flex items-center justify-center text-white font-bold text-base border border-emerald-500">
-            <i class="fa-solid fa-user"></i>
-          </div>
-          <div>
-            <h4 id="chatPartnerName" class="font-bold text-sm leading-tight">বাড়িওয়ালা / ভাড়াটিয়া</h4>
-            <span id="chatListingTitle" class="text-[11px] text-emerald-200 truncate max-w-[200px] sm:max-w-[250px] block">বাসার নাম</span>
-          </div>
-        </div>
-        <button onclick="toggleChatModal(false)" class="text-white hover:text-slate-200 text-xl font-bold">&times;</button>
-      </div>
-
-      <div id="chatMessagesContainer" class="flex-1 p-4 overflow-y-auto space-y-3 bg-slate-100 select-none"></div>
-
-      <div id="recordingBanner" class="hidden bg-rose-50 border-t border-rose-200 px-4 py-2.5 flex items-center justify-between text-xs text-rose-700">
-        <div class="flex items-center gap-2">
-          <span class="w-2.5 h-2.5 bg-rose-600 rounded-full animate-ping"></span>
-          <span class="font-bold">ভয়েস রেকর্ড হচ্ছে...</span>
-          <span id="recordingTimer" class="font-mono font-bold ml-1 bg-rose-200 px-1.5 py-0.5 rounded">00:00</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <button onclick="cancelVoiceRecord()" class="text-slate-400 hover:text-rose-600 px-2 py-1 font-bold">বাতিল</button>
-          <button onclick="stopAndSendVoiceRecord()" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg font-bold flex items-center gap-1 shadow-xs">
-            <i class="fa-solid fa-paper-plane text-xs"></i> পাঠান
-          </button>
-        </div>
-      </div>
-
-      <div class="p-3 bg-white border-t border-slate-200 flex items-center gap-2 flex-shrink-0">
-        <input type="text" id="chatTextInput" onkeydown="if(event.key==='Enter') sendTextMessage()" placeholder="একটি মেসেজ লিখুন..." class="flex-1 px-3.5 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-        <button onclick="sendTextMessage()" class="p-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm transition shadow-sm active:scale-95" title="মেসেজ পাঠান">
-          <i class="fa-solid fa-paper-plane"></i>
-        </button>
-        <button id="recordVoiceBtn" onclick="toggleVoiceRecord()" class="p-2.5 bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 rounded-xl text-sm transition border border-slate-300 active:scale-95" title="ভয়েস মেসেজ পাঠান">
-          <i class="fa-solid fa-microphone text-emerald-600"></i>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 8. User Auth Modal -->
+  <!-- User Auth Modal -->
   <div id="authModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-slate-100">
       <div class="px-6 py-4 bg-emerald-600 text-white flex justify-between items-center">
@@ -491,7 +434,7 @@
     </div>
   </div>
 
-  <!-- 9. Admin Login Modal -->
+  <!-- Admin Login Modal -->
   <div id="adminLoginModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-slate-100">
       <div class="px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
@@ -523,7 +466,7 @@
     </div>
   </div>
 
-  <!-- 10. Forgot Password Modal -->
+  <!-- Forgot Password Modal -->
   <div id="forgotPasswordModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-slate-100">
       <div class="px-6 py-4 bg-emerald-600 text-white flex justify-between items-center">
@@ -566,7 +509,7 @@
     </div>
   </div>
 
-  <!-- 11. Add / Edit Ad Modal -->
+  <!-- Add / Edit Ad Modal -->
   <div id="adModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-2 sm:p-4">
     <div class="bg-white rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl border border-slate-100 flex flex-col max-h-[92vh]">
       <div class="px-5 sm:px-6 py-4 bg-gradient-to-r from-emerald-600 to-teal-700 text-white flex justify-between items-center flex-shrink-0">
@@ -662,7 +605,7 @@
     </div>
   </div>
 
-  <!-- 12. Admin Edit User Modal -->
+  <!-- Admin Edit User Modal -->
   <div id="adminEditUserModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-slate-100">
       <div class="px-6 py-4 bg-slate-800 text-white flex justify-between items-center">
@@ -695,7 +638,7 @@
     </div>
   </div>
 
-  <!-- 13. Admin Control Panel Modal (Full Multi-Category Control) -->
+  <!-- Admin Control Panel Modal (Immediate Flex Display) -->
   <div id="adminPanelModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-3 md:p-6">
     <div class="bg-white rounded-2xl w-full max-w-5xl overflow-hidden shadow-2xl border border-slate-100 flex flex-col max-h-[92vh]">
       <div class="px-5 sm:px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
@@ -956,7 +899,7 @@
     let listings = [];
     let users = JSON.parse(localStorage.getItem('tolet_users')) || [];
 
-    // Ensure Admin & Default user
+    // Setup Admin and Default Users
     let adminFound = users.find(u => u.email === 'admin@gmail.com' || u.phone === '01700000000' || u.role === 'admin');
     if (!adminFound) {
       users.unshift({ name: "প্রধান অ্যাডমিন", phone: "01700000000", email: "admin@gmail.com", password: "admin", role: "admin" });
@@ -1024,9 +967,10 @@
       return currentUser && (currentUser.role === 'admin' || currentUser.phone === '01700000000' || (currentUser.email && currentUser.email.toLowerCase() === 'admin@gmail.com')); 
     }
 
-    // 3. FIRESTORE REALTIME LISTENER
+    // 3. FIRESTORE REALTIME LISTENER FOR LISTINGS & AD SETTINGS (SYNC FOR ALL DEVICES)
     function listenToListings() {
       if (isFirebaseReady && firebaseDb) {
+        // Listings Sync
         firebaseDb.collection("listings").onSnapshot((snapshot) => {
           listings = [];
           snapshot.forEach((doc) => {
@@ -1049,6 +993,26 @@
           listings = JSON.parse(localStorage.getItem('gopalganj_tolet')) || [];
           applyFilters();
         });
+
+        // Global Site & Banner Ad Settings Sync Across Devices
+        firebaseDb.collection("site_settings").doc("ad_config").onSnapshot((doc) => {
+          if (doc.exists) {
+            adSettings = { ...adSettings, ...doc.data() };
+            localStorage.setItem('tolet_ad_settings', JSON.stringify(adSettings));
+            applyAdSettingsToUI();
+          }
+        });
+
+        // Global Sidebar Ads Sync Across Devices
+        firebaseDb.collection("site_settings").doc("sidebar_ads_config").onSnapshot((doc) => {
+          if (doc.exists && doc.data().ads) {
+            sidebarAds = doc.data().ads;
+            localStorage.setItem('tolet_sidebar_ads', JSON.stringify(sidebarAds));
+            renderSidebarAds();
+            renderAdminSidebarAdsList();
+          }
+        });
+
       } else {
         listings = JSON.parse(localStorage.getItem('gopalganj_tolet')) || [];
         applyFilters();
@@ -1125,6 +1089,7 @@
         const dimInfo = adDimensionMap[ad.dimension] || { w: 300, h: 250 };
         const card = document.createElement('div');
         card.className = "w-full max-w-full flex items-center justify-center bg-white p-2 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md transition overflow-hidden group";
+        
         card.innerHTML = `
           <a href="${ad.targetUrl || '#'}" target="_blank" rel="noopener noreferrer" class="block w-full overflow-hidden rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center">
             <img src="${ad.imageUrl}" alt="${ad.title || 'এড'}" style="max-height: ${dimInfo.h}px; max-width: ${dimInfo.w}px;" class="w-full h-auto object-contain transition duration-300 group-hover:scale-[1.02]">
@@ -1220,6 +1185,15 @@
       sidebarAds.unshift(newAd);
       localStorage.setItem('tolet_sidebar_ads', JSON.stringify(sidebarAds));
 
+      // Sync across all devices via Firestore
+      if (isFirebaseReady && firebaseDb) {
+        try {
+          firebaseDb.collection("site_settings").doc("sidebar_ads_config").set({ ads: sidebarAds });
+        } catch (fErr) {
+          console.warn("Firestore sync error:", fErr);
+        }
+      }
+
       document.getElementById('sidebarAdTitleInput').value = '';
       document.getElementById('sidebarAdTargetUrlInput').value = '';
       document.getElementById('sidebarAdImageUrlInput').value = '';
@@ -1237,6 +1211,15 @@
       if (!confirm("বিজ্ঞাপনটি মুছে ফেলতে চান?")) return;
       sidebarAds.splice(index, 1);
       localStorage.setItem('tolet_sidebar_ads', JSON.stringify(sidebarAds));
+
+      if (isFirebaseReady && firebaseDb) {
+        try {
+          firebaseDb.collection("site_settings").doc("sidebar_ads_config").set({ ads: sidebarAds });
+        } catch (fErr) {
+          console.warn("Firestore sync error:", fErr);
+        }
+      }
+
       renderAdminSidebarAdsList();
       applyAdSettingsToUI();
     }
@@ -1263,11 +1246,19 @@
       adSettings.topBannerTargetUrl = document.getElementById('adTopBannerTargetUrl').value.trim() || '#';
 
       localStorage.setItem('tolet_ad_settings', JSON.stringify(adSettings));
-      applyAdSettingsToUI();
 
+      if (isFirebaseReady && firebaseDb) {
+        try {
+          firebaseDb.collection("site_settings").doc("ad_config").set(adSettings);
+        } catch (fErr) {
+          console.warn("Firestore sync error:", fErr);
+        }
+      }
+
+      applyAdSettingsToUI();
       btn.disabled = false;
       btn.innerHTML = `টপ ব্যানার সংরক্ষণ করুন`;
-      alert("টপ ব্যানার সফলভাবে সংরক্ষিত হয়েছে!");
+      alert("টপ ব্যানার সকল ডিভাইসের জন্য সংরক্ষিত হয়েছে!");
     }
 
     async function savePopupAdSettingsDirect() {
@@ -1294,11 +1285,19 @@
       adSettings.popupActionUrl = document.getElementById('popupAdActionUrlInput').value.trim() || '#';
 
       localStorage.setItem('tolet_ad_settings', JSON.stringify(adSettings));
-      applyAdSettingsToUI();
 
+      if (isFirebaseReady && firebaseDb) {
+        try {
+          firebaseDb.collection("site_settings").doc("ad_config").set(adSettings);
+        } catch (fErr) {
+          console.warn("Firestore sync error:", fErr);
+        }
+      }
+
+      applyAdSettingsToUI();
       btn.disabled = false;
       btn.innerHTML = `পপ-আপ সেটিংস সংরক্ষণ করুন`;
-      alert("পপ-আপ ব্যানার সেটিংস সফলভাবে সংরক্ষিত হয়েছে!");
+      alert("পপ-আপ ব্যানার সেটিংস সকল ডিভাইসের জন্য সংরক্ষিত হয়েছে!");
     }
 
     // 5. USER & ADMIN PASSWORD CHANGE
@@ -1594,7 +1593,7 @@
       }
     }
 
-    // 9. VIDEO HANDLING (AUDIO PRESERVED & MAX 100 MB AUTO-COMPRESSION)
+    // 9. VIDEO HANDLING WITH SOUND (MAX 100 MB AUTO-COMPRESSION)
     const MAX_TARGET_VIDEO_BYTES = 100 * 1024 * 1024; // 100 MB
 
     async function handleVideoProcessing(file) {
@@ -1912,7 +1911,7 @@
       });
     }
 
-    // 14. ADMIN PANEL CONTROLS (BUG-FREE & IMMEDIATE MODAL OPEN)
+    // 14. ADMIN PANEL CONTROLS (DIRECT & ERROR-FREE MODAL TOGGLE)
     function openAdminModal() {
       if (!isAdmin()) {
         alert("অননুমোদিত অ্যাক্সেস! শুধুমাত্র অ্যাডমিন প্রবেশ করতে পারবেন।");
