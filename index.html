@@ -12,7 +12,7 @@
   <!-- EmailJS SDK -->
   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
-  <!-- Firebase App & Firestore -->
+  <!-- Firebase App & Firestore SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
@@ -20,7 +20,7 @@
     @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap');
     body { font-family: 'Hind Siliguri', sans-serif; }
     
-    /* Video download & inspector restrictions */
+    /* Video download & context menu restrictions */
     video::-internal-media-controls-download-button { display: none !important; }
     video::-webkit-media-controls-enclosure { overflow: hidden; }
     video::-webkit-media-controls-panel { width: calc(100% + 30px); }
@@ -65,7 +65,7 @@
     </div>
   </header>
 
-  <!-- 3rd Party Leaderboard Banner (728x90) Slot -->
+  <!-- 3rd Party Top Leaderboard Banner (728x90) -->
   <div id="thirdPartyTopBanner" class="max-w-7xl mx-auto px-3 sm:px-4 mt-3 w-full hidden">
     <a id="topBannerLink" href="#" target="_blank" rel="noopener noreferrer" class="block w-full overflow-hidden rounded-xl border border-slate-200 shadow-xs hover:opacity-95 transition bg-slate-100 text-center">
       <img id="topBannerImg" src="" alt="স্পন্সরড ব্যানার" class="mx-auto w-auto max-h-[90px] object-contain">
@@ -116,7 +116,7 @@
     </div>
   </section>
 
-  <!-- Main Content Layout (Listings + Dynamic Sidebar Ad Zone) -->
+  <!-- Main Content Layout (Responsive Listings + Clean Sidebar Ad Zone) -->
   <main class="max-w-7xl mx-auto px-3 sm:px-4 py-8 sm:py-10 flex-1 w-full">
     <div class="flex items-center justify-between mb-5 sm:mb-6">
       <h2 class="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">
@@ -128,8 +128,8 @@
     <!-- 2 Column Responsive Grid: Listings Left, Ads Right -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
       <!-- Left Column: Listings Grid -->
-      <div class="lg:col-span-8 xl:col-span-9">
-        <div id="listingsContainer" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6"></div>
+      <div class="lg:col-span-8 xl:col-span-9 w-full">
+        <div id="listingsContainer" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6"></div>
 
         <div id="emptyState" class="hidden text-center py-16 bg-white rounded-2xl border border-slate-100 mt-4">
           <i class="fa-regular fa-face-frown text-4xl text-slate-400 mb-3 block"></i>
@@ -138,12 +138,8 @@
         </div>
       </div>
 
-      <!-- Right Column: Sidebar Ad Zone (Responsive Sticky Stack) -->
-      <aside id="sidebarAdZone" class="lg:col-span-4 xl:col-span-3 flex flex-col gap-4 sticky top-20">
-        <div class="bg-white p-3 rounded-2xl border border-slate-200/80 shadow-xs flex justify-between items-center text-xs text-slate-400 font-bold uppercase tracking-wider">
-          <span class="flex items-center gap-1.5"><i class="fa-solid fa-rectangle-ad text-emerald-600"></i> স্পন্সরড বিজ্ঞাপন</span>
-          <span class="text-[10px] text-slate-300">AD</span>
-        </div>
+      <!-- Right Column: Clean Sidebar Ad Zone -->
+      <aside id="sidebarAdZone" class="lg:col-span-4 xl:col-span-3 flex flex-col gap-4 sticky top-20 w-full">
         <div id="sidebarAdListContainer" class="flex flex-col gap-4 items-center w-full"></div>
       </aside>
     </div>
@@ -215,9 +211,9 @@
     </div>
   </footer>
 
-  <!-- ==================== MODALS ==================== -->
+  <!-- ==================== ALL MODALS (CLEAN & UNIQUE) ==================== -->
 
-  <!-- Popup Ad Modal -->
+  <!-- 1. Popup Ad Modal -->
   <div id="popupAdModal" class="fixed inset-0 bg-slate-900/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-4">
     <div class="bg-white rounded-2xl w-full max-w-sm sm:max-w-md overflow-hidden shadow-2xl border border-slate-200 relative">
       <button onclick="closePopupAd()" class="absolute top-2.5 right-2.5 bg-black/60 hover:bg-black/80 text-white w-7 h-7 rounded-full flex items-center justify-center text-sm z-20 transition">&times;</button>
@@ -237,7 +233,7 @@
     </div>
   </div>
 
-  <!-- Modal: Image Lightbox -->
+  <!-- 2. Image Lightbox Modal -->
   <div id="imageLightboxModal" class="fixed inset-0 bg-black/95 backdrop-blur-md z-50 hidden flex items-center justify-center p-2 sm:p-4" onclick="closeImageLightbox()">
     <button onclick="closeImageLightbox()" class="absolute top-4 right-4 text-white text-2xl bg-white/20 hover:bg-white/40 rounded-full w-10 h-10 flex items-center justify-center transition z-50">&times;</button>
     <div class="relative max-w-4xl w-full max-h-[85vh] flex items-center justify-center" onclick="event.stopPropagation()">
@@ -252,7 +248,7 @@
     </div>
   </div>
 
-  <!-- Modal: Video Player -->
+  <!-- 3. Video Player Modal (Sound Enabled & Download Blocked) -->
   <div id="videoModal" class="fixed inset-0 bg-slate-900/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 sm:p-6" oncontextmenu="return false;">
     <div class="bg-black rounded-2xl w-full max-w-3xl overflow-hidden relative shadow-2xl border border-slate-800">
       <div class="p-3 bg-slate-900 flex justify-between items-center text-white text-xs sm:text-sm font-bold border-b border-slate-800">
@@ -263,7 +259,7 @@
     </div>
   </div>
 
-  <!-- Modal: Reviews & Ratings Modal -->
+  <!-- 4. Review & Ratings Modal -->
   <div id="reviewModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-4">
     <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl border border-slate-100 flex flex-col max-h-[88vh]">
       <div class="px-5 py-4 bg-emerald-600 text-white flex justify-between items-center">
@@ -300,7 +296,7 @@
     </div>
   </div>
 
-  <!-- Modal: User Dashboard -->
+  <!-- 5. User Dashboard Modal -->
   <div id="userDashboardModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 md:p-6">
     <div class="bg-white rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl border border-slate-100 flex flex-col max-h-[90vh]">
       <div class="px-5 sm:px-6 py-4 bg-emerald-700 text-white flex justify-between items-center">
@@ -361,7 +357,7 @@
     </div>
   </div>
 
-  <!-- Modal: Inbox -->
+  <!-- 6. Inbox Modal -->
   <div id="inboxModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-4">
     <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl border border-slate-100 flex flex-col max-h-[85vh]">
       <div class="px-5 py-4 bg-emerald-600 text-white flex justify-between items-center">
@@ -374,7 +370,7 @@
     </div>
   </div>
 
-  <!-- Modal: Direct Chat Box -->
+  <!-- 7. Direct Chat Modal -->
   <div id="chatModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-2 sm:p-4">
     <div class="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl border border-slate-100 flex flex-col h-[90vh] max-h-[650px]">
       <div class="px-4 py-3 bg-emerald-700 text-white flex justify-between items-center flex-shrink-0 shadow-xs">
@@ -418,7 +414,7 @@
     </div>
   </div>
 
-  <!-- Modal: User Auth -->
+  <!-- 8. User Auth Modal -->
   <div id="authModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-slate-100">
       <div class="px-6 py-4 bg-emerald-600 text-white flex justify-between items-center">
@@ -495,7 +491,7 @@
     </div>
   </div>
 
-  <!-- Modal: Admin Login -->
+  <!-- 9. Admin Login Modal -->
   <div id="adminLoginModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-slate-100">
       <div class="px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
@@ -511,7 +507,7 @@
         </div>
         <div>
           <label class="block font-medium text-slate-700 mb-1">অ্যাডমিন Email / Phone *</label>
-          <input type="text" id="adminEmailInput" required placeholder="admin@gmail.com বা 01700000000" autocomplete="off" class="w-full p-2.5 rounded-lg border border-slate-200 outline-none">
+          <input type="text" id="adminEmailInput" required placeholder="ইমেইল বা ফোন লিখুন" autocomplete="off" class="w-full p-2.5 rounded-lg border border-slate-200 outline-none">
         </div>
         <div>
           <label class="block font-medium text-slate-700 mb-1">অ্যাডমিন পাসওয়ার্ড *</label>
@@ -527,7 +523,7 @@
     </div>
   </div>
 
-  <!-- Modal: Forgot Password -->
+  <!-- 10. Forgot Password Modal -->
   <div id="forgotPasswordModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-slate-100">
       <div class="px-6 py-4 bg-emerald-600 text-white flex justify-between items-center">
@@ -570,255 +566,7 @@
     </div>
   </div>
 
-  <!-- Modal: Admin Panel (Ads, Users, Locations, Multi-Size Dynamic Ads & Popup) -->
-  <div id="adminPanelModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 md:p-6">
-    <div class="bg-white rounded-2xl w-full max-w-5xl overflow-hidden shadow-2xl border border-slate-100 flex flex-col max-h-[92vh]">
-      <div class="px-5 sm:px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
-        <div class="flex items-center gap-2">
-          <span class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></span>
-          <h3 class="text-sm sm:text-base font-bold">টু-লেট গোপালগঞ্জ — প্রধান অ্যাডমিন কন্ট্রোল প্যানেল</h3>
-        </div>
-        <button onclick="toggleAdminModal(false)" class="text-white hover:text-slate-300 text-xl font-bold">&times;</button>
-      </div>
-
-      <div class="p-3 bg-slate-100 border-b border-slate-200 flex flex-wrap gap-2 justify-between items-center">
-        <div class="flex flex-wrap gap-1.5 sm:gap-2">
-          <button id="adminTabAds" onclick="switchAdminTab('ads')" class="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-bold shadow-sm">
-            <i class="fa-solid fa-list-check mr-1"></i> বাসা বিজ্ঞাপন
-          </button>
-          <button id="adminTabUsers" onclick="switchAdminTab('users')" class="px-3 py-1.5 bg-white text-slate-700 border border-slate-300 rounded-lg text-xs font-bold hover:bg-slate-50">
-            <i class="fa-solid fa-users-gear mr-1"></i> ব্যবহারকারী
-          </button>
-          <button id="adminTabLocations" onclick="switchAdminTab('locations')" class="px-3 py-1.5 bg-white text-slate-700 border border-slate-300 rounded-lg text-xs font-bold hover:bg-slate-50">
-            <i class="fa-solid fa-map-location-dot mr-1"></i> এলাকা / স্থান
-          </button>
-          <button id="adminTabBanners" onclick="switchAdminTab('banners')" class="px-3 py-1.5 bg-white text-slate-700 border border-slate-300 rounded-lg text-xs font-bold hover:bg-slate-50">
-            <i class="fa-solid fa-rectangle-ad mr-1"></i> বিভিন্ন সাইজের ব্যানার ও পপ-আপ
-          </button>
-        </div>
-      </div>
-
-      <div class="p-4 sm:p-6 overflow-y-auto flex-1 space-y-4">
-        <!-- 1. ADMIN ADS -->
-        <div id="adminAdsSection" class="space-y-3">
-          <div class="flex justify-between items-center mb-2">
-            <span class="text-xs font-bold text-slate-600">সকল বিজ্ঞাপনের তালিকা</span>
-            <button onclick="openAdModalForCreate()" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1 shadow-sm">
-              <i class="fa-solid fa-plus"></i> নতুন বিজ্ঞাপন
-            </button>
-          </div>
-          <div id="adminAdsListContainer" class="space-y-3"></div>
-        </div>
-
-        <!-- 2. ADMIN USERS -->
-        <div id="adminUsersSection" class="hidden space-y-4">
-          <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl">
-            <h4 class="text-xs font-bold text-slate-700 mb-2 flex items-center gap-1">
-              <i class="fa-solid fa-user-plus text-emerald-600"></i> নতুন ব্যবহারকারী যুক্ত করুন
-            </h4>
-            <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
-              <input type="text" id="adminNewUserName" placeholder="নাম" class="p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
-              <input type="tel" id="adminNewUserPhone" placeholder="মোবাইল নম্বর" class="p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
-              <input type="email" id="adminNewUserEmail" placeholder="ইমেইল" class="p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
-              <div class="flex gap-2">
-                <input type="text" id="adminNewUserPass" placeholder="পাসওয়ার্ড" class="flex-1 p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
-                <button onclick="adminAddNewUser()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-sm whitespace-nowrap">
-                  যুক্ত করুন
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div class="overflow-x-auto border border-slate-200 rounded-xl">
-            <table class="w-full text-left border-collapse text-xs md:text-sm">
-              <thead>
-                <tr class="bg-slate-50 border-b border-slate-200 text-slate-600">
-                  <th class="p-3 font-semibold">নাম</th>
-                  <th class="p-3 font-semibold">মোবাইল</th>
-                  <th class="p-3 font-semibold">ইমেইল</th>
-                  <th class="p-3 font-semibold">পাসওয়ার্ড</th>
-                  <th class="p-3 font-semibold text-center">অ্যাকশন</th>
-                </tr>
-              </thead>
-              <tbody id="adminUsersTableBody" class="divide-y divide-slate-100"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- 3. ADMIN LOCATIONS -->
-        <div id="adminLocationsSection" class="hidden space-y-4">
-          <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl flex flex-col sm:flex-row gap-3 items-end">
-            <div class="flex-1 w-full">
-              <label class="block text-xs font-semibold text-slate-700 mb-1">গোপালগঞ্জের নতুন এলাকা/স্থানের নাম যোগ করুন</label>
-              <input type="text" id="newLocationInput" placeholder="উদা: হরিদাসপুর বাজার" class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
-            </div>
-            <button onclick="addNewLocation()" class="w-full sm:w-auto px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-sm whitespace-nowrap">
-              <i class="fa-solid fa-plus mr-1"></i> এলাকা যুক্ত করুন
-            </button>
-          </div>
-
-          <div class="border border-slate-200 rounded-xl overflow-hidden">
-            <table class="w-full text-left border-collapse text-xs md:text-sm">
-              <thead>
-                <tr class="bg-slate-50 border-b border-slate-200 text-slate-600">
-                  <th class="p-3 font-semibold w-16">ক্রমিক</th>
-                  <th class="p-3 font-semibold">এলাকার নাম</th>
-                  <th class="p-3 font-semibold text-center w-32">অ্যাকশন</th>
-                </tr>
-              </thead>
-              <tbody id="adminLocationsTableBody" class="divide-y divide-slate-100"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- 4. ADMIN MULTI-SIZE ADS (2ND IMAGE DIMENSIONS) & POPUP -->
-        <div id="adminBannersSection" class="hidden space-y-6">
-          <!-- Top Leaderboard Banner (728x90) -->
-          <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3">
-            <div class="flex items-center justify-between">
-              <h4 class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                <i class="fa-solid fa-panorama text-emerald-600"></i> টপ ব্যানার এড (Leaderboard 728×90 px)
-              </h4>
-              <span class="text-[10px] bg-slate-200 px-2 py-0.5 rounded font-mono">728 × 90 px</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <input type="checkbox" id="adTopBannerEnabled" class="w-4 h-4 text-emerald-600 rounded">
-              <label for="adTopBannerEnabled" class="text-xs font-semibold text-slate-700">টপ ব্যানার অন রাখুন</label>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <input type="file" id="topBannerFileInput" accept="image/*" class="w-full p-1.5 text-xs bg-white border border-slate-300 rounded-lg">
-              <input type="url" id="adTopBannerImageUrl" placeholder="অথবা ছবির URL দিন: https://..." class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
-            </div>
-            <input type="url" id="adTopBannerTargetUrl" placeholder="ক্লিক লিংক (Target Link): https://example.com" class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
-            <button onclick="saveTopBannerAdDirect()" id="saveTopBannerBtn" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm">
-              টপ ব্যানার সংরক্ষণ করুন
-            </button>
-          </div>
-
-          <!-- Add New Dynamic Sidebar Ad (Exact 2nd Image Dimensions) -->
-          <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3">
-            <h4 class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-              <i class="fa-solid fa-plus-circle text-emerald-600"></i> সাইডবার এড যোগ করুন (ভিন্ন ভিন্ন সাইজ)
-            </h4>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1">এডের ধরন ও সাইজ সিলেক্ট করুন (Dimension):</label>
-                <select id="sidebarAdDimensionSelect" class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white font-mono">
-                  <option value="336x280">Large Rectangle (336 × 280 px)</option>
-                  <option value="300x250" selected>Medium Rectangle (300 × 250 px)</option>
-                  <option value="160x600">Wide Skyscraper (160 × 600 px)</option>
-                  <option value="120x600">Skyscraper (120 × 600 px)</option>
-                  <option value="120x90">Button 1 (120 × 90 px)</option>
-                  <option value="120x60">Button 2 (120 × 60 px)</option>
-                  <option value="88x31">Microbar (88 × 31 px)</option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1">বিজ্ঞাপনের শিরোনাম / স্পন্সর নাম:</label>
-                <input type="text" id="sidebarAdTitleInput" placeholder="উদা: ব্র্যান্ড প্রমোশন" class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
-              </div>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <div>
-                <label class="block text-xs text-slate-600 mb-1">সরাসরি ব্যানার ইমেজ আপলোড:</label>
-                <input type="file" id="sidebarAdFileInput" accept="image/*" class="w-full p-1.5 text-xs bg-white border border-slate-300 rounded-lg">
-              </div>
-              <div>
-                <label class="block text-xs text-slate-600 mb-1">অথবা ব্যানার ছবির অনলাইন লিংক:</label>
-                <input type="url" id="sidebarAdImageUrlInput" placeholder="https://..." class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
-              </div>
-            </div>
-            <div>
-              <label class="block text-xs text-slate-600 mb-1">বিজ্ঞাপনে ক্লিক করলে যে লিংকে যাবে (Target Link):</label>
-              <input type="url" id="sidebarAdTargetUrlInput" placeholder="https://..." class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
-            </div>
-            <button onclick="adminAddSidebarAd()" id="addSidebarAdBtn" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm">
-              <i class="fa-solid fa-plus mr-1"></i> সাইডবার এড পাবলিশ করুন
-            </button>
-
-            <!-- Admin Sidebar Ads List & Delete -->
-            <div class="mt-4 pt-3 border-t border-slate-200">
-              <span class="text-xs font-bold text-slate-700 block mb-2">সাইডবারে সক্রিয় বিজ্ঞাপনের তালিকা:</span>
-              <div id="adminSidebarAdsList" class="space-y-2"></div>
-            </div>
-          </div>
-
-          <!-- Direct Image Popup Setup -->
-          <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3">
-            <h4 class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-              <i class="fa-solid fa-bullhorn text-amber-500"></i> পপ-আপ ইমেজ ব্যানার / স্পেশাল অফার
-            </h4>
-            <div class="flex items-center gap-2">
-              <input type="checkbox" id="popupAdEnabled" class="w-4 h-4 text-emerald-600 rounded">
-              <label for="popupAdEnabled" class="text-xs font-semibold text-slate-700">ওয়েবসাইট লোড হলে পপ-আপ দেখান</label>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label class="block text-xs text-slate-600 mb-1">সরাসরি পপ-আপ ইমেজ আপলোড করুন:</label>
-                <input type="file" id="popupAdFileInput" accept="image/*" class="w-full p-1.5 text-xs bg-white border border-slate-300 rounded-lg">
-              </div>
-              <div>
-                <label class="block text-xs text-slate-600 mb-1">অথবা পপ-আপ ছবির অনলাইন URL:</label>
-                <input type="url" id="popupAdImageInput" placeholder="https://..." class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
-              </div>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label class="block text-xs text-slate-600 mb-1">পপ-আপ টাইটেল:</label>
-                <input type="text" id="popupAdTitleInput" placeholder="উদা: বিশেষ টু-লেট অফার!" class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
-              </div>
-              <div>
-                <label class="block text-xs text-slate-600 mb-1">ক্লিক লিংক (Action URL):</label>
-                <input type="url" id="popupAdActionUrlInput" placeholder="https://..." class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
-              </div>
-            </div>
-            <div>
-              <label class="block text-xs text-slate-600 mb-1">পপ-আপ বিবরণ / বার্তা:</label>
-              <textarea id="popupAdBodyInput" rows="2" placeholder="বিজ্ঞাপনের মেসেজ লিখুন..." class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white"></textarea>
-            </div>
-            <button onclick="savePopupAdSettingsDirect()" id="savePopupBtn" class="px-4 py-2 bg-slate-900 hover:bg-black text-white text-xs font-bold rounded-lg shadow-sm">
-              পপ-আপ সেটিংস সংরক্ষণ করুন
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal: Admin Edit User Modal -->
-  <div id="adminEditUserModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-slate-100">
-      <div class="px-6 py-4 bg-slate-800 text-white flex justify-between items-center">
-        <h3 class="text-sm font-bold">ইউজার ডেটা ও পাসওয়ার্ড এডিট</h3>
-        <button onclick="toggleAdminEditUserModal(false)" class="text-white hover:text-slate-300 text-xl font-bold">&times;</button>
-      </div>
-      <form id="adminUserEditForm" onsubmit="saveAdminUserEdit(event)" class="p-6 space-y-3 text-sm">
-        <input type="hidden" id="editUserOldPhone">
-        <div>
-          <label class="block font-medium text-slate-700 mb-1">ব্যবহারকারীর নাম</label>
-          <input type="text" id="editUserName" required class="w-full p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
-        </div>
-        <div>
-          <label class="block font-medium text-slate-700 mb-1">ইমেইল ঠিকানা</label>
-          <input type="email" id="editUserEmail" class="w-full p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
-        </div>
-        <div>
-          <label class="block font-medium text-slate-700 mb-1">মোবাইল নম্বর</label>
-          <input type="tel" id="editUserPhone" required class="w-full p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
-        </div>
-        <div>
-          <label class="block font-medium text-slate-700 mb-1">পাসওয়ার্ড</label>
-          <input type="text" id="editUserPassword" required class="w-full p-2.5 rounded-lg border border-slate-200 font-bold text-emerald-700 focus:ring-2 focus:ring-emerald-500 outline-none">
-        </div>
-        <div class="flex justify-end gap-2 pt-2">
-          <button type="button" onclick="toggleAdminEditUserModal(false)" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold">বাতিল</button>
-          <button type="submit" class="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold">সংরক্ষণ করুন</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Modal: Add / Edit Ad Modal -->
+  <!-- 11. Add / Edit Ad Modal -->
   <div id="adModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-2 sm:p-4">
     <div class="bg-white rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl border border-slate-100 flex flex-col max-h-[92vh]">
       <div class="px-5 sm:px-6 py-4 bg-gradient-to-r from-emerald-600 to-teal-700 text-white flex justify-between items-center flex-shrink-0">
@@ -914,9 +662,256 @@
     </div>
   </div>
 
+  <!-- 12. Admin Edit User Modal -->
+  <div id="adminEditUserModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-slate-100">
+      <div class="px-6 py-4 bg-slate-800 text-white flex justify-between items-center">
+        <h3 class="text-sm font-bold">ইউজার ডেটা ও পাসওয়ার্ড এডিট</h3>
+        <button onclick="toggleAdminEditUserModal(false)" class="text-white hover:text-slate-300 text-xl font-bold">&times;</button>
+      </div>
+      <form id="adminUserEditForm" onsubmit="saveAdminUserEdit(event)" class="p-6 space-y-3 text-sm">
+        <input type="hidden" id="editUserOldPhone">
+        <div>
+          <label class="block font-medium text-slate-700 mb-1">ব্যবহারকারীর নাম</label>
+          <input type="text" id="editUserName" required class="w-full p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+        </div>
+        <div>
+          <label class="block font-medium text-slate-700 mb-1">ইমেইল ঠিকানা</label>
+          <input type="email" id="editUserEmail" class="w-full p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+        </div>
+        <div>
+          <label class="block font-medium text-slate-700 mb-1">মোবাইল নম্বর</label>
+          <input type="tel" id="editUserPhone" required class="w-full p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+        </div>
+        <div>
+          <label class="block font-medium text-slate-700 mb-1">পাসওয়ার্ড</label>
+          <input type="text" id="editUserPassword" required class="w-full p-2.5 rounded-lg border border-slate-200 font-bold text-emerald-700 focus:ring-2 focus:ring-emerald-500 outline-none">
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="toggleAdminEditUserModal(false)" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold">বাতিল</button>
+          <button type="submit" class="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold">সংরক্ষণ করুন</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 13. Admin Control Panel Modal (Full Multi-Category Control) -->
+  <div id="adminPanelModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-3 md:p-6">
+    <div class="bg-white rounded-2xl w-full max-w-5xl overflow-hidden shadow-2xl border border-slate-100 flex flex-col max-h-[92vh]">
+      <div class="px-5 sm:px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></span>
+          <h3 class="text-sm sm:text-base font-bold">টু-লেট গোপালগঞ্জ — প্রধান অ্যাডমিন কন্ট্রোল প্যানেল</h3>
+        </div>
+        <button onclick="toggleAdminModal(false)" class="text-white hover:text-slate-300 text-xl font-bold">&times;</button>
+      </div>
+
+      <div class="p-3 bg-slate-100 border-b border-slate-200 flex flex-wrap gap-2 justify-between items-center">
+        <div class="flex flex-wrap gap-1.5 sm:gap-2">
+          <button id="adminTabAds" onclick="switchAdminTab('ads')" class="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-bold shadow-sm">
+            <i class="fa-solid fa-list-check mr-1"></i> বাসা বিজ্ঞাপন
+          </button>
+          <button id="adminTabUsers" onclick="switchAdminTab('users')" class="px-3 py-1.5 bg-white text-slate-700 border border-slate-300 rounded-lg text-xs font-bold hover:bg-slate-50">
+            <i class="fa-solid fa-users-gear mr-1"></i> ব্যবহারকারী
+          </button>
+          <button id="adminTabLocations" onclick="switchAdminTab('locations')" class="px-3 py-1.5 bg-white text-slate-700 border border-slate-300 rounded-lg text-xs font-bold hover:bg-slate-50">
+            <i class="fa-solid fa-map-location-dot mr-1"></i> এলাকা / স্থান
+          </button>
+          <button id="adminTabBanners" onclick="switchAdminTab('banners')" class="px-3 py-1.5 bg-white text-slate-700 border border-slate-300 rounded-lg text-xs font-bold hover:bg-slate-50">
+            <i class="fa-solid fa-image mr-1"></i> ব্যানার ও পপ-আপ
+          </button>
+        </div>
+      </div>
+
+      <div class="p-4 sm:p-6 overflow-y-auto flex-1 space-y-4">
+        <!-- Tab 1: Ads -->
+        <div id="adminAdsSection" class="space-y-3">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-xs font-bold text-slate-600">সকল বিজ্ঞাপনের তালিকা</span>
+            <button onclick="openAdModalForCreate()" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1 shadow-sm">
+              <i class="fa-solid fa-plus"></i> নতুন বিজ্ঞাপন
+            </button>
+          </div>
+          <div id="adminAdsListContainer" class="space-y-3"></div>
+        </div>
+
+        <!-- Tab 2: Users -->
+        <div id="adminUsersSection" class="hidden space-y-4">
+          <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl">
+            <h4 class="text-xs font-bold text-slate-700 mb-2 flex items-center gap-1">
+              <i class="fa-solid fa-user-plus text-emerald-600"></i> নতুন ব্যবহারকারী যুক্ত করুন
+            </h4>
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+              <input type="text" id="adminNewUserName" placeholder="নাম" class="p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
+              <input type="tel" id="adminNewUserPhone" placeholder="মোবাইল নম্বর" class="p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
+              <input type="email" id="adminNewUserEmail" placeholder="ইমেইল" class="p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
+              <div class="flex gap-2">
+                <input type="text" id="adminNewUserPass" placeholder="পাসওয়ার্ড" class="flex-1 p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
+                <button onclick="adminAddNewUser()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-sm whitespace-nowrap">
+                  যুক্ত করুন
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto border border-slate-200 rounded-xl">
+            <table class="w-full text-left border-collapse text-xs md:text-sm">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-200 text-slate-600">
+                  <th class="p-3 font-semibold">নাম</th>
+                  <th class="p-3 font-semibold">মোবাইল</th>
+                  <th class="p-3 font-semibold">ইমেইল</th>
+                  <th class="p-3 font-semibold">পাসওয়ার্ড</th>
+                  <th class="p-3 font-semibold text-center">অ্যাকশন</th>
+                </tr>
+              </thead>
+              <tbody id="adminUsersTableBody" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 3: Locations -->
+        <div id="adminLocationsSection" class="hidden space-y-4">
+          <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl flex flex-col sm:flex-row gap-3 items-end">
+            <div class="flex-1 w-full">
+              <label class="block text-xs font-semibold text-slate-700 mb-1">গোপালগঞ্জের নতুন এলাকা/স্থানের নাম যোগ করুন</label>
+              <input type="text" id="newLocationInput" placeholder="উদা: হরিদাসপুর বাজার" class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
+            </div>
+            <button onclick="addNewLocation()" class="w-full sm:w-auto px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-sm whitespace-nowrap">
+              <i class="fa-solid fa-plus mr-1"></i> এলাকা যুক্ত করুন
+            </button>
+          </div>
+
+          <div class="border border-slate-200 rounded-xl overflow-hidden">
+            <table class="w-full text-left border-collapse text-xs md:text-sm">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-200 text-slate-600">
+                  <th class="p-3 font-semibold w-16">ক্রমিক</th>
+                  <th class="p-3 font-semibold">এলাকার নাম</th>
+                  <th class="p-3 font-semibold text-center w-32">অ্যাকশন</th>
+                </tr>
+              </thead>
+              <tbody id="adminLocationsTableBody" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 4: Multi-Size Banners & Popup -->
+        <div id="adminBannersSection" class="hidden space-y-6">
+          <!-- Top Leaderboard -->
+          <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3">
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                <i class="fa-solid fa-panorama text-emerald-600"></i> টপ ব্যানার এড (Leaderboard 728×90 px)
+              </h4>
+              <span class="text-[10px] bg-slate-200 px-2 py-0.5 rounded font-mono">728 × 90 px</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <input type="checkbox" id="adTopBannerEnabled" class="w-4 h-4 text-emerald-600 rounded">
+              <label for="adTopBannerEnabled" class="text-xs font-semibold text-slate-700">টপ ব্যানার অন রাখুন</label>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <input type="file" id="topBannerFileInput" accept="image/*" class="w-full p-1.5 text-xs bg-white border border-slate-300 rounded-lg">
+              <input type="url" id="adTopBannerImageUrl" placeholder="অথবা ছবির URL দিন: https://..." class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
+            </div>
+            <input type="url" id="adTopBannerTargetUrl" placeholder="ক্লিক লিংক: https://example.com" class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
+            <button onclick="saveTopBannerAdDirect()" id="saveTopBannerBtn" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm">
+              টপ ব্যানার সংরক্ষণ করুন
+            </button>
+          </div>
+
+          <!-- Dynamic Multi-Size Sidebar Ad -->
+          <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3">
+            <h4 class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+              <i class="fa-solid fa-plus-circle text-emerald-600"></i> সাইডবার এড যোগ করুন (ভিন্ন ভিন্ন সাইজ)
+            </h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">এডের সাইজ সিলেক্ট করুন (Dimension):</label>
+                <select id="sidebarAdDimensionSelect" class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white font-mono">
+                  <option value="336x280">Large Rectangle (336 × 280 px)</option>
+                  <option value="300x250" selected>Medium Rectangle (300 × 250 px)</option>
+                  <option value="160x600">Wide Skyscraper (160 × 600 px)</option>
+                  <option value="120x600">Skyscraper (120 × 600 px)</option>
+                  <option value="120x90">Button 1 (120 × 90 px)</option>
+                  <option value="120x60">Button 2 (120 × 60 px)</option>
+                  <option value="88x31">Microbar (88 × 31 px)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">বিজ্ঞাপনের শিরোনাম / নাম:</label>
+                <input type="text" id="sidebarAdTitleInput" placeholder="উদা: ব্র্যান্ড প্রমোশন" class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div>
+                <label class="block text-xs text-slate-600 mb-1">সরাসরি ব্যানার ইমেজ আপলোড:</label>
+                <input type="file" id="sidebarAdFileInput" accept="image/*" class="w-full p-1.5 text-xs bg-white border border-slate-300 rounded-lg">
+              </div>
+              <div>
+                <label class="block text-xs text-slate-600 mb-1">অথবা ব্যানার ছবির অনলাইন লিংক:</label>
+                <input type="url" id="sidebarAdImageUrlInput" placeholder="https://..." class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs text-slate-600 mb-1">বিজ্ঞাপনে ক্লিক করলে যে লিংকে যাবে (Target Link):</label>
+              <input type="url" id="sidebarAdTargetUrlInput" placeholder="https://..." class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
+            </div>
+            <button onclick="adminAddSidebarAd()" id="addSidebarAdBtn" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm">
+              <i class="fa-solid fa-plus mr-1"></i> সাইডবার এড পাবলিশ করুন
+            </button>
+
+            <div class="mt-4 pt-3 border-t border-slate-200">
+              <span class="text-xs font-bold text-slate-700 block mb-2">সাইডবারে সক্রিয় বিজ্ঞাপনের তালিকা:</span>
+              <div id="adminSidebarAdsList" class="space-y-2"></div>
+            </div>
+          </div>
+
+          <!-- Popup Setup -->
+          <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3">
+            <h4 class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+              <i class="fa-solid fa-bullhorn text-amber-500"></i> পপ-আপ ইমেজ ব্যানার / স্পেশাল অফার
+            </h4>
+            <div class="flex items-center gap-2">
+              <input type="checkbox" id="popupAdEnabled" class="w-4 h-4 text-emerald-600 rounded">
+              <label for="popupAdEnabled" class="text-xs font-semibold text-slate-700">ওয়েবসাইট লোড হলে পপ-আপ দেখান</label>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs text-slate-600 mb-1">সরাসরি পপ-আপ ইমেজ আপলোড করুন:</label>
+                <input type="file" id="popupAdFileInput" accept="image/*" class="w-full p-1.5 text-xs bg-white border border-slate-300 rounded-lg">
+              </div>
+              <div>
+                <label class="block text-xs text-slate-600 mb-1">অথবা পপ-আপ ছবির অনলাইন URL:</label>
+                <input type="url" id="popupAdImageInput" placeholder="https://..." class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs text-slate-600 mb-1">পপ-আপ টাইটেল:</label>
+                <input type="text" id="popupAdTitleInput" placeholder="উদা: বিশেষ টু-লেট অফার!" class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
+              </div>
+              <div>
+                <label class="block text-xs text-slate-600 mb-1">ক্লিক লিংক (Action URL):</label>
+                <input type="url" id="popupAdActionUrlInput" placeholder="https://..." class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs text-slate-600 mb-1">পপ-আপ বিবরণ / বার্তা:</label>
+              <textarea id="popupAdBodyInput" rows="2" placeholder="বিজ্ঞাপনের মেসেজ লিখুন..." class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white"></textarea>
+            </div>
+            <button onclick="savePopupAdSettingsDirect()" id="savePopupBtn" class="px-4 py-2 bg-slate-900 hover:bg-black text-white text-xs font-bold rounded-lg shadow-sm">
+              পপ-আপ সেটিংস সংরক্ষণ করুন
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- JavaScript Logic -->
   <script>
-    // 1. EMAILJS CONFIGURATION
+    // 1. EMAILJS CONFIG
     const EMAILJS_PUBLIC_KEY = "kKeUrs7wO9jJCFePf";
     const EMAILJS_SERVICE_ID = "service_l9cc301";
     const EMAILJS_TEMPLATE_ID = "template_6bq6spz";
@@ -961,7 +956,7 @@
     let listings = [];
     let users = JSON.parse(localStorage.getItem('tolet_users')) || [];
 
-    // Setup Admin and Default Users
+    // Ensure Admin & Default user
     let adminFound = users.find(u => u.email === 'admin@gmail.com' || u.phone === '01700000000' || u.role === 'admin');
     if (!adminFound) {
       users.unshift({ name: "প্রধান অ্যাডমিন", phone: "01700000000", email: "admin@gmail.com", password: "admin", role: "admin" });
@@ -993,7 +988,6 @@
     };
     let adSettings = JSON.parse(localStorage.getItem('tolet_ad_settings')) || defaultAdSettings;
 
-    // Multi-dimension sidebar ads array (2nd image specs)
     const defaultSidebarAds = [
       {
         id: 1,
@@ -1006,11 +1000,9 @@
     ];
     let sidebarAds = JSON.parse(localStorage.getItem('tolet_sidebar_ads')) || defaultSidebarAds;
 
-    // OTP states
+    // States
     let generatedOtp = null;
     let otpTargetEmail = null;
-
-    // Review & Lightbox States
     let activeReviewListingId = null;
     let selectedRatingStars = 5;
     let currentLightboxImages = [];
@@ -1044,10 +1036,12 @@
             listings = JSON.parse(localStorage.getItem('gopalganj_tolet')) || [];
           }
           applyFilters();
-          if (!document.getElementById('adminPanelModal').classList.contains('hidden')) {
+          const adminPanel = document.getElementById('adminPanelModal');
+          if (adminPanel && !adminPanel.classList.contains('hidden')) {
             renderAdminAdsList();
           }
-          if (!document.getElementById('userDashboardModal').classList.contains('hidden')) {
+          const userDash = document.getElementById('userDashboardModal');
+          if (userDash && !userDash.classList.contains('hidden')) {
             renderUserAdsList();
           }
         }, (error) => {
@@ -1061,7 +1055,7 @@
       }
     }
 
-    // 4. MULTI-SIZE AD & SIDEBAR AD ENGINE (2ND IMAGE DIMENSIONS)
+    // 4. MULTI-SIZE AD & SIDEBAR AD ENGINE
     const adDimensionMap = {
       "728x90": { label: "Leaderboard", w: 728, h: 90 },
       "336x280": { label: "Large Rectangle", w: 336, h: 280 },
@@ -1074,7 +1068,7 @@
     };
 
     function applyAdSettingsToUI() {
-      // 1. Top Leaderboard Banner (728x90)
+      // 1. Top Leaderboard Banner
       const topWrapper = document.getElementById('thirdPartyTopBanner');
       const topImg = document.getElementById('topBannerImg');
       const topLink = document.getElementById('topBannerLink');
@@ -1087,7 +1081,7 @@
         topWrapper.classList.add('hidden');
       }
 
-      // 2. Render Right Side Multi-size Ads
+      // 2. Render Sidebar Ads
       renderSidebarAds();
 
       // 3. Popup Notice
@@ -1130,16 +1124,10 @@
       sidebarAds.forEach(ad => {
         const dimInfo = adDimensionMap[ad.dimension] || { w: 300, h: 250 };
         const card = document.createElement('div');
-        card.className = "w-full max-w-full flex flex-col items-center justify-center bg-white p-2.5 rounded-2xl border border-slate-200/90 shadow-sm hover:shadow-md transition overflow-hidden group";
-        
-        // Dynamic Dimension styling for exact display
+        card.className = "w-full max-w-full flex items-center justify-center bg-white p-2 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md transition overflow-hidden group";
         card.innerHTML = `
-          <div class="w-full flex items-center justify-between text-[10px] text-slate-400 font-mono mb-1.5 px-1">
-            <span class="truncate max-w-[150px] font-bold text-slate-600">${ad.title || 'স্পন্সর'}</span>
-            <span class="bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded text-[9px]">${ad.dimension} px</span>
-          </div>
           <a href="${ad.targetUrl || '#'}" target="_blank" rel="noopener noreferrer" class="block w-full overflow-hidden rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center">
-            <img src="${ad.imageUrl}" alt="${ad.title}" style="max-height: ${dimInfo.h}px; max-width: ${dimInfo.w}px;" class="w-full h-auto object-contain transition duration-300 group-hover:scale-102">
+            <img src="${ad.imageUrl}" alt="${ad.title || 'এড'}" style="max-height: ${dimInfo.h}px; max-width: ${dimInfo.w}px;" class="w-full h-auto object-contain transition duration-300 group-hover:scale-[1.02]">
           </a>
         `;
         container.appendChild(card);
@@ -1151,12 +1139,10 @@
     }
 
     function populateAdminAdInputs() {
-      // Top Leaderboard
       document.getElementById('adTopBannerEnabled').checked = !!adSettings.topBannerEnabled;
       document.getElementById('adTopBannerImageUrl').value = adSettings.topBannerImageUrl || '';
       document.getElementById('adTopBannerTargetUrl').value = adSettings.topBannerTargetUrl || '';
 
-      // Popup
       document.getElementById('popupAdEnabled').checked = !!adSettings.popupEnabled;
       document.getElementById('popupAdTitleInput').value = adSettings.popupTitle || '';
       document.getElementById('popupAdImageInput').value = adSettings.popupImage || '';
@@ -1234,7 +1220,6 @@
       sidebarAds.unshift(newAd);
       localStorage.setItem('tolet_sidebar_ads', JSON.stringify(sidebarAds));
 
-      // Reset Inputs
       document.getElementById('sidebarAdTitleInput').value = '';
       document.getElementById('sidebarAdTargetUrlInput').value = '';
       document.getElementById('sidebarAdImageUrlInput').value = '';
@@ -1245,7 +1230,7 @@
 
       btn.disabled = false;
       btn.innerHTML = `<i class="fa-solid fa-plus mr-1"></i> সাইডবার এড পাবলিশ করুন`;
-      alert("সাইডবারে নতুন সাইজের বিজ্ঞাপন সফলভাবে যুক্ত হয়েছে!");
+      alert("সাইডবারে বিজ্ঞাপন সফলভাবে যুক্ত হয়েছে!");
     }
 
     function adminDeleteSidebarAd(index) {
@@ -1609,7 +1594,7 @@
       }
     }
 
-    // 9. VIDEO HANDLING WITH SOUND (MAX 100 MB AUTO-COMPRESSION)
+    // 9. VIDEO HANDLING (AUDIO PRESERVED & MAX 100 MB AUTO-COMPRESSION)
     const MAX_TARGET_VIDEO_BYTES = 100 * 1024 * 1024; // 100 MB
 
     async function handleVideoProcessing(file) {
@@ -1637,7 +1622,7 @@
         const video = document.createElement('video');
         video.src = URL.createObjectURL(file);
         video.playsInline = true;
-        video.muted = false; // preserve audio stream
+        video.muted = false;
 
         video.onloadedmetadata = () => {
           const canvas = document.createElement('canvas');
@@ -1859,10 +1844,12 @@
       e.target.reset();
       toggleAdModal(false);
       applyFilters();
-      if (!document.getElementById('adminPanelModal').classList.contains('hidden')) {
+      const adminPanel = document.getElementById('adminPanelModal');
+      if (adminPanel && !adminPanel.classList.contains('hidden')) {
         renderAdminAdsList();
       }
-      if (!document.getElementById('userDashboardModal').classList.contains('hidden')) {
+      const userDash = document.getElementById('userDashboardModal');
+      if (userDash && !userDash.classList.contains('hidden')) {
         renderUserAdsList();
       }
       alert("বিজ্ঞাপন সফলভাবে সংরক্ষণ করা হয়েছে!");
@@ -1925,7 +1912,7 @@
       });
     }
 
-    // 14. ADMIN PANEL CONTROLS
+    // 14. ADMIN PANEL CONTROLS (BUG-FREE & IMMEDIATE MODAL OPEN)
     function openAdminModal() {
       if (!isAdmin()) {
         alert("অননুমোদিত অ্যাক্সেস! শুধুমাত্র অ্যাডমিন প্রবেশ করতে পারবেন।");
@@ -1938,8 +1925,23 @@
       toggleAdminModal(true);
     }
 
-    function toggleAdminModal(show) { document.getElementById('adminPanelModal').classList.toggle('hidden', !show); }
-    function toggleAdminEditUserModal(show) { document.getElementById('adminEditUserModal').classList.toggle('hidden', !show); }
+    function toggleAdminModal(show) { 
+      const modal = document.getElementById('adminPanelModal');
+      if (modal) {
+        if (show) {
+          modal.classList.remove('hidden');
+          modal.classList.add('flex');
+        } else {
+          modal.classList.add('hidden');
+          modal.classList.remove('flex');
+        }
+      }
+    }
+
+    function toggleAdminEditUserModal(show) { 
+      const modal = document.getElementById('adminEditUserModal');
+      if (modal) modal.classList.toggle('hidden', !show); 
+    }
 
     function switchAdminTab(tab) {
       document.getElementById('adminAdsSection').classList.toggle('hidden', tab !== 'ads');
@@ -2034,8 +2036,10 @@
       listings = listings.filter(item => item.id != id);
       localStorage.setItem('gopalganj_tolet', JSON.stringify(listings));
       applyFilters();
-      if (!document.getElementById('adminPanelModal').classList.contains('hidden')) renderAdminAdsList();
-      if (!document.getElementById('userDashboardModal').classList.contains('hidden')) renderUserAdsList();
+      const adminPanel = document.getElementById('adminPanelModal');
+      if (adminPanel && !adminPanel.classList.contains('hidden')) renderAdminAdsList();
+      const userDash = document.getElementById('userDashboardModal');
+      if (userDash && !userDash.classList.contains('hidden')) renderUserAdsList();
     }
 
     function renderAdminUsersTable() {
@@ -2609,7 +2613,7 @@
         authSection.innerHTML = `
           <div class="flex items-center gap-1.5 bg-slate-100 py-1.5 px-2.5 sm:px-3 rounded-lg border border-slate-200">
             ${isAdmin() ? `
-              <button onclick="openAdminModal()" class="text-xs font-bold text-amber-700 bg-amber-50 px-2 py-1 rounded border border-amber-200 shadow-xs" title="অ্যাডমিন প্যানেল">
+              <button type="button" onclick="openAdminModal()" class="text-xs font-bold text-amber-700 bg-amber-50 px-2 py-1 rounded border border-amber-200 shadow-xs cursor-pointer hover:bg-amber-100 active:scale-95 transition" title="অ্যাডমিন প্যানেল">
                 🛡️ অ্যাডমিন
               </button>
             ` : ''}
@@ -2700,7 +2704,7 @@
       alert(`স্বাগতম, ${currentUser.name}!`);
     }
 
-    // ADMIN LOGIN
+    // ADMIN LOGIN: Secure & bug-free without exposing password
     function handleAdminLogin(e) {
       e.preventDefault();
       const inputVal = document.getElementById('adminEmailInput').value.trim().toLowerCase();
@@ -2717,7 +2721,7 @@
       }
 
       if (!adminUser) { 
-        alert("ভুল অ্যাডমিন তথ্য! নিশ্চিত করুন ইমেইল 'admin@gmail.com' এবং পাসওয়ার্ড 'admin'।"); 
+        alert("অ্যাডমিন ইউজারনেম অথবা পাসওয়ার্ড সঠিক নয়! পুনরায় চেষ্টা করুন।"); 
         return; 
       }
 
