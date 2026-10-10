@@ -2,7 +2,7 @@
 <html lang="bn">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>টু-লেট গোপালগঞ্জ | To-Let Gopalganj</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -19,12 +19,18 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap');
     body { font-family: 'Hind Siliguri', sans-serif; }
-    video::-internal-media-controls-download-button,
-    audio::-internal-media-controls-download-button { display: none !important; }
-    video::-webkit-media-controls-enclosure,
-    audio::-webkit-media-controls-enclosure { overflow: hidden; }
-    video::-webkit-media-controls-panel,
-    audio::-webkit-media-controls-panel { width: calc(100% + 30px); }
+    
+    /* Video download & inspector restrictions */
+    video::-internal-media-controls-download-button {
+      display: none !important;
+    }
+    video::-webkit-media-controls-enclosure {
+      overflow: hidden;
+    }
+    video::-webkit-media-controls-panel {
+      width: calc(100% + 30px);
+    }
+    
     @keyframes waveBar {
       0%, 100% { height: 6px; }
       50% { height: 18px; }
@@ -36,52 +42,59 @@
     .wave-playing span:nth-child(5) { animation-delay: 0.6s; }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800 flex flex-col min-h-screen">
+<body class="bg-slate-50 text-slate-800 flex flex-col min-h-screen antialiased selection:bg-emerald-500 selection:text-white">
 
   <!-- Header -->
   <header class="sticky top-0 z-40 bg-white/95 backdrop-blur shadow-sm border-b border-slate-100">
-    <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-      <div class="flex items-center gap-2 cursor-pointer" onclick="resetFilters()">
-        <div class="w-10 h-10 bg-emerald-600 text-white rounded-xl flex items-center justify-center text-xl shadow-md shadow-emerald-200">
+    <div class="max-w-6xl mx-auto px-3 sm:px-4 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-2 cursor-pointer select-none" onclick="resetFilters()">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 bg-emerald-600 text-white rounded-xl flex items-center justify-center text-lg sm:text-xl shadow-md shadow-emerald-200">
           <i class="fa-solid fa-house-chimney"></i>
         </div>
         <div>
-          <span class="text-xl font-bold text-slate-900 leading-tight block">টু-লেট <span class="text-emerald-600">গোপালগঞ্জ</span></span>
-          <span class="text-[11px] text-slate-500 font-medium">শহরের বাসা ও মেস পোর্টাল</span>
+          <span class="text-lg sm:text-xl font-bold text-slate-900 leading-tight block">টু-লেট <span class="text-emerald-600">গোপালগঞ্জ</span></span>
+          <span class="text-[10px] sm:text-[11px] text-slate-500 font-medium">শহরের বাসা ও মেস পোর্টাল</span>
         </div>
       </div>
       
-      <div class="flex items-center gap-2.5">
+      <div class="flex items-center gap-2 sm:gap-2.5">
         <button onclick="openInboxModal()" class="relative p-2 text-slate-600 hover:text-emerald-600 hover:bg-slate-100 rounded-lg transition" title="মেসেজ / ইনবক্স">
-          <i class="fa-solid fa-comments text-lg"></i>
+          <i class="fa-solid fa-comments text-base sm:text-lg"></i>
           <span id="unreadBadge" class="hidden absolute top-1 right-1 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white"></span>
         </button>
 
         <div id="authSection"></div>
-        <button onclick="openAdModalForCreate()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-lg text-xs md:text-sm font-semibold transition flex items-center gap-1.5 shadow-sm">
+        <button onclick="openAdModalForCreate()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 sm:px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition flex items-center gap-1.5 shadow-sm active:scale-95">
           <i class="fa-solid fa-plus"></i> <span class="hidden sm:inline">বিজ্ঞাপন দিন</span>
         </button>
       </div>
     </div>
   </header>
 
+  <!-- 3rd Party Direct Image Top Banner Slot -->
+  <div id="thirdPartyTopBanner" class="max-w-6xl mx-auto px-3 sm:px-4 mt-3 w-full hidden">
+    <a id="topBannerLink" href="#" target="_blank" rel="noopener noreferrer" class="block w-full overflow-hidden rounded-xl border border-slate-200 shadow-xs hover:opacity-95 transition">
+      <img id="topBannerImg" src="" alt="স্পন্সরড ব্যানার" class="w-full h-auto max-h-24 sm:max-h-28 md:max-h-32 object-cover object-center bg-slate-100">
+    </a>
+  </div>
+
   <!-- Hero Section -->
-  <section class="bg-gradient-to-br from-emerald-800 to-teal-900 text-white py-12 px-4">
+  <section class="bg-gradient-to-br from-emerald-800 to-teal-900 text-white py-10 sm:py-12 px-4">
     <div class="max-w-4xl mx-auto text-center space-y-3">
       <span class="bg-emerald-700/60 text-emerald-200 px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wider inline-block">গোপালগঞ্জ জেলা সদর ও আশপাশ</span>
-      <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight">ছবি ও ভিডিও দেখে বাসা বা মেস পছন্দ করুন</h1>
-      <p class="text-emerald-100 text-sm md:text-base max-w-xl mx-auto">ফ্যামিলি ফ্ল্যাট, ব্যাচেলর রুম কিংবা স্টুডেন্ট মেস — সরাসরি মালিকের সাথে কথা ও চ্যাট করুন।</p>
+      <h1 class="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight">ছবি ও ভিডিও দেখে বাসা বা মেস পছন্দ করুন</h1>
+      <p class="text-emerald-100 text-xs sm:text-sm md:text-base max-w-xl mx-auto">ফ্যামিলি ফ্ল্যাট, ব্যাচেলর রুম কিংবা স্টুডেন্ট মেস — সরাসরি মালিকের সাথে কথা ও চ্যাট করুন।</p>
     </div>
   </section>
 
   <!-- Filter Panel -->
-  <section class="max-w-6xl mx-auto px-4 -mt-6">
-    <div class="bg-white rounded-2xl shadow-xl border border-slate-100 p-4 md:p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+  <section class="max-w-6xl mx-auto px-3 sm:px-4 -mt-6">
+    <div class="bg-white rounded-2xl shadow-xl border border-slate-100 p-3 sm:p-5 md:p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
       <div>
         <label class="text-xs font-semibold text-slate-500 mb-1 block">কী-ওয়ার্ড দিয়ে খুঁজুন</label>
         <div class="relative">
           <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-sm"></i>
-          <input type="text" id="searchInput" oninput="applyFilters()" placeholder="বাসার নাম বা এলাকা..." class="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+          <input type="text" id="searchInput" oninput="applyFilters()" placeholder="বাসার নাম বা এলাকা..." class="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
         </div>
       </div>
 
@@ -102,7 +115,7 @@
       </div>
 
       <div class="flex items-end">
-        <button onclick="resetFilters()" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-semibold transition flex items-center justify-center gap-2">
+        <button onclick="resetFilters()" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-semibold transition flex items-center justify-center gap-2 active:scale-95">
           <i class="fa-solid fa-arrows-rotate text-xs"></i> ফিল্টার রিসেট
         </button>
       </div>
@@ -110,15 +123,15 @@
   </section>
 
   <!-- Listings Grid -->
-  <main class="max-w-6xl mx-auto px-4 py-10 flex-1 w-full">
-    <div class="flex items-center justify-between mb-6">
-      <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+  <main class="max-w-6xl mx-auto px-3 sm:px-4 py-8 sm:py-10 flex-1 w-full">
+    <div class="flex items-center justify-between mb-5 sm:mb-6">
+      <h2 class="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">
         <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
         বর্তমান বিজ্ঞাপনসমূহ (<span id="totalCount">0</span>টি)
       </h2>
     </div>
 
-    <div id="listingsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    <div id="listingsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"></div>
 
     <div id="emptyState" class="hidden text-center py-16 bg-white rounded-2xl border border-slate-100 mt-4">
       <i class="fa-regular fa-face-frown text-4xl text-slate-400 mb-3 block"></i>
@@ -127,59 +140,114 @@
     </div>
   </main>
 
-  <!-- Website Footer -->
-  <footer class="bg-slate-900 text-slate-300 pt-12 pb-6 border-t border-slate-800 mt-auto">
-    <div class="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-      <div class="space-y-3">
-        <div class="flex items-center gap-2">
-          <div class="w-9 h-9 bg-emerald-600 text-white rounded-lg flex items-center justify-center text-lg">
+  <!-- Responsive Modern Footer -->
+  <footer class="bg-gradient-to-b from-slate-900 to-slate-950 text-slate-300 pt-12 sm:pt-16 pb-8 border-t border-slate-800 mt-auto">
+    <div class="max-w-6xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-8 mb-10">
+      <div class="md:col-span-4 space-y-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 bg-emerald-500 text-slate-950 rounded-xl flex items-center justify-center text-lg shadow-lg font-bold">
             <i class="fa-solid fa-house-chimney"></i>
           </div>
-          <span class="text-lg font-bold text-white tracking-tight">টু-লেট <span class="text-emerald-400">গোপালগঞ্জ</span></span>
+          <div>
+            <span class="text-lg sm:text-xl font-extrabold text-white tracking-tight">টু-লেট <span class="text-emerald-400">গোপালগঞ্জ</span></span>
+            <span class="text-[10px] text-slate-400 block -mt-1">স্মার্ট ডিজিটাল বাসা ও মেস পোর্টাল</span>
+          </div>
         </div>
-        <p class="text-xs text-slate-400 leading-relaxed">গোপালগঞ্জ জেলা সদর ও আশপাশের বাসা বা মেস খোঁজার পোর্টাল।</p>
+        <p class="text-xs text-slate-400 leading-relaxed">
+          গোপালগঞ্জ শহর ও বিশ্ববিদ্যালয়ের (BSMRSTU) আশেপাশের বাসা, ব্যাচেলর মেস ও সাবলেট খোঁজার আধুনিক ডিজিটাল প্ল্যাটফর্ম।
+        </p>
+        <div class="flex items-center gap-2.5 pt-1">
+          <a href="#" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-emerald-600 text-slate-300 hover:text-white flex items-center justify-center text-xs transition"><i class="fa-brands fa-facebook-f"></i></a>
+          <a href="#" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-emerald-600 text-slate-300 hover:text-white flex items-center justify-center text-xs transition"><i class="fa-brands fa-whatsapp"></i></a>
+          <a href="#" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-emerald-600 text-slate-300 hover:text-white flex items-center justify-center text-xs transition"><i class="fa-solid fa-phone"></i></a>
+        </div>
       </div>
-      <div>
-        <h4 class="text-sm font-bold text-white uppercase tracking-wider mb-3">গুরুত্বপূর্ণ এলাকা</h4>
+
+      <div class="md:col-span-3">
+        <h4 class="text-xs font-bold text-white uppercase tracking-wider mb-3.5 border-l-2 border-emerald-500 pl-2">জনপ্রিয় এলাকাসমূহ</h4>
         <ul class="text-xs space-y-2 text-slate-400">
-          <li>নবীনবাগ</li>
-          <li>বেদগ্রাম</li>
-          <li>ঘোনাপাড়া (BSMRSTU এলাকা)</li>
+          <li><a href="javascript:void(0)" onclick="filterByFooterArea('নবীনবাগ')" class="hover:text-emerald-400 transition flex items-center gap-1.5"><i class="fa-solid fa-angle-right text-[10px] text-slate-600"></i> নবীনবাগ</a></li>
+          <li><a href="javascript:void(0)" onclick="filterByFooterArea('ঘোনাপাড়া (BSMRSTU এলাকা)')" class="hover:text-emerald-400 transition flex items-center gap-1.5"><i class="fa-solid fa-angle-right text-[10px] text-slate-600"></i> ঘোনাপাড়া (BSMRSTU)</a></li>
+          <li><a href="javascript:void(0)" onclick="filterByFooterArea('বেদগ্রাম')" class="hover:text-emerald-400 transition flex items-center gap-1.5"><i class="fa-solid fa-angle-right text-[10px] text-slate-600"></i> বেদগ্রাম</a></li>
+          <li><a href="javascript:void(0)" onclick="filterByFooterArea('কোর্ট মসজিদ রোড')" class="hover:text-emerald-400 transition flex items-center gap-1.5"><i class="fa-solid fa-angle-right text-[10px] text-slate-600"></i> কোর্ট মসজিদ রোড</a></li>
+          <li><a href="javascript:void(0)" onclick="filterByFooterArea('থানাপাড়া')" class="hover:text-emerald-400 transition flex items-center gap-1.5"><i class="fa-solid fa-angle-right text-[10px] text-slate-600"></i> থানাপাড়া</a></li>
         </ul>
       </div>
-      <div>
-        <h4 class="text-sm font-bold text-white uppercase tracking-wider mb-3">হেল্পলাইন</h4>
-        <p class="text-xs text-slate-400">+880 1700-000000</p>
+
+      <div class="md:col-span-2">
+        <h4 class="text-xs font-bold text-white uppercase tracking-wider mb-3.5 border-l-2 border-emerald-500 pl-2">দ্রুত লিংক</h4>
+        <ul class="text-xs space-y-2 text-slate-400">
+          <li><a href="javascript:void(0)" onclick="resetFilters()" class="hover:text-emerald-400 transition">সকল বাসা</a></li>
+          <li><a href="javascript:void(0)" onclick="openAdModalForCreate()" class="hover:text-emerald-400 transition">বিজ্ঞাপন দিন</a></li>
+          <li><a href="javascript:void(0)" onclick="toggleInboxModal(true)" class="hover:text-emerald-400 transition">ইনবক্স চ্যাট</a></li>
+          <li><a href="javascript:void(0)" onclick="openAdminLoginModal()" class="hover:text-emerald-400 transition">অ্যাডমিন প্রবেশ</a></li>
+        </ul>
       </div>
-      <div>
-        <h4 class="text-sm font-bold text-white uppercase tracking-wider mb-3">বিজ্ঞাপন</h4>
-        <button onclick="openAdModalForCreate()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition">বিজ্ঞাপন দিন</button>
+
+      <div class="md:col-span-3 space-y-3">
+        <h4 class="text-xs font-bold text-white uppercase tracking-wider mb-3.5 border-l-2 border-emerald-500 pl-2">হেল্প ও সাপোর্ট</h4>
+        <div class="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 space-y-1.5 text-xs">
+          <p class="flex items-center gap-2 text-slate-300"><i class="fa-solid fa-phone text-emerald-400 text-xs"></i> <span>+880 1700-000000</span></p>
+          <p class="flex items-center gap-2 text-slate-300"><i class="fa-solid fa-envelope text-emerald-400 text-xs"></i> <span>support@toletgopalganj.com</span></p>
+          <p class="flex items-center gap-2 text-slate-300"><i class="fa-solid fa-location-dot text-emerald-400 text-xs"></i> <span>গোপালগঞ্জ সদর, গোপালগঞ্জ</span></p>
+        </div>
+        <button onclick="openAdModalForCreate()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition shadow-md">
+          <i class="fa-solid fa-plus mr-1"></i> ফ্রি বিজ্ঞাপন প্রকাশ করুন
+        </button>
+      </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto px-4 pt-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-400 gap-2">
+      <p>© ২০২৬ টু-লেট গোপালগঞ্জ। সর্বস্বত্ব সংরক্ষিত।</p>
+      <div class="flex items-center gap-3">
+        <span class="inline-flex items-center gap-1 text-emerald-400"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> লাইভ সার্ভিস</span>
+        <span>Mobile & Desktop Ready</span>
       </div>
     </div>
   </footer>
 
   <!-- ==================== MODALS ==================== -->
 
+  <!-- Popup Ad Modal (Direct Image Driven) -->
+  <div id="popupAdModal" class="fixed inset-0 bg-slate-900/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white rounded-2xl w-full max-w-sm sm:max-w-md overflow-hidden shadow-2xl border border-slate-200 relative animate-scaleUp">
+      <button onclick="closePopupAd()" class="absolute top-2.5 right-2.5 bg-black/60 hover:bg-black/80 text-white w-7 h-7 rounded-full flex items-center justify-center text-sm z-20 transition">&times;</button>
+      <div id="popupAdImageContainer" class="max-h-56 sm:max-h-64 bg-slate-100 overflow-hidden hidden">
+        <a id="popupAdImageLink" href="#" target="_blank" rel="noopener noreferrer">
+          <img id="popupAdImage" src="" class="w-full h-full object-cover">
+        </a>
+      </div>
+      <div class="p-4 text-center space-y-2">
+        <span class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest bg-emerald-50 px-2 py-0.5 rounded">স্পেশাল বিজ্ঞপ্তি</span>
+        <h3 id="popupAdTitle" class="text-sm sm:text-base font-bold text-slate-900"></h3>
+        <p id="popupAdBody" class="text-xs text-slate-600 leading-relaxed"></p>
+        <a id="popupAdActionBtn" href="#" target="_blank" rel="noopener noreferrer" class="inline-block w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition mt-2">
+          বিস্তারিত দেখুন
+        </a>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal: Image Lightbox -->
-  <div id="imageLightboxModal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-2 sm:p-4" onclick="closeImageLightbox()">
+  <div id="imageLightboxModal" class="fixed inset-0 bg-black/95 backdrop-blur-md z-50 hidden flex items-center justify-center p-2 sm:p-4" onclick="closeImageLightbox()">
     <button onclick="closeImageLightbox()" class="absolute top-4 right-4 text-white text-2xl bg-white/20 hover:bg-white/40 rounded-full w-10 h-10 flex items-center justify-center transition z-50">&times;</button>
     <div class="relative max-w-4xl w-full max-h-[85vh] flex items-center justify-center" onclick="event.stopPropagation()">
-      <button id="lbPrevBtn" onclick="stepLightboxImage(-1)" class="absolute left-2 text-white bg-black/50 hover:bg-black/80 rounded-full w-10 h-10 flex items-center justify-center text-lg transition z-40">
+      <button id="lbPrevBtn" onclick="stepLightboxImage(-1)" class="absolute left-2 text-white bg-black/50 hover:bg-black/80 rounded-full w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center text-base sm:text-lg transition z-40">
         <i class="fa-solid fa-chevron-left"></i>
       </button>
       <img id="lightboxImage" src="" class="max-w-full max-h-[80vh] object-contain rounded-xl shadow-2xl transition-all">
-      <button id="lbNextBtn" onclick="stepLightboxImage(1)" class="absolute right-2 text-white bg-black/50 hover:bg-black/80 rounded-full w-10 h-10 flex items-center justify-center text-lg transition z-40">
+      <button id="lbNextBtn" onclick="stepLightboxImage(1)" class="absolute right-2 text-white bg-black/50 hover:bg-black/80 rounded-full w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center text-base sm:text-lg transition z-40">
         <i class="fa-solid fa-chevron-right"></i>
       </button>
       <div id="lightboxCounter" class="absolute bottom-2 text-white bg-black/60 px-3 py-1 rounded-full text-xs font-bold">1 / 1</div>
     </div>
   </div>
 
-  <!-- Modal: Video Player -->
-  <div id="videoModal" class="fixed inset-0 bg-slate-900/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 sm:p-6">
+  <!-- Modal: Video Player (Sound Enabled & Download Disabled) -->
+  <div id="videoModal" class="fixed inset-0 bg-slate-900/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 sm:p-6" oncontextmenu="return false;">
     <div class="bg-black rounded-2xl w-full max-w-3xl overflow-hidden relative shadow-2xl border border-slate-800">
       <div class="p-3 bg-slate-900 flex justify-between items-center text-white text-xs sm:text-sm font-bold border-b border-slate-800">
-        <span><i class="fa-solid fa-video text-rose-500 mr-1.5"></i> ভিডিও প্রিভিউ</span>
+        <span><i class="fa-solid fa-video text-rose-500 mr-1.5"></i> ভিডিও প্লেয়ার</span>
         <button onclick="closeVideoModal()" class="text-white hover:text-rose-400 text-xl font-bold">&times;</button>
       </div>
       <div id="videoContainer" class="w-full aspect-video flex items-center justify-center bg-black"></div>
@@ -194,12 +262,11 @@
           <h3 class="text-base font-bold flex items-center gap-2">
             <i class="fa-solid fa-star text-amber-300"></i> রেটিং ও রিভিউসমূহ
           </h3>
-          <span id="reviewListingTitle" class="text-xs text-emerald-100 truncate block max-w-[260px]"></span>
+          <span id="reviewListingTitle" class="text-xs text-emerald-100 truncate block max-w-[240px]"></span>
         </div>
         <button onclick="toggleReviewModal(false)" class="text-white hover:text-slate-200 text-xl font-bold">&times;</button>
       </div>
 
-      <!-- Review Input Form -->
       <div id="reviewInputSection" class="p-4 bg-slate-50 border-b border-slate-200">
         <label class="block text-xs font-bold text-slate-700 mb-1">আপনার রেটিং দিন:</label>
         <div class="flex items-center gap-2 mb-2 text-xl" id="starRatingSelector">
@@ -216,40 +283,36 @@
         </button>
       </div>
 
-      <!-- Warning if Owner -->
       <div id="reviewOwnerNotice" class="hidden p-3 bg-amber-50 text-amber-800 text-xs text-center border-b border-amber-200 font-medium">
         <i class="fa-solid fa-circle-exclamation mr-1 text-amber-600"></i> এটি আপনার নিজের বিজ্ঞাপন, তাই আপনি রেটিং দিতে পারবেন না।
       </div>
 
-      <!-- Existing Reviews List -->
       <div id="reviewsListContainer" class="p-4 overflow-y-auto space-y-3 flex-1"></div>
     </div>
   </div>
 
-  <!-- Modal: User Dashboard + Change Password (ইউজার ও অ্যাডমিন উভয়ের নিজস্ব বিজ্ঞাপন ও পাসওয়ার্ড পরিবর্তন) -->
+  <!-- Modal: User Dashboard + Change Password -->
   <div id="userDashboardModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 md:p-6">
     <div class="bg-white rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl border border-slate-100 flex flex-col max-h-[90vh]">
-      <div class="px-6 py-4 bg-emerald-700 text-white flex justify-between items-center">
+      <div class="px-5 sm:px-6 py-4 bg-emerald-700 text-white flex justify-between items-center">
         <div>
-          <h3 class="text-base font-bold flex items-center gap-2">
-            <i class="fa-solid fa-circle-user text-lg"></i> আমার ড্যাশবোর্ড ও প্রোফাইল
+          <h3 class="text-sm sm:text-base font-bold flex items-center gap-2">
+            <i class="fa-solid fa-circle-user text-base sm:text-lg"></i> আমার ড্যাশবোর্ড ও প্রোফাইল
           </h3>
           <span id="dashUserPhone" class="text-xs text-emerald-200"></span>
         </div>
         <button onclick="toggleDashboardModal(false)" class="text-white hover:text-slate-200 text-2xl font-bold">&times;</button>
       </div>
 
-      <!-- Dashboard Tabs -->
       <div class="flex border-b border-slate-200 bg-slate-50 text-xs font-bold">
         <button id="dashTabAdsBtn" onclick="switchDashTab('ads')" class="flex-1 py-3 text-emerald-700 border-b-2 border-emerald-600 bg-white flex items-center justify-center gap-1.5">
-          <i class="fa-solid fa-rectangle-ad"></i> আমার দেওয়া বিজ্ঞাপনসমূহ
+          <i class="fa-solid fa-rectangle-ad"></i> আমার বিজ্ঞাপনসমূহ
         </button>
         <button id="dashTabPassBtn" onclick="switchDashTab('pass')" class="flex-1 py-3 text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1.5">
-          <i class="fa-solid fa-key"></i> পাসওয়ার্ড পরিবর্তন করুন
+          <i class="fa-solid fa-key"></i> পাসওয়ার্ড পরিবর্তন
         </button>
       </div>
 
-      <!-- Dash Tab: My Ads -->
       <div id="dashTabAds" class="p-4 overflow-y-auto space-y-3 flex-1">
         <div class="flex justify-between items-center mb-1">
           <span class="text-xs font-bold text-slate-700">আমার প্রকাশিত বিজ্ঞাপনের তালিকা:</span>
@@ -260,25 +323,24 @@
         <div id="userAdsListContainer" class="space-y-3"></div>
       </div>
 
-      <!-- Dash Tab: Change Password (ইউজার ও অ্যাডমিন) -->
-      <div id="dashTabPass" class="hidden p-6 overflow-y-auto flex-1">
+      <div id="dashTabPass" class="hidden p-5 sm:p-6 overflow-y-auto flex-1">
         <div class="max-w-md mx-auto space-y-4">
           <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs p-3 rounded-xl flex items-center gap-2">
             <i class="fa-solid fa-shield-halved text-emerald-600 text-base"></i>
-            <span>আপনার অ্যাকাউন্টের নিরাপত্তা নিশ্চিত করতে নিয়মিত পাসওয়ার্ড পরিবর্তন করুন।</span>
+            <span>নিরাপত্তার স্বার্থে আপনার পাসওয়ার্ড পরিবর্তন করুন।</span>
           </div>
 
           <form onsubmit="handleSelfPasswordChange(event)" class="space-y-3 text-sm">
             <div>
-              <label class="block font-medium text-slate-700 mb-1 text-xs">বর্তমান পাসওয়ার্ড <span class="text-rose-500">*</span></label>
+              <label class="block font-medium text-slate-700 mb-1 text-xs">বর্তমান পাসওয়ার্ড *</label>
               <input type="password" id="selfCurrentPass" required placeholder="বর্তমান পাসওয়ার্ড দিন" class="w-full p-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none text-xs">
             </div>
             <div>
-              <label class="block font-medium text-slate-700 mb-1 text-xs">নতুন পাসওয়ার্ড <span class="text-rose-500">*</span></label>
+              <label class="block font-medium text-slate-700 mb-1 text-xs">নতুন পাসওয়ার্ড *</label>
               <input type="password" id="selfNewPass" required placeholder="কমপক্ষে ৪ সংখ্যার নতুন পাসওয়ার্ড" class="w-full p-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none text-xs">
             </div>
             <div>
-              <label class="block font-medium text-slate-700 mb-1 text-xs">নতুন পাসওয়ার্ড নিশ্চিত করুন <span class="text-rose-500">*</span></label>
+              <label class="block font-medium text-slate-700 mb-1 text-xs">নতুন পাসওয়ার্ড নিশ্চিত করুন *</label>
               <input type="password" id="selfConfirmNewPass" required placeholder="নতুন পাসওয়ার্ডটি পুনরায় লিখুন" class="w-full p-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none text-xs">
             </div>
             <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs shadow-sm transition flex items-center justify-center gap-1.5 mt-2">
@@ -313,7 +375,7 @@
           </div>
           <div>
             <h4 id="chatPartnerName" class="font-bold text-sm leading-tight">বাড়িওয়ালা / ভাড়াটিয়া</h4>
-            <span id="chatListingTitle" class="text-[11px] text-emerald-200 truncate max-w-[220px] block">বাসার নাম</span>
+            <span id="chatListingTitle" class="text-[11px] text-emerald-200 truncate max-w-[200px] sm:max-w-[250px] block">বাসার নাম</span>
           </div>
         </div>
         <button onclick="toggleChatModal(false)" class="text-white hover:text-slate-200 text-xl font-bold">&times;</button>
@@ -321,7 +383,6 @@
 
       <div id="chatMessagesContainer" class="flex-1 p-4 overflow-y-auto space-y-3 bg-slate-100 select-none"></div>
 
-      <!-- Voice Recording Banner -->
       <div id="recordingBanner" class="hidden bg-rose-50 border-t border-rose-200 px-4 py-2.5 flex items-center justify-between text-xs text-rose-700">
         <div class="flex items-center gap-2">
           <span class="w-2.5 h-2.5 bg-rose-600 rounded-full animate-ping"></span>
@@ -338,17 +399,17 @@
 
       <div class="p-3 bg-white border-t border-slate-200 flex items-center gap-2 flex-shrink-0">
         <input type="text" id="chatTextInput" onkeydown="if(event.key==='Enter') sendTextMessage()" placeholder="একটি মেসেজ লিখুন..." class="flex-1 px-3.5 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-        <button onclick="sendTextMessage()" class="p-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm transition shadow-sm" title="মেসেজ পাঠান">
+        <button onclick="sendTextMessage()" class="p-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm transition shadow-sm active:scale-95" title="মেসেজ পাঠান">
           <i class="fa-solid fa-paper-plane"></i>
         </button>
-        <button id="recordVoiceBtn" onclick="toggleVoiceRecord()" class="p-2.5 bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 rounded-xl text-sm transition border border-slate-300" title="ভয়েস মেসেজ পাঠান">
+        <button id="recordVoiceBtn" onclick="toggleVoiceRecord()" class="p-2.5 bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 rounded-xl text-sm transition border border-slate-300 active:scale-95" title="ভয়েস মেসেজ পাঠান">
           <i class="fa-solid fa-microphone text-emerald-600"></i>
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Modal: User Auth (Auto Fill Off + Remember Me Checkbox + Forgot Password Link) -->
+  <!-- Modal: User Auth -->
   <div id="authModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-slate-100">
       <div class="px-6 py-4 bg-emerald-600 text-white flex justify-between items-center">
@@ -365,7 +426,7 @@
 
       <form id="loginForm" onsubmit="handleUserLogin(event)" autocomplete="off" class="p-6 space-y-3.5 text-sm">
         <div>
-          <label class="block font-medium text-slate-700 mb-1">মোবাইল নম্বর <span class="text-rose-500">*</span></label>
+          <label class="block font-medium text-slate-700 mb-1">মোবাইল নম্বর *</label>
           <div class="relative">
             <span class="absolute left-3 top-3 text-slate-400 text-xs font-semibold">+88</span>
             <input type="tel" id="loginPhone" required placeholder="017XXXXXXXX" value="" autocomplete="off" class="w-full pl-11 pr-3 py-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none text-slate-800">
@@ -373,7 +434,7 @@
         </div>
 
         <div>
-          <label class="block font-medium text-slate-700 mb-1">পাসওয়ার্ড <span class="text-rose-500">*</span></label>
+          <label class="block font-medium text-slate-700 mb-1">পাসওয়ার্ড *</label>
           <div class="relative">
             <input type="password" id="loginPassword" required placeholder="পাসওয়ার্ড দিন" value="" autocomplete="new-password" class="w-full pl-3 pr-10 py-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
             <button type="button" onclick="togglePasswordVisibility('loginPassword', this)" class="absolute right-3 top-3 text-slate-400 hover:text-slate-600">
@@ -405,19 +466,19 @@
 
       <form id="registerForm" onsubmit="handleRegister(event)" autocomplete="off" class="p-6 space-y-3.5 text-sm hidden">
         <div>
-          <label class="block font-medium text-slate-700 mb-1">নাম <span class="text-rose-500">*</span></label>
+          <label class="block font-medium text-slate-700 mb-1">নাম *</label>
           <input type="text" id="regName" required placeholder="উদা: সুজন শিকদার" autocomplete="off" class="w-full p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
         </div>
         <div>
-          <label class="block font-medium text-slate-700 mb-1">ইমেইল (OTP ও পাসওয়ার্ড পুনরুদ্ধারের জন্য) <span class="text-rose-500">*</span></label>
+          <label class="block font-medium text-slate-700 mb-1">ইমেইল *</label>
           <input type="email" id="regEmail" required placeholder="example@gmail.com" autocomplete="off" class="w-full p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
         </div>
         <div>
-          <label class="block font-medium text-slate-700 mb-1">মোবাইল নম্বর <span class="text-rose-500">*</span></label>
+          <label class="block font-medium text-slate-700 mb-1">মোবাইল নম্বর *</label>
           <input type="tel" id="regPhone" required placeholder="017XXXXXXXX" autocomplete="off" class="w-full p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
         </div>
         <div>
-          <label class="block font-medium text-slate-700 mb-1">পাসওয়ার্ড <span class="text-rose-500">*</span></label>
+          <label class="block font-medium text-slate-700 mb-1">পাসওয়ার্ড *</label>
           <input type="password" id="regPassword" required placeholder="কমপক্ষে ৪ সংখ্যা" autocomplete="new-password" class="w-full p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
         </div>
         <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold transition shadow-sm mt-2">অ্যাকাউন্ট তৈরি করুন</button>
@@ -440,11 +501,11 @@
           <span>অ্যাডমিন ইমেইল বা ফোন এবং পাসওয়ার্ড দিন।</span>
         </div>
         <div>
-          <label class="block font-medium text-slate-700 mb-1">অ্যাডমিন Email / Phone <span class="text-rose-500">*</span></label>
+          <label class="block font-medium text-slate-700 mb-1">অ্যাডমিন Email / Phone *</label>
           <input type="text" id="adminEmailInput" required placeholder="admin@gmail.com বা 01700000000" autocomplete="off" class="w-full p-2.5 rounded-lg border border-slate-200 outline-none">
         </div>
         <div>
-          <label class="block font-medium text-slate-700 mb-1">অ্যাডমিন পাসওয়ার্ড <span class="text-rose-500">*</span></label>
+          <label class="block font-medium text-slate-700 mb-1">অ্যাডমিন পাসওয়ার্ড *</label>
           <input type="password" id="adminPasswordInput" required placeholder="পাসওয়ার্ড লিখুন" autocomplete="new-password" class="w-full p-2.5 rounded-lg border border-slate-200 font-medium outline-none">
         </div>
         <div class="text-right -mt-1">
@@ -457,7 +518,7 @@
     </div>
   </div>
 
-  <!-- Modal: Forgot Password (EmailJS OTP) -->
+  <!-- Modal: Forgot Password -->
   <div id="forgotPasswordModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-slate-100">
       <div class="px-6 py-4 bg-emerald-600 text-white flex justify-between items-center">
@@ -472,7 +533,7 @@
           আপনার অ্যাকাউন্টে নিবন্ধিত Gmail/Email ঠিকানা দিন। ওটিপি (OTP) পাঠানো হবে।
         </p>
         <div>
-          <label class="block font-medium text-slate-700 mb-1">নিবন্ধিত ইমেইল ঠিকানা <span class="text-rose-500">*</span></label>
+          <label class="block font-medium text-slate-700 mb-1">নিবন্ধিত ইমেইল ঠিকানা *</label>
           <input type="email" id="fpEmail" required placeholder="example@gmail.com" class="w-full p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none text-slate-800">
         </div>
         <button type="button" onclick="sendOtpViaEmail()" id="btnSendOtp" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold transition shadow-sm flex items-center justify-center gap-2">
@@ -486,11 +547,11 @@
           <span>আপনার ইমেইলে ৬ সংখ্যার কোড পাঠানো হয়েছে।</span>
         </div>
         <div>
-          <label class="block font-medium text-slate-700 mb-1">৬ সংখ্যার OTP কোড <span class="text-rose-500">*</span></label>
+          <label class="block font-medium text-slate-700 mb-1">৬ সংখ্যার OTP কোড *</label>
           <input type="text" id="fpInputOtp" maxlength="6" placeholder="123456" class="w-full p-2.5 rounded-lg border border-slate-200 text-center font-bold text-lg tracking-widest focus:ring-2 focus:ring-emerald-500 outline-none text-emerald-800">
         </div>
         <div>
-          <label class="block font-medium text-slate-700 mb-1">নতুন পাসওয়ার্ড দিন <span class="text-rose-500">*</span></label>
+          <label class="block font-medium text-slate-700 mb-1">নতুন পাসওয়ার্ড দিন *</label>
           <input type="password" id="fpNewPassword" placeholder="নতুন পাসওয়ার্ড লিখুন" class="w-full p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
         </div>
         <button type="button" onclick="verifyOtpAndResetPassword()" id="btnResetPass" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold transition shadow-sm flex items-center justify-center gap-1.5">
@@ -500,38 +561,41 @@
     </div>
   </div>
 
-  <!-- Modal: Admin Panel -->
+  <!-- Modal: Admin Panel (Ads, Users, Locations, Direct Image Ads & Popup) -->
   <div id="adminPanelModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 md:p-6">
     <div class="bg-white rounded-2xl w-full max-w-5xl overflow-hidden shadow-2xl border border-slate-100 flex flex-col max-h-[92vh]">
-      <div class="px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
+      <div class="px-5 sm:px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
         <div class="flex items-center gap-2">
           <span class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></span>
-          <h3 class="text-base font-bold">টু-লেট গোপালগঞ্জ — প্রধান অ্যাডমিন কন্ট্রোল প্যানেল</h3>
+          <h3 class="text-sm sm:text-base font-bold">টু-লেট গোপালগঞ্জ — প্রধান অ্যাডমিন কন্ট্রোল প্যানেল</h3>
         </div>
         <button onclick="toggleAdminModal(false)" class="text-white hover:text-slate-300 text-xl font-bold">&times;</button>
       </div>
 
       <div class="p-3 bg-slate-100 border-b border-slate-200 flex flex-wrap gap-2 justify-between items-center">
-        <div class="flex flex-wrap gap-2">
+        <div class="flex flex-wrap gap-1.5 sm:gap-2">
           <button id="adminTabAds" onclick="switchAdminTab('ads')" class="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-bold shadow-sm">
-            <i class="fa-solid fa-list-check mr-1"></i> বিজ্ঞাপন নিয়ন্ত্রণ
+            <i class="fa-solid fa-list-check mr-1"></i> বাসা বিজ্ঞাপন
           </button>
           <button id="adminTabUsers" onclick="switchAdminTab('users')" class="px-3 py-1.5 bg-white text-slate-700 border border-slate-300 rounded-lg text-xs font-bold hover:bg-slate-50">
-            <i class="fa-solid fa-users-gear mr-1"></i> ব্যবহারকারী নিয়ন্ত্রণ
+            <i class="fa-solid fa-users-gear mr-1"></i> ব্যবহারকারী
           </button>
           <button id="adminTabLocations" onclick="switchAdminTab('locations')" class="px-3 py-1.5 bg-white text-slate-700 border border-slate-300 rounded-lg text-xs font-bold hover:bg-slate-50">
-            <i class="fa-solid fa-map-location-dot mr-1"></i> এলাকা / স্থান নিয়ন্ত্রণ
+            <i class="fa-solid fa-map-location-dot mr-1"></i> এলাকা / স্থান
+          </button>
+          <button id="adminTabBanners" onclick="switchAdminTab('banners')" class="px-3 py-1.5 bg-white text-slate-700 border border-slate-300 rounded-lg text-xs font-bold hover:bg-slate-50">
+            <i class="fa-solid fa-image mr-1"></i> ইমেজ ব্যানার ও পপ-আপ
           </button>
         </div>
       </div>
 
-      <div class="p-4 md:p-6 overflow-y-auto flex-1 space-y-4">
+      <div class="p-4 sm:p-6 overflow-y-auto flex-1 space-y-4">
         <!-- 1. ADMIN ADS -->
         <div id="adminAdsSection" class="space-y-3">
           <div class="flex justify-between items-center mb-2">
             <span class="text-xs font-bold text-slate-600">সকল বিজ্ঞাপনের তালিকা</span>
             <button onclick="openAdModalForCreate()" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1 shadow-sm">
-              <i class="fa-solid fa-plus"></i> নতুন বিজ্ঞাপন যুক্ত করুন
+              <i class="fa-solid fa-plus"></i> নতুন বিজ্ঞাপন
             </button>
           </div>
           <div id="adminAdsListContainer" class="space-y-3"></div>
@@ -597,6 +661,75 @@
             </table>
           </div>
         </div>
+
+        <!-- 4. ADMIN DIRECT IMAGE ADS & POPUP -->
+        <div id="adminBannersSection" class="hidden space-y-5">
+          <!-- Direct Image Top Banner Setup -->
+          <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3">
+            <h4 class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+              <i class="fa-solid fa-image text-emerald-600"></i> ওয়েবসাইটের ৩য় পক্ষের ইমেজ ব্যানার বিজ্ঞাপন (Header Ad)
+            </h4>
+            <div class="flex items-center gap-2">
+              <input type="checkbox" id="adTopBannerEnabled" class="w-4 h-4 text-emerald-600 rounded">
+              <label for="adTopBannerEnabled" class="text-xs font-semibold text-slate-700">ব্যানার ইমেজ বিজ্ঞাপন চালু রাখুন</label>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs text-slate-600 mb-1">সরাসরি ইমেজ ফাইল আপলোড করুন:</label>
+                <input type="file" id="topBannerFileInput" accept="image/*" class="w-full p-1.5 text-xs bg-white border border-slate-300 rounded-lg">
+              </div>
+              <div>
+                <label class="block text-xs text-slate-600 mb-1">অথবা ব্যানার ছবির অনলাইন URL:</label>
+                <input type="url" id="adTopBannerImageUrl" placeholder="https://..." class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs text-slate-600 mb-1">বিজ্ঞাপনে ক্লিক করলে যে ওয়েবসাইটে যাবে (Target Link):</label>
+              <input type="url" id="adTopBannerTargetUrl" placeholder="https://example.com" class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
+            </div>
+            <button onclick="saveTopBannerAdDirect()" id="saveTopBannerBtn" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm">
+              ব্যানার সেভ করুন
+            </button>
+          </div>
+
+          <!-- Direct Image Popup Setup -->
+          <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3">
+            <h4 class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+              <i class="fa-solid fa-bullhorn text-amber-500"></i> পপ-আপ ইমেজ ব্যানার / স্পেশাল অফার
+            </h4>
+            <div class="flex items-center gap-2">
+              <input type="checkbox" id="popupAdEnabled" class="w-4 h-4 text-emerald-600 rounded">
+              <label for="popupAdEnabled" class="text-xs font-semibold text-slate-700">ওয়েবসাইট লোড হলে পপ-আপ দেখান</label>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs text-slate-600 mb-1">সরাসরি পপ-আপ ইমেজ আপলোড করুন:</label>
+                <input type="file" id="popupAdFileInput" accept="image/*" class="w-full p-1.5 text-xs bg-white border border-slate-300 rounded-lg">
+              </div>
+              <div>
+                <label class="block text-xs text-slate-600 mb-1">অথবা পপ-আপ ছবির অনলাইন URL:</label>
+                <input type="url" id="popupAdImageInput" placeholder="https://..." class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs text-slate-600 mb-1">পপ-আপ টাইটেল:</label>
+                <input type="text" id="popupAdTitleInput" placeholder="উদা: বিশেষ টু-লেট অফার!" class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
+              </div>
+              <div>
+                <label class="block text-xs text-slate-600 mb-1">ক্লিক লিংক (Action URL):</label>
+                <input type="url" id="popupAdActionUrlInput" placeholder="https://..." class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs text-slate-600 mb-1">পপ-আপ বিবরণ / বার্তা:</label>
+              <textarea id="popupAdBodyInput" rows="2" placeholder="বিজ্ঞাপনের মেসেজ লিখুন..." class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white"></textarea>
+            </div>
+            <button onclick="savePopupAdSettingsDirect()" id="savePopupBtn" class="px-4 py-2 bg-slate-900 hover:bg-black text-white text-xs font-bold rounded-lg shadow-sm">
+              পপ-আপ সেটিংস সংরক্ষণ করুন
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -637,22 +770,22 @@
   <!-- Modal: Add / Edit Ad Modal -->
   <div id="adModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-2 sm:p-4">
     <div class="bg-white rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl border border-slate-100 flex flex-col max-h-[92vh]">
-      <div class="px-6 py-4 bg-gradient-to-r from-emerald-600 to-teal-700 text-white flex justify-between items-center flex-shrink-0">
-        <h3 id="adModalTitle" class="text-base font-bold">নতুন বাসার বিজ্ঞাপন প্রকাশ করুন</h3>
+      <div class="px-5 sm:px-6 py-4 bg-gradient-to-r from-emerald-600 to-teal-700 text-white flex justify-between items-center flex-shrink-0">
+        <h3 id="adModalTitle" class="text-sm sm:text-base font-bold">নতুন বাসার বিজ্ঞাপন প্রকাশ করুন</h3>
         <button onclick="toggleAdModal(false)" class="text-white hover:text-slate-200 text-2xl font-bold">&times;</button>
       </div>
 
-      <form id="listingForm" onsubmit="handleFormSubmit(event)" class="p-5 md:p-6 space-y-4 overflow-y-auto text-sm flex-1">
+      <form id="listingForm" onsubmit="handleFormSubmit(event)" class="p-4 sm:p-6 space-y-4 overflow-y-auto text-sm flex-1">
         <input type="hidden" id="editListingId" value="">
 
         <div>
-          <label class="block font-medium text-slate-700 mb-1">বিজ্ঞাপনের শিরোনাম <span class="text-rose-500">*</span></label>
+          <label class="block font-medium text-slate-700 mb-1">বিজ্ঞাপনের শিরোনাম *</label>
           <input type="text" id="formTitle" required placeholder="উদা: নিরিবিলি পরিবেশে ২ রুমের ফ্যামিলি ফ্ল্যাট" class="w-full p-2.5 rounded-lg border border-slate-200 outline-none">
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label class="block font-medium text-slate-700 mb-1">ভাড়ার ধরন <span class="text-rose-500">*</span></label>
+            <label class="block font-medium text-slate-700 mb-1">ভাড়ার ধরন *</label>
             <select id="formType" required class="w-full p-2.5 rounded-lg border border-slate-200">
               <option value="ফ্যামিলি">ফ্যামিলি ফ্ল্যাট</option>
               <option value="ব্যাচেলর">ব্যাচেলর রুম</option>
@@ -661,25 +794,25 @@
             </select>
           </div>
           <div>
-            <label class="block font-medium text-slate-700 mb-1">এলাকা <span class="text-rose-500">*</span></label>
+            <label class="block font-medium text-slate-700 mb-1">এলাকা *</label>
             <select id="formArea" required class="w-full p-2.5 rounded-lg border border-slate-200"></select>
           </div>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label class="block font-medium text-slate-700 mb-1">মাসিক ভাড়া (টাকা) <span class="text-rose-500">*</span></label>
+            <label class="block font-medium text-slate-700 mb-1">মাসিক ভাড়া (টাকা) *</label>
             <input type="number" id="formRent" required placeholder="৬৫০০" class="w-full p-2.5 rounded-lg border border-slate-200">
           </div>
           <div>
-            <label class="block font-medium text-slate-700 mb-1">কবে থেকে খালি? <span class="text-rose-500">*</span></label>
+            <label class="block font-medium text-slate-700 mb-1">কবে থেকে খালি? *</label>
             <input type="text" id="formAvailable" required placeholder="উদা: আগামী ১লা তারিখ থেকে" class="w-full p-2.5 rounded-lg border border-slate-200">
           </div>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label class="block font-medium text-slate-700 mb-1">যোগাযোগের মোবাইল <span class="text-rose-500">*</span></label>
+            <label class="block font-medium text-slate-700 mb-1">যোগাযোগের মোবাইল *</label>
             <input type="tel" id="formPhone" required placeholder="017XXXXXXXX" class="w-full p-2.5 rounded-lg border border-slate-200">
           </div>
           <div>
@@ -693,18 +826,17 @@
           <textarea id="formDesc" rows="2" placeholder="অন্যান্য বিবরণ..." class="w-full p-2.5 rounded-lg border border-slate-200"></textarea>
         </div>
 
-        <!-- Image Upload via ImgBB -->
         <div>
           <label class="block font-medium text-slate-700 mb-1">রুমের ছবি নির্বাচন করুন</label>
           <input type="file" id="formImageFiles" accept="image/*" multiple onchange="handleImagePreview(this)" class="w-full p-2 border border-slate-200 rounded-lg">
           <div id="imagePreviewContainer" class="flex flex-wrap gap-2 mt-2 hidden"></div>
         </div>
 
-        <!-- Video Upload (Max 100 MB + Client Auto Compression) & Link -->
+        <!-- Video Upload with Sound Preserved -->
         <div class="border border-slate-200 p-3 rounded-xl bg-slate-50 space-y-2">
           <div class="flex items-center justify-between">
             <label class="block font-semibold text-slate-700 text-xs">
-              <i class="fa-solid fa-video text-rose-500 mr-1"></i> সরাসরি ভিডিও ফাইল (সর্বোচ্চ ১০০ MB):
+              <i class="fa-solid fa-video text-rose-500 mr-1"></i> সরাসরি ভিডিও ফাইল (সর্বোচ্চ ১০০ MB - সাউন্ড সহ):
             </label>
             <span class="text-[10px] bg-rose-100 text-rose-700 font-bold px-2 py-0.5 rounded">Max 100 MB</span>
           </div>
@@ -712,7 +844,7 @@
           
           <div id="videoCompressStatus" class="hidden text-[11px] font-bold text-amber-600 bg-amber-50 p-2 rounded border border-amber-200 flex items-center gap-1.5">
             <i class="fa-solid fa-spinner fa-spin"></i>
-            <span>ভিডিও ১০০ MB এর বেশি হওয়ায় কমপ্রেস করে ১০০ MB-এর নিচে নামানো হচ্ছে...</span>
+            <span>ভিডিও ১০০ MB এর বেশি হওয়ায় কোয়ালিটি ও সাউন্ড ঠিক রেখে অপ্টিমাইজ করা হচ্ছে...</span>
           </div>
 
           <div>
@@ -743,7 +875,7 @@
         emailjs.init(EMAILJS_PUBLIC_KEY);
       }
     } catch(e) {
-      console.warn("EmailJS init warning:", e);
+      console.warn("EmailJS notice:", e);
     }
 
     // 2. FIREBASE CONFIG
@@ -778,7 +910,7 @@
     let listings = [];
     let users = JSON.parse(localStorage.getItem('tolet_users')) || [];
 
-    // Ensure Admin & Default user
+    // Ensure Admin & Default User
     let adminFound = users.find(u => u.email === 'admin@gmail.com' || u.phone === '01700000000' || u.role === 'admin');
     if (!adminFound) {
       users.unshift({ name: "প্রধান অ্যাডমিন", phone: "01700000000", email: "admin@gmail.com", password: "admin", role: "admin" });
@@ -796,6 +928,19 @@
 
     let currentUser = JSON.parse(localStorage.getItem('tolet_current_user')) || null;
     let cardImageIndexes = {};
+
+    // 3rd party direct image ads settings
+    const defaultAdSettings = {
+      topBannerEnabled: false,
+      topBannerImageUrl: '',
+      topBannerTargetUrl: '#',
+      popupEnabled: false,
+      popupTitle: 'টু-লেট গোপালগঞ্জে স্বাগতম!',
+      popupBody: 'সহজেই রুম ও মেস খুঁজুন কিংবা আপনার বাসা খালি থাকলে বিজ্ঞাপন দিন।',
+      popupImage: '',
+      popupActionUrl: '#'
+    };
+    let adSettings = JSON.parse(localStorage.getItem('tolet_ad_settings')) || defaultAdSettings;
 
     // OTP states
     let generatedOtp = null;
@@ -852,7 +997,124 @@
       }
     }
 
-    // 4. USER & ADMIN SELF PASSWORD CHANGE
+    // 4. AD BANNER & POPUP SYSTEM (DIRECT IMAGE DRIVEN)
+    function applyAdSettingsToUI() {
+      // Direct Image Top Banner
+      const topWrapper = document.getElementById('thirdPartyTopBanner');
+      const topImg = document.getElementById('topBannerImg');
+      const topLink = document.getElementById('topBannerLink');
+
+      if (adSettings.topBannerEnabled && adSettings.topBannerImageUrl) {
+        topImg.src = adSettings.topBannerImageUrl;
+        topLink.href = adSettings.topBannerTargetUrl || '#';
+        topWrapper.classList.remove('hidden');
+      } else {
+        topWrapper.classList.add('hidden');
+      }
+
+      // Direct Image Popup
+      if (adSettings.popupEnabled && !sessionStorage.getItem('tolet_popup_seen')) {
+        document.getElementById('popupAdTitle').textContent = adSettings.popupTitle || '';
+        document.getElementById('popupAdBody').textContent = adSettings.popupBody || '';
+        const imgContainer = document.getElementById('popupAdImageContainer');
+        const imgEl = document.getElementById('popupAdImage');
+        const imgLink = document.getElementById('popupAdImageLink');
+
+        if (adSettings.popupImage) {
+          imgEl.src = adSettings.popupImage;
+          imgLink.href = adSettings.popupActionUrl || '#';
+          imgContainer.classList.remove('hidden');
+        } else {
+          imgContainer.classList.add('hidden');
+        }
+        document.getElementById('popupAdActionBtn').href = adSettings.popupActionUrl || '#';
+        
+        setTimeout(() => {
+          document.getElementById('popupAdModal').classList.remove('hidden');
+          sessionStorage.setItem('tolet_popup_seen', 'true');
+        }, 800);
+      }
+    }
+
+    function closePopupAd() {
+      document.getElementById('popupAdModal').classList.add('hidden');
+    }
+
+    function populateAdminAdInputs() {
+      document.getElementById('adTopBannerEnabled').checked = !!adSettings.topBannerEnabled;
+      document.getElementById('adTopBannerImageUrl').value = adSettings.topBannerImageUrl || '';
+      document.getElementById('adTopBannerTargetUrl').value = adSettings.topBannerTargetUrl || '';
+
+      document.getElementById('popupAdEnabled').checked = !!adSettings.popupEnabled;
+      document.getElementById('popupAdTitleInput').value = adSettings.popupTitle || '';
+      document.getElementById('popupAdImageInput').value = adSettings.popupImage || '';
+      document.getElementById('popupAdBodyInput').value = adSettings.popupBody || '';
+      document.getElementById('popupAdActionUrlInput').value = adSettings.popupActionUrl || '';
+    }
+
+    async function saveTopBannerAdDirect() {
+      const btn = document.getElementById('saveTopBannerBtn');
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> আপলোড হচ্ছে...`;
+
+      let imgUrl = document.getElementById('adTopBannerImageUrl').value.trim();
+      const fileInput = document.getElementById('topBannerFileInput');
+
+      if (fileInput.files && fileInput.files[0]) {
+        try {
+          imgUrl = await uploadToImgBB(fileInput.files[0]);
+          document.getElementById('adTopBannerImageUrl').value = imgUrl;
+        } catch (e) {
+          console.warn("Banner upload error:", e);
+          alert("ইমেজ আপলোড ব্যর্থ হয়েছে! URL ব্যবহার করতে পারেন।");
+        }
+      }
+
+      adSettings.topBannerEnabled = document.getElementById('adTopBannerEnabled').checked;
+      adSettings.topBannerImageUrl = imgUrl;
+      adSettings.topBannerTargetUrl = document.getElementById('adTopBannerTargetUrl').value.trim() || '#';
+
+      localStorage.setItem('tolet_ad_settings', JSON.stringify(adSettings));
+      applyAdSettingsToUI();
+
+      btn.disabled = false;
+      btn.innerHTML = `ব্যানার সেভ করুন`;
+      alert("টপ ইমেজ ব্যানার সফলভাবে সংরক্ষিত হয়েছে!");
+    }
+
+    async function savePopupAdSettingsDirect() {
+      const btn = document.getElementById('savePopupBtn');
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> আপলোড হচ্ছে...`;
+
+      let imgUrl = document.getElementById('popupAdImageInput').value.trim();
+      const fileInput = document.getElementById('popupAdFileInput');
+
+      if (fileInput.files && fileInput.files[0]) {
+        try {
+          imgUrl = await uploadToImgBB(fileInput.files[0]);
+          document.getElementById('popupAdImageInput').value = imgUrl;
+        } catch (e) {
+          console.warn("Popup upload error:", e);
+          alert("পপ-আপ ইমেজ আপলোড ব্যর্থ হয়েছে! URL দিতে পারেন।");
+        }
+      }
+
+      adSettings.popupEnabled = document.getElementById('popupAdEnabled').checked;
+      adSettings.popupTitle = document.getElementById('popupAdTitleInput').value.trim();
+      adSettings.popupImage = imgUrl;
+      adSettings.popupBody = document.getElementById('popupAdBodyInput').value.trim();
+      adSettings.popupActionUrl = document.getElementById('popupAdActionUrlInput').value.trim() || '#';
+
+      localStorage.setItem('tolet_ad_settings', JSON.stringify(adSettings));
+      applyAdSettingsToUI();
+
+      btn.disabled = false;
+      btn.innerHTML = `পপ-আপ সেটিংস সংরক্ষণ করুন`;
+      alert("পপ-আপ ব্যানার সেটিংস সফলভাবে সংরক্ষিত হয়েছে!");
+    }
+
+    // 5. USER & ADMIN PASSWORD CHANGE
     function switchDashTab(tab) {
       const adsTab = document.getElementById('dashTabAds');
       const passTab = document.getElementById('dashTabPass');
@@ -896,14 +1158,12 @@
         return;
       }
 
-      // Update in users array
       const uIdx = users.findIndex(u => u.phone === currentUser.phone);
       if (uIdx !== -1) {
         users[uIdx].password = newPass;
         localStorage.setItem('tolet_users', JSON.stringify(users));
       }
 
-      // Update current user
       currentUser.password = newPass;
       localStorage.setItem('tolet_current_user', JSON.stringify(currentUser));
 
@@ -911,7 +1171,7 @@
       switchDashTab('ads');
     }
 
-    // 5. REVIEW & STAR RATING SYSTEM (OWNER BLOCKED)
+    // 6. REVIEW & STAR RATING SYSTEM (OWNER BLOCKED)
     function openReviewModal(listingId) {
       activeReviewListingId = listingId;
       const listing = listings.find(l => l.id == listingId);
@@ -924,7 +1184,6 @@
       const inputSec = document.getElementById('reviewInputSection');
       const ownerNotice = document.getElementById('reviewOwnerNotice');
 
-      // Check if logged in and if the user is the owner of the listing
       if (currentUser && currentUser.phone === listing.ownerPhone) {
         inputSec.classList.add('hidden');
         ownerNotice.classList.remove('hidden');
@@ -965,7 +1224,6 @@
       const listing = listings.find(l => l.id == activeReviewListingId);
       if (!listing) return;
 
-      // Strict Validation: Owner cannot review their own listing
       if (currentUser.phone === listing.ownerPhone) {
         alert("আপনি নিজের বিজ্ঞাপনে রেটিং বা রিভিউ দিতে পারবেন না!");
         return;
@@ -984,14 +1242,13 @@
       if (!listing.reviews) listing.reviews = [];
       listing.reviews.unshift(newReview);
 
-      // Save to Firebase & Local
       if (isFirebaseReady && firebaseDb) {
         try {
           await firebaseDb.collection("listings").doc(String(listing.id)).update({
             reviews: listing.reviews
           });
         } catch(e) {
-          console.warn("Firestore review update fallback:", e);
+          console.warn("Firestore review update notice:", e);
         }
       }
       localStorage.setItem('gopalganj_tolet', JSON.stringify(listings));
@@ -1038,7 +1295,7 @@
       });
     }
 
-    // 6. FORGET PASSWORD WITH EMAILJS OTP
+    // 7. FORGET PASSWORD WITH EMAILJS OTP
     function openForgotPasswordModal() {
       toggleAuthModal(false);
       toggleAdminLoginModal(false);
@@ -1132,7 +1389,7 @@
       }
     }
 
-    // 7. IMGBB IMAGE UPLOAD
+    // 8. IMGBB IMAGE UPLOAD
     async function uploadToImgBB(file) {
       const apiKey = "4ac5668ba66709b8e8c1c641a57dcca9";
       const formData = new FormData();
@@ -1150,11 +1407,12 @@
       }
     }
 
-    // 8. VIDEO HANDLING (MAX 100 MB & AUTO COMPRESSION)
+    // 9. VIDEO HANDLING (AUDIO PRESERVED & MAX 100 MB)
     const MAX_TARGET_VIDEO_BYTES = 100 * 1024 * 1024; // 100 MB
 
     async function handleVideoProcessing(file) {
       if (!file) return "";
+      
       if (file.size <= MAX_TARGET_VIDEO_BYTES) {
         return URL.createObjectURL(file);
       }
@@ -1163,22 +1421,22 @@
       if (statusEl) statusEl.classList.remove('hidden');
 
       try {
-        const compressedBlob = await compressVideoClientSide(file);
+        const compressedBlob = await compressVideoWithAudio(file);
         if (statusEl) statusEl.classList.add('hidden');
         return URL.createObjectURL(compressedBlob);
       } catch (err) {
-        console.warn("Video compression skipped, using fallback:", err);
+        console.warn("Video compression skipped, using raw fallback:", err);
         if (statusEl) statusEl.classList.add('hidden');
         return URL.createObjectURL(file);
       }
     }
 
-    function compressVideoClientSide(file) {
+    function compressVideoWithAudio(file) {
       return new Promise((resolve, reject) => {
         const video = document.createElement('video');
         video.src = URL.createObjectURL(file);
-        video.muted = true;
         video.playsInline = true;
+        video.muted = false;
 
         video.onloadedmetadata = () => {
           const canvas = document.createElement('canvas');
@@ -1188,15 +1446,29 @@
           canvas.width = Math.round(video.videoWidth * scale);
           canvas.height = Math.round(video.videoHeight * scale);
 
-          const stream = canvas.captureStream(24);
+          const canvasStream = canvas.captureStream(24);
+          let combinedStream = canvasStream;
+
+          try {
+            if (video.captureStream) {
+              const videoMediaStream = video.captureStream();
+              const audioTracks = videoMediaStream.getAudioTracks();
+              if (audioTracks.length > 0) {
+                canvasStream.addTrack(audioTracks[0]);
+              }
+            }
+          } catch(err) {
+            console.warn("Direct audio track attach bypassed:", err);
+          }
+
           let recorder;
           try {
-            recorder = new MediaRecorder(stream, {
-              mimeType: 'video/webm;codecs=vp8',
+            recorder = new MediaRecorder(combinedStream, {
+              mimeType: 'video/webm;codecs=vp8,opus',
               videoBitsPerSecond: 1500000
             });
           } catch(e) {
-            recorder = new MediaRecorder(stream);
+            recorder = new MediaRecorder(combinedStream);
           }
 
           const chunks = [];
@@ -1227,7 +1499,7 @@
       });
     }
 
-    // 9. UNIVERSAL VIDEO LINK EMBEDDER
+    // 10. UNIVERSAL VIDEO LINK EMBEDDER (With Sound & Download Blocked)
     function playVideo(videoSrc) {
       const modal = document.getElementById('videoModal');
       const container = document.getElementById('videoContainer');
@@ -1261,9 +1533,9 @@
         return;
       }
 
-      // Direct Video
+      // Direct Video: controlsList="nodownload noplaybackrate", full audio
       container.innerHTML = `
-        <video controls autoplay class="w-full h-full max-h-[75vh] object-contain">
+        <video controls autoplay controlsList="nodownload noplaybackrate" oncontextmenu="return false;" class="w-full h-full max-h-[75vh] object-contain">
           <source src="${trimmed}">
           আপনার ব্রাউজার ভিডিও সাপোর্ট করছে না।
         </video>
@@ -1277,7 +1549,7 @@
       modal.classList.add('hidden');
     }
 
-    // 10. IMAGE LIGHTBOX
+    // 11. IMAGE LIGHTBOX
     function openImageLightbox(images, startIndex = 0) {
       if (!images || images.length === 0) return;
       currentLightboxImages = images;
@@ -1306,7 +1578,7 @@
       document.getElementById('lbNextBtn').style.display = showArrows ? 'flex' : 'none';
     }
 
-    // 11. FORM SUBMISSION (Add / Edit)
+    // 12. FORM SUBMISSION (Add / Edit Listing)
     async function handleFormSubmit(e) {
       e.preventDefault();
       const submitBtn = document.getElementById('submitBtn');
@@ -1395,7 +1667,7 @@
       alert("বিজ্ঞাপন সফলভাবে সংরক্ষণ করা হয়েছে!");
     }
 
-    // 12. USER DASHBOARD (নিজের বিজ্ঞাপন দেখা, এডিট ও ডিলিট)
+    // 13. USER DASHBOARD
     function openUserDashboard() {
       if (!currentUser) {
         alert("প্রথমে লগইন করুন!");
@@ -1452,7 +1724,7 @@
       });
     }
 
-    // 13. ADMIN PANEL CONTROLS
+    // 14. ADMIN PANEL CONTROLS
     function openAdminModal() {
       if (!isAdmin()) {
         alert("অননুমোদিত অ্যাক্সেস! শুধুমাত্র অ্যাডমিন প্রবেশ করতে পারবেন।");
@@ -1461,6 +1733,7 @@
       renderAdminAdsList();
       renderAdminUsersTable();
       renderAdminLocationsTable();
+      populateAdminAdInputs();
       toggleAdminModal(true);
     }
 
@@ -1471,6 +1744,7 @@
       document.getElementById('adminAdsSection').classList.toggle('hidden', tab !== 'ads');
       document.getElementById('adminUsersSection').classList.toggle('hidden', tab !== 'users');
       document.getElementById('adminLocationsSection').classList.toggle('hidden', tab !== 'locations');
+      document.getElementById('adminBannersSection').classList.toggle('hidden', tab !== 'banners');
 
       const activeStyle = "px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-bold shadow-sm";
       const inactiveStyle = "px-3 py-1.5 bg-white text-slate-700 border border-slate-300 rounded-lg text-xs font-bold hover:bg-slate-50";
@@ -1478,6 +1752,9 @@
       document.getElementById('adminTabAds').className = (tab === 'ads') ? activeStyle : inactiveStyle;
       document.getElementById('adminTabUsers').className = (tab === 'users') ? activeStyle : inactiveStyle;
       document.getElementById('adminTabLocations').className = (tab === 'locations') ? activeStyle : inactiveStyle;
+      document.getElementById('adminTabBanners').className = (tab === 'banners') ? activeStyle : inactiveStyle;
+
+      if (tab === 'banners') populateAdminAdInputs();
     }
 
     function renderAdminAdsList() {
@@ -1707,7 +1984,7 @@
       applyFilters();
     }
 
-    // 14. CHAT & VOICE MESSAGING
+    // 15. CHAT & VOICE MESSAGING
     function getChatRoomKey(listingId, userA, userB) {
       const sorted = [userA, userB].sort();
       return `chat_${listingId}_${sorted[0]}_${sorted[1]}`;
@@ -1999,7 +2276,7 @@
       toggleInboxModal(true);
     }
 
-    // 15. CARD RENDERING (স্টার রেটিং, রিভিউ কাউন্ট ও ভিউ বাটন সহ)
+    // 16. CARD RENDERING
     function renderListings(items) {
       const container = document.getElementById('listingsContainer');
       const emptyState = document.getElementById('emptyState');
@@ -2022,7 +2299,6 @@
         const imgs = item.images && item.images.length > 0 ? item.images : ["https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600&auto=format&fit=crop&q=80"];
         cardImageIndexes[item.id] = 0;
 
-        // Calculate average star rating
         const reviews = item.reviews || [];
         const reviewCount = reviews.length;
         let avgRating = 0;
@@ -2036,7 +2312,6 @@
         card.innerHTML = `
           <div>
             <div class="relative h-48 w-full bg-slate-900 overflow-hidden group">
-              <!-- ক্লিক করলে লাইটবক্সে বড় ছবি ওপেন হবে -->
               <img id="img-${item.id}" src="${imgs[0]}" onclick='openImageLightbox(${JSON.stringify(imgs)}, cardImageIndexes["${item.id}"])' alt="বাসার ছবি" class="w-full h-full object-cover cursor-pointer hover:scale-105 transition duration-300" title="বড় করে দেখতে ক্লিক করুন">
               
               <div class="absolute top-3 left-3 z-10 flex gap-1.5 items-center">
@@ -2069,7 +2344,7 @@
               ` : ''}
             </div>
 
-            <div class="p-5">
+            <div class="p-4 sm:p-5">
               <div class="flex items-center justify-between gap-2 mb-2">
                 <span class="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
                   <i class="fa-regular fa-clock mr-1"></i>${item.available}
@@ -2083,9 +2358,8 @@
               
               <div class="flex items-center justify-between text-[11px] text-slate-400 mb-2">
                 <span><i class="fa-solid fa-user text-[10px] mr-1"></i> ${item.postedBy || 'মালিক'}</span>
-                <!-- রেটিং ও রিভিউ দেখার বাটন -->
                 <button onclick="openReviewModal('${item.id}')" class="text-amber-600 hover:text-amber-700 font-bold flex items-center gap-1">
-                  <i class="fa-solid fa-star text-amber-500"></i> ${reviewCount > 0 ? `${avgRating} (${reviewCount}টি রিভিউ)` : 'রিভিউ দিন'}
+                  <i class="fa-solid fa-star text-amber-500"></i> ${reviewCount > 0 ? `${avgRating} (${reviewCount}টি)` : 'রিভিউ দিন'}
                 </button>
               </div>
 
@@ -2094,7 +2368,7 @@
             </div>
           </div>
 
-          <div class="px-5 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+          <div class="px-4 sm:px-5 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
             <div>
               <span class="text-[10px] text-slate-400 uppercase tracking-wider block font-bold">ভাড়া</span>
               <span class="text-base font-extrabold text-emerald-600">৳${Number(item.rent).toLocaleString('bn-BD')}</span>
@@ -2127,19 +2401,19 @@
       if (counterEl) counterEl.textContent = `${cardImageIndexes[id] + 1}/${total}`;
     }
 
-    // 16. UI & AUTHENTICATION
+    // 17. UI & AUTHENTICATION
     function updateAuthUI() {
       const authSection = document.getElementById('authSection');
       if (currentUser) {
         authSection.innerHTML = `
-          <div class="flex items-center gap-1.5 bg-slate-100 py-1.5 px-3 rounded-lg border border-slate-200">
+          <div class="flex items-center gap-1.5 bg-slate-100 py-1.5 px-2.5 sm:px-3 rounded-lg border border-slate-200">
             ${isAdmin() ? `
               <button onclick="openAdminModal()" class="text-xs font-bold text-amber-700 bg-amber-50 px-2 py-1 rounded border border-amber-200 shadow-xs" title="অ্যাডমিন প্যানেল">
                 🛡️ অ্যাডমিন
               </button>
             ` : ''}
-            <button onclick="openUserDashboard()" class="text-xs font-bold text-slate-800 hover:text-emerald-700 flex items-center gap-1 transition" title="আমার ড্যাশবোর্ড ও প্রোফাইল">
-              <i class="fa-solid fa-circle-user text-emerald-600"></i> ${currentUser.name}
+            <button onclick="openUserDashboard()" class="text-xs font-bold text-slate-800 hover:text-emerald-700 flex items-center gap-1 transition max-w-[90px] sm:max-w-[130px] truncate" title="আমার ড্যাশবোর্ড ও প্রোফাইল">
+              <i class="fa-solid fa-circle-user text-emerald-600"></i> <span class="truncate">${currentUser.name}</span>
             </button>
             <span class="text-slate-300">|</span>
             <button onclick="logout()" class="text-[11px] text-red-500 font-semibold hover:text-red-700">লগআউট</button>
@@ -2147,7 +2421,7 @@
         `;
       } else {
         authSection.innerHTML = `
-          <button onclick="toggleAuthModal(true)" class="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3.5 py-2 rounded-lg hover:bg-emerald-100 transition">
+          <button onclick="toggleAuthModal(true)" class="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 sm:px-3.5 py-2 rounded-lg hover:bg-emerald-100 transition active:scale-95">
             লগইন / সাইন-আপ
           </button>
         `;
@@ -2363,10 +2637,11 @@
       renderListings(listings);
     }
 
-    // অ্যাপ শুরু
+    // Initialize Application
     refreshLocationDropdowns();
     updateAuthUI();
     listenToListings();
+    applyAdSettingsToUI();
   </script>
 </body>
 </html>
