@@ -186,25 +186,107 @@
     </div>
   </div>
 
-  <!-- Modal: User Dashboard -->
+  <!-- Modal: Reviews & Ratings Modal -->
+  <div id="reviewModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl border border-slate-100 flex flex-col max-h-[88vh]">
+      <div class="px-5 py-4 bg-emerald-600 text-white flex justify-between items-center">
+        <div>
+          <h3 class="text-base font-bold flex items-center gap-2">
+            <i class="fa-solid fa-star text-amber-300"></i> রেটিং ও রিভিউসমূহ
+          </h3>
+          <span id="reviewListingTitle" class="text-xs text-emerald-100 truncate block max-w-[260px]"></span>
+        </div>
+        <button onclick="toggleReviewModal(false)" class="text-white hover:text-slate-200 text-xl font-bold">&times;</button>
+      </div>
+
+      <!-- Review Input Form -->
+      <div id="reviewInputSection" class="p-4 bg-slate-50 border-b border-slate-200">
+        <label class="block text-xs font-bold text-slate-700 mb-1">আপনার রেটিং দিন:</label>
+        <div class="flex items-center gap-2 mb-2 text-xl" id="starRatingSelector">
+          <i class="fa-solid fa-star text-amber-400 cursor-pointer" onclick="selectStarRating(1)"></i>
+          <i class="fa-solid fa-star text-amber-400 cursor-pointer" onclick="selectStarRating(2)"></i>
+          <i class="fa-solid fa-star text-amber-400 cursor-pointer" onclick="selectStarRating(3)"></i>
+          <i class="fa-solid fa-star text-amber-400 cursor-pointer" onclick="selectStarRating(4)"></i>
+          <i class="fa-solid fa-star text-amber-400 cursor-pointer" onclick="selectStarRating(5)"></i>
+          <span id="selectedRatingText" class="text-xs font-bold text-slate-600 ml-2">৫ স্টার</span>
+        </div>
+        <textarea id="reviewCommentInput" rows="2" placeholder="বাসাটির পরিবেশ বা সুবিধা সম্পর্কে আপনার মতামত লিখুন..." class="w-full p-2.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"></textarea>
+        <button onclick="submitListingReview()" class="mt-2 w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition shadow-sm">
+          রিভিউ সাবমিট করুন
+        </button>
+      </div>
+
+      <!-- Warning if Owner -->
+      <div id="reviewOwnerNotice" class="hidden p-3 bg-amber-50 text-amber-800 text-xs text-center border-b border-amber-200 font-medium">
+        <i class="fa-solid fa-circle-exclamation mr-1 text-amber-600"></i> এটি আপনার নিজের বিজ্ঞাপন, তাই আপনি রেটিং দিতে পারবেন না।
+      </div>
+
+      <!-- Existing Reviews List -->
+      <div id="reviewsListContainer" class="p-4 overflow-y-auto space-y-3 flex-1"></div>
+    </div>
+  </div>
+
+  <!-- Modal: User Dashboard + Change Password (ইউজার ও অ্যাডমিন উভয়ের নিজস্ব বিজ্ঞাপন ও পাসওয়ার্ড পরিবর্তন) -->
   <div id="userDashboardModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 md:p-6">
     <div class="bg-white rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl border border-slate-100 flex flex-col max-h-[90vh]">
       <div class="px-6 py-4 bg-emerald-700 text-white flex justify-between items-center">
         <div>
           <h3 class="text-base font-bold flex items-center gap-2">
-            <i class="fa-solid fa-circle-user text-lg"></i> আমার ড্যাশবোর্ড ও বিজ্ঞাপনসমূহ
+            <i class="fa-solid fa-circle-user text-lg"></i> আমার ড্যাশবোর্ড ও প্রোফাইল
           </h3>
           <span id="dashUserPhone" class="text-xs text-emerald-200"></span>
         </div>
         <button onclick="toggleDashboardModal(false)" class="text-white hover:text-slate-200 text-2xl font-bold">&times;</button>
       </div>
-      <div class="p-3 bg-slate-100 border-b flex justify-between items-center">
-        <span class="text-xs font-bold text-slate-700">আমার প্রকাশিত বিজ্ঞাপন তালিকা</span>
-        <button onclick="toggleDashboardModal(false); openAdModalForCreate();" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-bold flex items-center gap-1 shadow-sm">
-          <i class="fa-solid fa-plus"></i> নতুন বিজ্ঞাপন
+
+      <!-- Dashboard Tabs -->
+      <div class="flex border-b border-slate-200 bg-slate-50 text-xs font-bold">
+        <button id="dashTabAdsBtn" onclick="switchDashTab('ads')" class="flex-1 py-3 text-emerald-700 border-b-2 border-emerald-600 bg-white flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-rectangle-ad"></i> আমার দেওয়া বিজ্ঞাপনসমূহ
+        </button>
+        <button id="dashTabPassBtn" onclick="switchDashTab('pass')" class="flex-1 py-3 text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-key"></i> পাসওয়ার্ড পরিবর্তন করুন
         </button>
       </div>
-      <div id="userAdsListContainer" class="p-4 overflow-y-auto space-y-3 flex-1"></div>
+
+      <!-- Dash Tab: My Ads -->
+      <div id="dashTabAds" class="p-4 overflow-y-auto space-y-3 flex-1">
+        <div class="flex justify-between items-center mb-1">
+          <span class="text-xs font-bold text-slate-700">আমার প্রকাশিত বিজ্ঞাপনের তালিকা:</span>
+          <button onclick="toggleDashboardModal(false); openAdModalForCreate();" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-bold flex items-center gap-1 shadow-sm">
+            <i class="fa-solid fa-plus"></i> নতুন বিজ্ঞাপন
+          </button>
+        </div>
+        <div id="userAdsListContainer" class="space-y-3"></div>
+      </div>
+
+      <!-- Dash Tab: Change Password (ইউজার ও অ্যাডমিন) -->
+      <div id="dashTabPass" class="hidden p-6 overflow-y-auto flex-1">
+        <div class="max-w-md mx-auto space-y-4">
+          <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs p-3 rounded-xl flex items-center gap-2">
+            <i class="fa-solid fa-shield-halved text-emerald-600 text-base"></i>
+            <span>আপনার অ্যাকাউন্টের নিরাপত্তা নিশ্চিত করতে নিয়মিত পাসওয়ার্ড পরিবর্তন করুন।</span>
+          </div>
+
+          <form onsubmit="handleSelfPasswordChange(event)" class="space-y-3 text-sm">
+            <div>
+              <label class="block font-medium text-slate-700 mb-1 text-xs">বর্তমান পাসওয়ার্ড <span class="text-rose-500">*</span></label>
+              <input type="password" id="selfCurrentPass" required placeholder="বর্তমান পাসওয়ার্ড দিন" class="w-full p-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none text-xs">
+            </div>
+            <div>
+              <label class="block font-medium text-slate-700 mb-1 text-xs">নতুন পাসওয়ার্ড <span class="text-rose-500">*</span></label>
+              <input type="password" id="selfNewPass" required placeholder="কমপক্ষে ৪ সংখ্যার নতুন পাসওয়ার্ড" class="w-full p-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none text-xs">
+            </div>
+            <div>
+              <label class="block font-medium text-slate-700 mb-1 text-xs">নতুন পাসওয়ার্ড নিশ্চিত করুন <span class="text-rose-500">*</span></label>
+              <input type="password" id="selfConfirmNewPass" required placeholder="নতুন পাসওয়ার্ডটি পুনরায় লিখুন" class="w-full p-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none text-xs">
+            </div>
+            <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs shadow-sm transition flex items-center justify-center gap-1.5 mt-2">
+              <i class="fa-solid fa-check"></i> পাসওয়ার্ড আপডেট করুন
+            </button>
+          </form>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -375,7 +457,7 @@
     </div>
   </div>
 
-  <!-- Modal: Forgot Password (EmailJS OTP Recovery) -->
+  <!-- Modal: Forgot Password (EmailJS OTP) -->
   <div id="forgotPasswordModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-slate-100">
       <div class="px-6 py-4 bg-emerald-600 text-white flex justify-between items-center">
@@ -385,10 +467,9 @@
         <button onclick="toggleForgotPasswordModal(false)" class="text-white hover:text-slate-200 text-xl font-bold">&times;</button>
       </div>
 
-      <!-- Step 1: Input Email & Send OTP -->
       <div id="otpStep1" class="p-6 space-y-3.5 text-sm">
         <p class="text-xs text-slate-600 leading-relaxed">
-          আপনার অ্যাকাউন্টে রেজিস্টার্ড Gmail/Email ঠিকানা দিন। EmailJS এর মাধ্যমে আপনার ইনবক্সে ৬ সংখ্যার ওটিপি (OTP) পাঠানো হবে।
+          আপনার অ্যাকাউন্টে নিবন্ধিত Gmail/Email ঠিকানা দিন। ওটিপি (OTP) পাঠানো হবে।
         </p>
         <div>
           <label class="block font-medium text-slate-700 mb-1">নিবন্ধিত ইমেইল ঠিকানা <span class="text-rose-500">*</span></label>
@@ -399,7 +480,6 @@
         </button>
       </div>
 
-      <!-- Step 2: Verify OTP & Enter New Password -->
       <div id="otpStep2" class="p-6 space-y-3.5 text-sm hidden">
         <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs p-2.5 rounded-lg flex items-center gap-2">
           <i class="fa-solid fa-circle-check text-emerald-600 text-sm"></i>
@@ -410,7 +490,7 @@
           <input type="text" id="fpInputOtp" maxlength="6" placeholder="123456" class="w-full p-2.5 rounded-lg border border-slate-200 text-center font-bold text-lg tracking-widest focus:ring-2 focus:ring-emerald-500 outline-none text-emerald-800">
         </div>
         <div>
-          <label class="block font-medium text-slate-700 mb-1">নতুন পাসওয়ার্ড সেট করুন <span class="text-rose-500">*</span></label>
+          <label class="block font-medium text-slate-700 mb-1">নতুন পাসওয়ার্ড দিন <span class="text-rose-500">*</span></label>
           <input type="password" id="fpNewPassword" placeholder="নতুন পাসওয়ার্ড লিখুন" class="w-full p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
         </div>
         <button type="button" onclick="verifyOtpAndResetPassword()" id="btnResetPass" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold transition shadow-sm flex items-center justify-center gap-1.5">
@@ -420,7 +500,7 @@
     </div>
   </div>
 
-  <!-- Modal: Admin Panel (সকল বিজ্ঞাপন, ইউজার ও এলাকা নিয়ন্ত্রণ) -->
+  <!-- Modal: Admin Panel -->
   <div id="adminPanelModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 md:p-6">
     <div class="bg-white rounded-2xl w-full max-w-5xl overflow-hidden shadow-2xl border border-slate-100 flex flex-col max-h-[92vh]">
       <div class="px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
@@ -653,9 +733,7 @@
 
   <!-- JavaScript Logic -->
   <script>
-    // ==========================================
-    // 1. EMAILJS CONFIGURATION (FORGET PASSWORD OTP)
-    // ==========================================
+    // 1. EMAILJS CONFIGURATION
     const EMAILJS_PUBLIC_KEY = "kKeUrs7wO9jJCFePf";
     const EMAILJS_SERVICE_ID = "service_l9cc301";
     const EMAILJS_TEMPLATE_ID = "template_6bq6spz";
@@ -668,9 +746,7 @@
       console.warn("EmailJS init warning:", e);
     }
 
-    // ==========================================
     // 2. FIREBASE CONFIG
-    // ==========================================
     const firebaseConfig = {
       apiKey: "AIzaSyCXsm7jMaWdYIe-8Ya2IGvWMmICUNRL9Ms",
       authDomain: "to-let-gopalganj.firebaseapp.com",
@@ -725,7 +801,9 @@
     let generatedOtp = null;
     let otpTargetEmail = null;
 
-    // Lightbox State
+    // Review & Lightbox States
+    let activeReviewListingId = null;
+    let selectedRatingStars = 5;
     let currentLightboxImages = [];
     let currentLightboxIndex = 0;
 
@@ -774,7 +852,193 @@
       }
     }
 
-    // 4. FORGET PASSWORD WITH EMAILJS OTP
+    // 4. USER & ADMIN SELF PASSWORD CHANGE
+    function switchDashTab(tab) {
+      const adsTab = document.getElementById('dashTabAds');
+      const passTab = document.getElementById('dashTabPass');
+      const adsBtn = document.getElementById('dashTabAdsBtn');
+      const passBtn = document.getElementById('dashTabPassBtn');
+
+      if (tab === 'ads') {
+        adsTab.classList.remove('hidden');
+        passTab.classList.add('hidden');
+        adsBtn.className = "flex-1 py-3 text-emerald-700 border-b-2 border-emerald-600 bg-white flex items-center justify-center gap-1.5 font-bold";
+        passBtn.className = "flex-1 py-3 text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1.5 font-bold";
+      } else {
+        adsTab.classList.add('hidden');
+        passTab.classList.remove('hidden');
+        passBtn.className = "flex-1 py-3 text-emerald-700 border-b-2 border-emerald-600 bg-white flex items-center justify-center gap-1.5 font-bold";
+        adsBtn.className = "flex-1 py-3 text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1.5 font-bold";
+        document.getElementById('selfCurrentPass').value = '';
+        document.getElementById('selfNewPass').value = '';
+        document.getElementById('selfConfirmNewPass').value = '';
+      }
+    }
+
+    function handleSelfPasswordChange(e) {
+      e.preventDefault();
+      if (!currentUser) return;
+
+      const currentPassInput = document.getElementById('selfCurrentPass').value.trim();
+      const newPass = document.getElementById('selfNewPass').value.trim();
+      const confirmPass = document.getElementById('selfConfirmNewPass').value.trim();
+
+      if (currentPassInput !== currentUser.password) {
+        alert("বর্তমান পাসওয়ার্ডটি সঠিক নয়!");
+        return;
+      }
+      if (newPass.length < 4) {
+        alert("নতুন পাসওয়ার্ডটি কমপক্ষে ৪ সংখ্যার হতে হবে!");
+        return;
+      }
+      if (newPass !== confirmPass) {
+        alert("নতুন পাসওয়ার্ড এবং কনফার্ম পাসওয়ার্ড মিলছে না!");
+        return;
+      }
+
+      // Update in users array
+      const uIdx = users.findIndex(u => u.phone === currentUser.phone);
+      if (uIdx !== -1) {
+        users[uIdx].password = newPass;
+        localStorage.setItem('tolet_users', JSON.stringify(users));
+      }
+
+      // Update current user
+      currentUser.password = newPass;
+      localStorage.setItem('tolet_current_user', JSON.stringify(currentUser));
+
+      alert("আপনার পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে!");
+      switchDashTab('ads');
+    }
+
+    // 5. REVIEW & STAR RATING SYSTEM (OWNER BLOCKED)
+    function openReviewModal(listingId) {
+      activeReviewListingId = listingId;
+      const listing = listings.find(l => l.id == listingId);
+      if (!listing) return;
+
+      document.getElementById('reviewListingTitle').textContent = listing.title;
+      selectStarRating(5);
+      document.getElementById('reviewCommentInput').value = '';
+
+      const inputSec = document.getElementById('reviewInputSection');
+      const ownerNotice = document.getElementById('reviewOwnerNotice');
+
+      // Check if logged in and if the user is the owner of the listing
+      if (currentUser && currentUser.phone === listing.ownerPhone) {
+        inputSec.classList.add('hidden');
+        ownerNotice.classList.remove('hidden');
+      } else {
+        inputSec.classList.remove('hidden');
+        ownerNotice.classList.add('hidden');
+      }
+
+      renderReviewsList(listing.reviews || []);
+      document.getElementById('reviewModal').classList.remove('hidden');
+    }
+
+    function toggleReviewModal(show) {
+      document.getElementById('reviewModal').classList.toggle('hidden', !show);
+    }
+
+    function selectStarRating(stars) {
+      selectedRatingStars = stars;
+      const starIcons = document.getElementById('starRatingSelector').querySelectorAll('i');
+      starIcons.forEach((icon, i) => {
+        if (i < stars) {
+          icon.className = "fa-solid fa-star text-amber-400 cursor-pointer";
+        } else {
+          icon.className = "fa-regular fa-star text-slate-300 cursor-pointer";
+        }
+      });
+      document.getElementById('selectedRatingText').textContent = `${stars} স্টার`;
+    }
+
+    async function submitListingReview() {
+      if (!currentUser) {
+        alert("রেটিং বা রিভিউ দিতে প্রথমে লগইন করুন!");
+        toggleReviewModal(false);
+        toggleAuthModal(true);
+        return;
+      }
+
+      const listing = listings.find(l => l.id == activeReviewListingId);
+      if (!listing) return;
+
+      // Strict Validation: Owner cannot review their own listing
+      if (currentUser.phone === listing.ownerPhone) {
+        alert("আপনি নিজের বিজ্ঞাপনে রেটিং বা রিভিউ দিতে পারবেন না!");
+        return;
+      }
+
+      const comment = document.getElementById('reviewCommentInput').value.trim();
+      const newReview = {
+        id: Date.now(),
+        userName: currentUser.name || "ব্যবহারকারী",
+        userPhone: currentUser.phone,
+        rating: selectedRatingStars,
+        comment: comment || "কোনো লিখিত মন্তব্য নেই।",
+        date: new Date().toLocaleDateString('bn-BD')
+      };
+
+      if (!listing.reviews) listing.reviews = [];
+      listing.reviews.unshift(newReview);
+
+      // Save to Firebase & Local
+      if (isFirebaseReady && firebaseDb) {
+        try {
+          await firebaseDb.collection("listings").doc(String(listing.id)).update({
+            reviews: listing.reviews
+          });
+        } catch(e) {
+          console.warn("Firestore review update fallback:", e);
+        }
+      }
+      localStorage.setItem('gopalganj_tolet', JSON.stringify(listings));
+
+      document.getElementById('reviewCommentInput').value = '';
+      renderReviewsList(listing.reviews);
+      applyFilters();
+      alert("আপনার রেটিং ও রিভিউ সফলভাবে যুক্ত হয়েছে!");
+    }
+
+    function renderReviewsList(reviews) {
+      const container = document.getElementById('reviewsListContainer');
+      container.innerHTML = '';
+
+      if (!reviews || reviews.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-6 text-slate-400 text-xs">
+            <i class="fa-regular fa-comment-dots text-2xl mb-1.5 block"></i>
+            এখনো কোনো রিভিউ দেওয়া হয়নি। প্রথম রিভিউটি আপনি দিন!
+          </div>
+        `;
+        return;
+      }
+
+      reviews.forEach(r => {
+        let starsHtml = '';
+        for (let i = 1; i <= 5; i++) {
+          starsHtml += i <= r.rating 
+            ? '<i class="fa-solid fa-star text-amber-400 text-[10px]"></i>' 
+            : '<i class="fa-regular fa-star text-slate-300 text-[10px]"></i>';
+        }
+
+        const div = document.createElement('div');
+        div.className = "p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1";
+        div.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-slate-800">${r.userName}</span>
+            <span class="text-[10px] text-slate-400">${r.date || ''}</span>
+          </div>
+          <div class="flex items-center gap-1">${starsHtml} <span class="text-[10px] font-bold text-amber-700 ml-1">${r.rating}.0</span></div>
+          <p class="text-slate-600 text-[11px] leading-relaxed pt-0.5">${r.comment}</p>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    // 6. FORGET PASSWORD WITH EMAILJS OTP
     function openForgotPasswordModal() {
       toggleAuthModal(false);
       toggleAdminLoginModal(false);
@@ -823,8 +1087,7 @@
             handleOtpSentSuccess();
           })
           .catch((err) => {
-            console.warn("EmailJS Service notice:", err);
-            // Backup fallback OTP show
+            console.warn("EmailJS notice:", err);
             alert(`[ব্যাকআপ OTP নোটিশ]: আপনার ওটিপি কোড হলো: ${generatedOtp}`);
             handleOtpSentSuccess();
           });
@@ -861,7 +1124,7 @@
       if (userIndex !== -1) {
         users[userIndex].password = newPassword;
         localStorage.setItem('tolet_users', JSON.stringify(users));
-        alert("পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে! এখন নতুন পাসওয়ার্ড দিয়ে লগইন করুন।");
+        alert("পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে! এখন লগইন করুন।");
         toggleForgotPasswordModal(false);
         toggleAuthModal(true);
       } else {
@@ -869,7 +1132,7 @@
       }
     }
 
-    // 5. IMGBB IMAGE UPLOAD
+    // 7. IMGBB IMAGE UPLOAD
     async function uploadToImgBB(file) {
       const apiKey = "4ac5668ba66709b8e8c1c641a57dcca9";
       const formData = new FormData();
@@ -887,7 +1150,7 @@
       }
     }
 
-    // 6. VIDEO HANDLING (MAX 100 MB & AUTO COMPRESSION)
+    // 8. VIDEO HANDLING (MAX 100 MB & AUTO COMPRESSION)
     const MAX_TARGET_VIDEO_BYTES = 100 * 1024 * 1024; // 100 MB
 
     async function handleVideoProcessing(file) {
@@ -964,7 +1227,7 @@
       });
     }
 
-    // 7. UNIVERSAL VIDEO LINK EMBEDDER
+    // 9. UNIVERSAL VIDEO LINK EMBEDDER
     function playVideo(videoSrc) {
       const modal = document.getElementById('videoModal');
       const container = document.getElementById('videoContainer');
@@ -1014,7 +1277,7 @@
       modal.classList.add('hidden');
     }
 
-    // 8. IMAGE LIGHTBOX
+    // 10. IMAGE LIGHTBOX
     function openImageLightbox(images, startIndex = 0) {
       if (!images || images.length === 0) return;
       currentLightboxImages = images;
@@ -1043,7 +1306,7 @@
       document.getElementById('lbNextBtn').style.display = showArrows ? 'flex' : 'none';
     }
 
-    // 9. FORM SUBMISSION
+    // 11. FORM SUBMISSION (Add / Edit)
     async function handleFormSubmit(e) {
       e.preventDefault();
       const submitBtn = document.getElementById('submitBtn');
@@ -1091,6 +1354,7 @@
         desc: document.getElementById('formDesc').value.trim(),
         images: uploadedImages,
         video: videoUrl,
+        reviews: existingListing ? (existingListing.reviews || []) : [],
         postedBy: currentUser ? currentUser.name : "বিজ্ঞাপনদাতা",
         ownerPhone: currentUser ? currentUser.phone : document.getElementById('formPhone').value.trim(),
         createdAt: existingListing ? (existingListing.createdAt || Date.now()) : Date.now()
@@ -1131,7 +1395,7 @@
       alert("বিজ্ঞাপন সফলভাবে সংরক্ষণ করা হয়েছে!");
     }
 
-    // 10. USER DASHBOARD
+    // 12. USER DASHBOARD (নিজের বিজ্ঞাপন দেখা, এডিট ও ডিলিট)
     function openUserDashboard() {
       if (!currentUser) {
         alert("প্রথমে লগইন করুন!");
@@ -1139,6 +1403,7 @@
         return;
       }
       document.getElementById('dashUserPhone').textContent = `নাম: ${currentUser.name} | মোবাইল: ${currentUser.phone}`;
+      switchDashTab('ads');
       renderUserAdsList();
       toggleDashboardModal(true);
     }
@@ -1187,7 +1452,7 @@
       });
     }
 
-    // 11. ADMIN PANEL CONTROLS
+    // 13. ADMIN PANEL CONTROLS
     function openAdminModal() {
       if (!isAdmin()) {
         alert("অননুমোদিত অ্যাক্সেস! শুধুমাত্র অ্যাডমিন প্রবেশ করতে পারবেন।");
@@ -1442,7 +1707,7 @@
       applyFilters();
     }
 
-    // 12. CHAT & VOICE MESSAGING
+    // 14. CHAT & VOICE MESSAGING
     function getChatRoomKey(listingId, userA, userB) {
       const sorted = [userA, userB].sort();
       return `chat_${listingId}_${sorted[0]}_${sorted[1]}`;
@@ -1734,7 +1999,7 @@
       toggleInboxModal(true);
     }
 
-    // 13. CARD RENDERING
+    // 15. CARD RENDERING (স্টার রেটিং, রিভিউ কাউন্ট ও ভিউ বাটন সহ)
     function renderListings(items) {
       const container = document.getElementById('listingsContainer');
       const emptyState = document.getElementById('emptyState');
@@ -1757,17 +2022,32 @@
         const imgs = item.images && item.images.length > 0 ? item.images : ["https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600&auto=format&fit=crop&q=80"];
         cardImageIndexes[item.id] = 0;
 
+        // Calculate average star rating
+        const reviews = item.reviews || [];
+        const reviewCount = reviews.length;
+        let avgRating = 0;
+        if (reviewCount > 0) {
+          const totalStars = reviews.reduce((acc, r) => acc + Number(r.rating || 5), 0);
+          avgRating = (totalStars / reviewCount).toFixed(1);
+        }
+
         const card = document.createElement('div');
         card.className = "bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition overflow-hidden flex flex-col justify-between";
         card.innerHTML = `
           <div>
             <div class="relative h-48 w-full bg-slate-900 overflow-hidden group">
+              <!-- ক্লিক করলে লাইটবক্সে বড় ছবি ওপেন হবে -->
               <img id="img-${item.id}" src="${imgs[0]}" onclick='openImageLightbox(${JSON.stringify(imgs)}, cardImageIndexes["${item.id}"])' alt="বাসার ছবি" class="w-full h-full object-cover cursor-pointer hover:scale-105 transition duration-300" title="বড় করে দেখতে ক্লিক করুন">
               
-              <div class="absolute top-3 left-3 z-10">
+              <div class="absolute top-3 left-3 z-10 flex gap-1.5 items-center">
                 <span class="text-xs font-semibold px-2.5 py-1 rounded-full border bg-white/95 backdrop-blur shadow-sm ${badgeColor}">
                   ${item.type}
                 </span>
+                ${reviewCount > 0 ? `
+                  <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-amber-400 text-slate-900 flex items-center gap-1 shadow-sm">
+                    <i class="fa-solid fa-star text-[10px]"></i> ${avgRating}
+                  </span>
+                ` : ''}
               </div>
 
               ${imgs.length > 1 ? `
@@ -1800,7 +2080,15 @@
               </div>
 
               <h3 class="font-bold text-slate-900 text-base mb-1 line-clamp-1">${item.title}</h3>
-              ${item.postedBy ? `<p class="text-[11px] text-slate-400 mb-2"><i class="fa-solid fa-user text-[10px] mr-1"></i> ${item.postedBy}</p>` : ''}
+              
+              <div class="flex items-center justify-between text-[11px] text-slate-400 mb-2">
+                <span><i class="fa-solid fa-user text-[10px] mr-1"></i> ${item.postedBy || 'মালিক'}</span>
+                <!-- রেটিং ও রিভিউ দেখার বাটন -->
+                <button onclick="openReviewModal('${item.id}')" class="text-amber-600 hover:text-amber-700 font-bold flex items-center gap-1">
+                  <i class="fa-solid fa-star text-amber-500"></i> ${reviewCount > 0 ? `${avgRating} (${reviewCount}টি রিভিউ)` : 'রিভিউ দিন'}
+                </button>
+              </div>
+
               ${item.specs ? `<p class="text-xs text-slate-600 bg-slate-50 p-2 rounded-lg mb-2"><i class="fa-solid fa-layer-group text-slate-400 mr-1"></i> ${item.specs}</p>` : ''}
               <p class="text-xs text-slate-500 line-clamp-2 leading-relaxed mb-2">${item.desc || 'বিস্তারিত জানতে সরাসরি যোগাযোগ করুন।'}</p>
             </div>
@@ -1839,7 +2127,7 @@
       if (counterEl) counterEl.textContent = `${cardImageIndexes[id] + 1}/${total}`;
     }
 
-    // 14. UI & AUTHENTICATION
+    // 16. UI & AUTHENTICATION
     function updateAuthUI() {
       const authSection = document.getElementById('authSection');
       if (currentUser) {
@@ -1850,7 +2138,7 @@
                 🛡️ অ্যাডমিন
               </button>
             ` : ''}
-            <button onclick="openUserDashboard()" class="text-xs font-bold text-slate-800 hover:text-emerald-700 flex items-center gap-1 transition" title="আমার বিজ্ঞাপনসমূহ">
+            <button onclick="openUserDashboard()" class="text-xs font-bold text-slate-800 hover:text-emerald-700 flex items-center gap-1 transition" title="আমার ড্যাশবোর্ড ও প্রোফাইল">
               <i class="fa-solid fa-circle-user text-emerald-600"></i> ${currentUser.name}
             </button>
             <span class="text-slate-300">|</span>
@@ -2075,7 +2363,7 @@
       renderListings(listings);
     }
 
-    // App Start
+    // অ্যাপ শুরু
     refreshLocationDropdowns();
     updateAuthUI();
     listenToListings();
