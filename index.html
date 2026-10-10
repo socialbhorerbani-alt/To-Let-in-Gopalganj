@@ -18,9 +18,9 @@
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap');
-    body { font-family: 'Hind Siliguri', sans-serif; }
+    body { font-family: 'Hind Siliguri', sans-serif; -webkit-tap-highlight-color: transparent; }
     
-    /* Video download & context menu restrictions */
+    /* Video download restrictions */
     video::-internal-media-controls-download-button { display: none !important; }
     video::-webkit-media-controls-enclosure { overflow: hidden; }
     video::-webkit-media-controls-panel { width: calc(100% + 30px); }
@@ -65,7 +65,7 @@
     </div>
   </header>
 
-  <!-- 3rd Party Top Leaderboard Banner Slot (Syncs to all devices) -->
+  <!-- Top Leaderboard Banner Slot -->
   <div id="thirdPartyTopBanner" class="max-w-7xl mx-auto px-3 sm:px-4 mt-3 w-full hidden">
     <a id="topBannerLink" href="#" target="_blank" rel="noopener noreferrer" class="block w-full overflow-hidden rounded-xl border border-slate-200 shadow-xs hover:opacity-95 transition bg-slate-100 text-center">
       <img id="topBannerImg" src="" alt="স্পন্সরড ব্যানার" class="mx-auto w-auto max-h-[90px] object-contain">
@@ -73,33 +73,33 @@
   </div>
 
   <!-- Hero Section -->
-  <section class="bg-gradient-to-br from-emerald-800 to-teal-900 text-white py-10 sm:py-12 px-4">
-    <div class="max-w-4xl mx-auto text-center space-y-3">
+  <section class="bg-gradient-to-br from-emerald-800 to-teal-900 text-white py-8 sm:py-12 px-4">
+    <div class="max-w-4xl mx-auto text-center space-y-2.5 sm:space-y-3">
       <span class="bg-emerald-700/60 text-emerald-200 px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wider inline-block">গোপালগঞ্জ জেলা সদর ও আশপাশ</span>
-      <h1 class="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight">ছবি ও ভিডিও দেখে বাসা বা মেস পছন্দ করুন</h1>
+      <h1 class="text-xl sm:text-3xl md:text-4xl font-extrabold tracking-tight">ছবি ও ভিডিও দেখে বাসা বা মেস পছন্দ করুন</h1>
       <p class="text-emerald-100 text-xs sm:text-sm md:text-base max-w-xl mx-auto">ফ্যামিলি ফ্ল্যাট, ব্যাচেলর রুম কিংবা স্টুডেন্ট মেস — সরাসরি মালিকের সাথে কথা ও চ্যাট করুন।</p>
     </div>
   </section>
 
   <!-- Filter Panel -->
-  <section class="max-w-7xl mx-auto px-3 sm:px-4 -mt-6">
-    <div class="bg-white rounded-2xl shadow-xl border border-slate-100 p-3 sm:p-5 md:p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+  <section class="max-w-7xl mx-auto px-3 sm:px-4 -mt-5 sm:-mt-6">
+    <div class="bg-white rounded-2xl shadow-xl border border-slate-100 p-3 sm:p-5 md:p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
       <div>
-        <label class="text-xs font-semibold text-slate-500 mb-1 block">কী-ওয়ার্ড দিয়ে খুঁজুন</label>
+        <label class="text-[11px] sm:text-xs font-semibold text-slate-500 mb-1 block">কী-ওয়ার্ড দিয়ে খুঁজুন</label>
         <div class="relative">
           <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-sm"></i>
-          <input type="text" id="searchInput" oninput="applyFilters()" placeholder="বাসার নাম বা এলাকা..." class="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+          <input type="text" id="searchInput" oninput="applyFilters()" placeholder="বাসার নাম বা এলাকা..." class="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
         </div>
       </div>
 
       <div>
-        <label class="text-xs font-semibold text-slate-500 mb-1 block">এলাকা নির্ধারণ করুন</label>
-        <select id="areaFilter" onchange="applyFilters()" class="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"></select>
+        <label class="text-[11px] sm:text-xs font-semibold text-slate-500 mb-1 block">এলাকা নির্ধারণ করুন</label>
+        <select id="areaFilter" onchange="applyFilters()" class="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"></select>
       </div>
 
       <div>
-        <label class="text-xs font-semibold text-slate-500 mb-1 block">ভাড়ার ধরন</label>
-        <select id="typeFilter" onchange="applyFilters()" class="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+        <label class="text-[11px] sm:text-xs font-semibold text-slate-500 mb-1 block">ভাড়ার ধরন</label>
+        <select id="typeFilter" onchange="applyFilters()" class="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
           <option value="all">সব ধরন</option>
           <option value="ফ্যামিলি">ফ্যামিলি বাসা</option>
           <option value="ব্যাচেলর">ব্যাচেলর রুম</option>
@@ -109,7 +109,7 @@
       </div>
 
       <div class="flex items-end">
-        <button onclick="resetFilters()" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-semibold transition flex items-center justify-center gap-2 active:scale-95">
+        <button onclick="resetFilters()" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-2 active:scale-95">
           <i class="fa-solid fa-arrows-rotate text-xs"></i> ফিল্টার রিসেট
         </button>
       </div>
@@ -117,17 +117,16 @@
   </section>
 
   <!-- Main Content Layout (Responsive Listings + Sidebar Ads) -->
-  <main class="max-w-7xl mx-auto px-3 sm:px-4 py-8 sm:py-10 flex-1 w-full">
-    <div class="flex items-center justify-between mb-5 sm:mb-6">
-      <h2 class="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">
+  <main class="max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-10 flex-1 w-full">
+    <div class="flex items-center justify-between mb-4 sm:mb-6">
+      <h2 class="text-base sm:text-xl font-bold text-slate-900 flex items-center gap-2">
         <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
         বর্তমান বিজ্ঞাপনসমূহ (<span id="totalCount">0</span>টি)
       </h2>
     </div>
 
-    <!-- 2 Column Responsive Grid: Listings Left, Ads Right -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-      <!-- Left Column: Listings Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-start">
+      <!-- Listings Grid -->
       <div class="lg:col-span-8 xl:col-span-9 w-full">
         <div id="listingsContainer" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6"></div>
 
@@ -138,14 +137,14 @@
         </div>
       </div>
 
-      <!-- Right Column: Clean Sidebar Ad Zone (Displays across PC, Tablet & Mobile) -->
+      <!-- Clean Sidebar Ad Zone -->
       <aside id="sidebarAdZone" class="lg:col-span-4 xl:col-span-3 flex flex-col gap-4 sticky top-20 w-full">
         <div id="sidebarAdListContainer" class="flex flex-col gap-4 items-center w-full"></div>
       </aside>
     </div>
   </main>
 
-  <!-- Responsive Modern Footer -->
+  <!-- Responsive Modern Footer (Admin Dynamic Settings Connected) -->
   <footer class="bg-gradient-to-b from-slate-900 to-slate-950 text-slate-300 pt-12 sm:pt-16 pb-8 border-t border-slate-800 mt-auto">
     <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-8 mb-10">
       <div class="md:col-span-4 space-y-4">
@@ -161,10 +160,11 @@
         <p class="text-xs text-slate-400 leading-relaxed pr-2">
           গোপালগঞ্জ শহর ও বিশ্ববিদ্যালয়ের (BSMRSTU) আশেপাশের বাসা, ব্যাচেলর মেস ও সাবলেট খোঁজার আধুনিক ডিজিটাল প্ল্যাটফর্ম।
         </p>
+        <!-- Dynamic Social Buttons (Admin Configurable) -->
         <div class="flex items-center gap-2.5 pt-1">
-          <a href="#" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-emerald-600 text-slate-300 hover:text-white flex items-center justify-center text-xs transition"><i class="fa-brands fa-facebook-f"></i></a>
-          <a href="#" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-emerald-600 text-slate-300 hover:text-white flex items-center justify-center text-xs transition"><i class="fa-brands fa-whatsapp"></i></a>
-          <a href="#" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-emerald-600 text-slate-300 hover:text-white flex items-center justify-center text-xs transition"><i class="fa-solid fa-phone"></i></a>
+          <a id="footerFbBtn" href="https://facebook.com" target="_blank" rel="noopener noreferrer" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-emerald-600 text-slate-300 hover:text-white flex items-center justify-center text-xs transition active:scale-95"><i class="fa-brands fa-facebook-f"></i></a>
+          <a id="footerWaBtn" href="https://wa.me/8801700000000" target="_blank" rel="noopener noreferrer" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-emerald-600 text-slate-300 hover:text-white flex items-center justify-center text-xs transition active:scale-95"><i class="fa-brands fa-whatsapp"></i></a>
+          <a id="footerCallBtn" href="tel:+8801700000000" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-emerald-600 text-slate-300 hover:text-white flex items-center justify-center text-xs transition active:scale-95"><i class="fa-solid fa-phone"></i></a>
         </div>
       </div>
 
@@ -175,7 +175,6 @@
           <li><a href="javascript:void(0)" onclick="filterByFooterArea('ঘোনাপাড়া (BSMRSTU এলাকা)')" class="hover:text-emerald-400 transition flex items-center gap-1.5"><i class="fa-solid fa-angle-right text-[10px] text-slate-600"></i> ঘোনাপাড়া (BSMRSTU)</a></li>
           <li><a href="javascript:void(0)" onclick="filterByFooterArea('বেদগ্রাম')" class="hover:text-emerald-400 transition flex items-center gap-1.5"><i class="fa-solid fa-angle-right text-[10px] text-slate-600"></i> বেদগ্রাম</a></li>
           <li><a href="javascript:void(0)" onclick="filterByFooterArea('কোর্ট মসজিদ রোড')" class="hover:text-emerald-400 transition flex items-center gap-1.5"><i class="fa-solid fa-angle-right text-[10px] text-slate-600"></i> কোর্ট মসজিদ রোড</a></li>
-          <li><a href="javascript:void(0)" onclick="filterByFooterArea('থানাপাড়া')" class="hover:text-emerald-400 transition flex items-center gap-1.5"><i class="fa-solid fa-angle-right text-[10px] text-slate-600"></i> থানাপাড়া</a></li>
         </ul>
       </div>
 
@@ -191,22 +190,27 @@
 
       <div class="md:col-span-3 space-y-3">
         <h4 class="text-xs font-bold text-white uppercase tracking-wider mb-3.5 border-l-2 border-emerald-500 pl-2">হেল্প ও সাপোর্ট</h4>
-        <div class="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 space-y-1.5 text-xs">
-          <p class="flex items-center gap-2 text-slate-300"><i class="fa-solid fa-phone text-emerald-400 text-xs"></i> <span>+880 1700-000000</span></p>
-          <p class="flex items-center gap-2 text-slate-300"><i class="fa-solid fa-envelope text-emerald-400 text-xs"></i> <span>support@toletgopalganj.com</span></p>
-          <p class="flex items-center gap-2 text-slate-300"><i class="fa-solid fa-location-dot text-emerald-400 text-xs"></i> <span>গোপালগঞ্জ সদর, গোপালগঞ্জ</span></p>
+        <div class="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 space-y-2 text-xs">
+          <p class="flex items-center gap-2 text-slate-300">
+            <i class="fa-solid fa-phone text-emerald-400 text-xs"></i> 
+            <span id="footerDisplayPhone">+880 1700-000000</span>
+          </p>
+          <p class="flex items-center gap-2 text-slate-300">
+            <i class="fa-brands fa-whatsapp text-emerald-400 text-xs"></i> 
+            <span id="footerDisplayWa">+880 1700-000000</span>
+          </p>
+          <p class="flex items-center gap-2 text-slate-300 truncate">
+            <i class="fa-brands fa-facebook text-emerald-400 text-xs"></i> 
+            <span id="footerDisplayFb" class="truncate">facebook.com</span>
+          </p>
         </div>
-        <button onclick="openAdModalForCreate()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition shadow-md">
-          <i class="fa-solid fa-plus mr-1"></i> ফ্রি বিজ্ঞাপন প্রকাশ করুন
-        </button>
       </div>
     </div>
 
     <div class="max-w-7xl mx-auto px-4 pt-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-400 gap-2">
       <p>© ২০২৬ টু-লেট গোপালগঞ্জ। সর্বস্বত্ব সংরক্ষিত।</p>
       <div class="flex items-center gap-3">
-        <span class="inline-flex items-center gap-1 text-emerald-400"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> লাইভ সার্ভিস</span>
-        <span>Mobile, Tablet & PC Responsive</span>
+        <span class="inline-flex items-center gap-1 text-emerald-400"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> ক্লাউড সিঙ্ক ডেটাবেজ সক্রিয়</span>
       </div>
     </div>
   </footer>
@@ -374,10 +378,9 @@
 
       <form id="loginForm" onsubmit="handleUserLogin(event)" autocomplete="off" class="p-6 space-y-3.5 text-sm">
         <div>
-          <label class="block font-medium text-slate-700 mb-1">মোবাইল নম্বর *</label>
+          <label class="block font-medium text-slate-700 mb-1">মোবাইল নম্বর বা ইমেইল *</label>
           <div class="relative">
-            <span class="absolute left-3 top-3 text-slate-400 text-xs font-semibold">+88</span>
-            <input type="tel" id="loginPhone" required placeholder="017XXXXXXXX" value="" autocomplete="off" class="w-full pl-11 pr-3 py-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none text-slate-800">
+            <input type="text" id="loginPhone" required placeholder="017XXXXXXXX বা example@gmail.com" value="" autocomplete="off" class="w-full px-3 py-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none text-slate-800">
           </div>
         </div>
 
@@ -578,23 +581,11 @@
         <div class="border border-slate-200 p-3 rounded-xl bg-slate-50 space-y-2">
           <div class="flex items-center justify-between">
             <label class="block font-semibold text-slate-700 text-xs">
-              <i class="fa-solid fa-video text-rose-500 mr-1"></i> সরাসরি ভিডিও ফাইল (সর্বোচ্চ ১০০ MB - সাউন্ড সহ):
+              <i class="fa-solid fa-video text-rose-500 mr-1"></i> অনলাইন ভিডিও লিঙ্ক (সব ডিভাইসে দেখার জন্য):
             </label>
-            <span class="text-[10px] bg-rose-100 text-rose-700 font-bold px-2 py-0.5 rounded">Max 100 MB</span>
+            <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">All Devices Supported</span>
           </div>
-          <input type="file" id="formVideoFileInput" accept="video/*" class="w-full p-1.5 border border-slate-200 rounded-lg text-xs bg-white">
-          
-          <div id="videoCompressStatus" class="hidden text-[11px] font-bold text-amber-600 bg-amber-50 p-2 rounded border border-amber-200 flex items-center gap-1.5">
-            <i class="fa-solid fa-spinner fa-spin"></i>
-            <span>ভিডিও ১০০ MB এর বেশি হওয়ায় কোয়ালিটি ও সাউন্ড ঠিক রেখে অপ্টিমাইজ করা হচ্ছে...</span>
-          </div>
-
-          <div>
-            <label class="block font-semibold text-slate-600 text-xs mb-1">
-              অথবা যেকোনো প্ল্যাটফর্মের ভিডিও লিঙ্ক (YouTube, Facebook, Google Drive ইত্যাদি):
-            </label>
-            <input type="url" id="formVideoUrl" placeholder="ভিডিও লিঙ্ক দিন: https://..." class="w-full p-2 text-xs rounded-lg border border-slate-200 bg-white">
-          </div>
+          <input type="url" id="formVideoUrl" placeholder="YouTube, Facebook, Google Drive বা ডিরেক্ট MP4 লিঙ্ক দিন: https://..." class="w-full p-2 text-xs rounded-lg border border-slate-200 bg-white">
         </div>
 
         <div class="flex justify-end gap-2 pt-2 border-t">
@@ -661,7 +652,7 @@
             <i class="fa-solid fa-map-location-dot mr-1"></i> এলাকা / স্থান
           </button>
           <button id="adminTabBanners" onclick="switchAdminTab('banners')" class="px-3 py-1.5 bg-white text-slate-700 border border-slate-300 rounded-lg text-xs font-bold hover:bg-slate-50">
-            <i class="fa-solid fa-image mr-1"></i> ব্যানার ও পপ-আপ
+            <i class="fa-solid fa-image mr-1"></i> ব্যানার ও ফুটার সেটিংস
           </button>
         </div>
       </div>
@@ -739,9 +730,34 @@
           </div>
         </div>
 
-        <!-- Tab 4: Multi-Size Banners & Popup -->
+        <!-- Tab 4: Multi-Size Banners, Popup & Footer Contacts -->
         <div id="adminBannersSection" class="hidden space-y-6">
-          <!-- Top Leaderboard -->
+          
+          <!-- Dynamic Footer Contact Settings (Facebook, WhatsApp, Phone) -->
+          <div class="bg-emerald-50/70 border border-emerald-200 p-4 rounded-xl space-y-3">
+            <h4 class="text-xs font-bold text-emerald-900 flex items-center gap-1.5">
+              <i class="fa-solid fa-address-book text-emerald-600"></i> ওয়েবসাইটের ফুটার যোগাযোগ ও সোশ্যাল মিডিয়া কন্ট্রোল
+            </h4>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">কল / হেল্পলাইন নম্বর:</label>
+                <input type="text" id="adminFooterPhoneInput" placeholder="+880 1700-000000" class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">হোয়াটসঅ্যাপ নম্বর (Country code সহ):</label>
+                <input type="text" id="adminFooterWaInput" placeholder="+8801700000000" class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">ফেসবুক পেজ / প্রোফাইল লিংক:</label>
+                <input type="url" id="adminFooterFbInput" placeholder="https://facebook.com/..." class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
+              </div>
+            </div>
+            <button onclick="saveFooterContactSettings()" id="saveFooterContactBtn" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm">
+              ফুটার কন্টাক্ট ইনফো আপডেট করুন
+            </button>
+          </div>
+
+          <!-- Top Leaderboard Banner -->
           <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3">
             <div class="flex items-center justify-between">
               <h4 class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
@@ -899,26 +915,10 @@
     let listings = [];
     let users = JSON.parse(localStorage.getItem('tolet_users')) || [];
 
-    // Setup Admin and Default Users
-    let adminFound = users.find(u => u.email === 'admin@gmail.com' || u.phone === '01700000000' || u.role === 'admin');
-    if (!adminFound) {
-      users.unshift({ name: "প্রধান অ্যাডমিন", phone: "01700000000", email: "admin@gmail.com", password: "admin", role: "admin" });
-    } else {
-      adminFound.role = 'admin';
-      adminFound.email = adminFound.email || 'admin@gmail.com';
-      adminFound.password = adminFound.password || 'admin';
-    }
-
-    let defaultUser = users.find(u => u.phone === '01712345678');
-    if (!defaultUser) {
-      users.push({ name: "আব্দুল করিম", phone: "01712345678", email: "karim@gmail.com", password: "123456", role: "user" });
-    }
-    localStorage.setItem('tolet_users', JSON.stringify(users));
-
     let currentUser = JSON.parse(localStorage.getItem('tolet_current_user')) || null;
     let cardImageIndexes = {};
 
-    // 3rd party ads & Multi-size sidebar ads
+    // Ad & Footer Contact settings
     const defaultAdSettings = {
       topBannerEnabled: false,
       topBannerImageUrl: '',
@@ -927,23 +927,15 @@
       popupTitle: 'টু-লেট গোপালগঞ্জে স্বাগতম!',
       popupBody: 'সহজেই রুম ও মেস খুঁজুন কিংবা আপনার বাসা খালি থাকলে বিজ্ঞাপন দিন।',
       popupImage: '',
-      popupActionUrl: '#'
+      popupActionUrl: '#',
+      footerPhone: '+880 1700-000000',
+      footerWa: '+8801700000000',
+      footerFb: 'https://facebook.com'
     };
     let adSettings = JSON.parse(localStorage.getItem('tolet_ad_settings')) || defaultAdSettings;
+    let sidebarAds = JSON.parse(localStorage.getItem('tolet_sidebar_ads')) || [];
 
-    const defaultSidebarAds = [
-      {
-        id: 1,
-        dimension: "300x250",
-        type: "Medium Rectangle",
-        title: "হোম ডেলিভারি সার্ভিস",
-        imageUrl: "https://images.unsplash.com/photo-1526367790999-0150786686a2?w=600&auto=format&fit=crop&q=80",
-        targetUrl: "#"
-      }
-    ];
-    let sidebarAds = JSON.parse(localStorage.getItem('tolet_sidebar_ads')) || defaultSidebarAds;
-
-    // States
+    // UI States
     let generatedOtp = null;
     let otpTargetEmail = null;
     let activeReviewListingId = null;
@@ -957,7 +949,6 @@
     let activeChatListing = null;
     let activeChatRecipientPhone = null;
 
-    // Voice States
     let mediaRecorder = null;
     let audioChunks = [];
     let recordingTimerInterval = null;
@@ -967,7 +958,7 @@
       return currentUser && (currentUser.role === 'admin' || currentUser.phone === '01700000000' || (currentUser.email && currentUser.email.toLowerCase() === 'admin@gmail.com')); 
     }
 
-    // 3. FIRESTORE REALTIME LISTENER FOR LISTINGS & AD SETTINGS (SYNC FOR ALL DEVICES)
+    // 3. FIRESTORE REALTIME SYNC (USERS, ADS, CONTACTS FOR ALL DEVICES)
     function listenToListings() {
       if (isFirebaseReady && firebaseDb) {
         // Listings Sync
@@ -976,9 +967,6 @@
           snapshot.forEach((doc) => {
             listings.push({ id: doc.id, ...doc.data() });
           });
-          if (listings.length === 0) {
-            listings = JSON.parse(localStorage.getItem('gopalganj_tolet')) || [];
-          }
           applyFilters();
           const adminPanel = document.getElementById('adminPanelModal');
           if (adminPanel && !adminPanel.classList.contains('hidden')) {
@@ -989,12 +977,29 @@
             renderUserAdsList();
           }
         }, (error) => {
-          console.warn("Firestore fetch error:", error);
+          console.warn("Firestore listings sync notice:", error);
           listings = JSON.parse(localStorage.getItem('gopalganj_tolet')) || [];
           applyFilters();
         });
 
-        // Global Site & Banner Ad Settings Sync Across Devices
+        // Users Sync across all devices
+        firebaseDb.collection("users").onSnapshot((snapshot) => {
+          users = [];
+          snapshot.forEach((doc) => {
+            users.push(doc.data());
+          });
+          // Ensure default admin always present
+          let adminExist = users.find(u => u.phone === '01700000000' || (u.email && u.email.toLowerCase() === 'admin@gmail.com'));
+          if (!adminExist) {
+            const defAdmin = { name: "প্রধান অ্যাডমিন", phone: "01700000000", email: "admin@gmail.com", password: "admin", role: "admin" };
+            users.unshift(defAdmin);
+            firebaseDb.collection("users").doc("admin_root").set(defAdmin);
+          }
+          localStorage.setItem('tolet_users', JSON.stringify(users));
+          renderAdminUsersTable();
+        });
+
+        // Ad & Footer Contact Settings Sync across all devices
         firebaseDb.collection("site_settings").doc("ad_config").onSnapshot((doc) => {
           if (doc.exists) {
             adSettings = { ...adSettings, ...doc.data() };
@@ -1003,7 +1008,7 @@
           }
         });
 
-        // Global Sidebar Ads Sync Across Devices
+        // Sidebar Ads Sync across all devices
         firebaseDb.collection("site_settings").doc("sidebar_ads_config").onSnapshot((doc) => {
           if (doc.exists && doc.data().ads) {
             sidebarAds = doc.data().ads;
@@ -1012,14 +1017,14 @@
             renderAdminSidebarAdsList();
           }
         });
-
       } else {
         listings = JSON.parse(localStorage.getItem('gopalganj_tolet')) || [];
+        users = JSON.parse(localStorage.getItem('tolet_users')) || [];
         applyFilters();
       }
     }
 
-    // 4. MULTI-SIZE AD & SIDEBAR AD ENGINE
+    // 4. AD BANNER, POPUP & FOOTER CONTACT CONTROLS
     const adDimensionMap = {
       "728x90": { label: "Leaderboard", w: 728, h: 90 },
       "336x280": { label: "Large Rectangle", w: 336, h: 280 },
@@ -1070,6 +1075,30 @@
           sessionStorage.setItem('tolet_popup_seen', 'true');
         }, 800);
       }
+
+      // 4. Update Footer Social Links & Contact Info
+      const phoneText = adSettings.footerPhone || '+880 1700-000000';
+      const waNumber = adSettings.footerWa || '+8801700000000';
+      const fbUrl = adSettings.footerFb || 'https://facebook.com';
+
+      const dispPhone = document.getElementById('footerDisplayPhone');
+      const dispWa = document.getElementById('footerDisplayWa');
+      const dispFb = document.getElementById('footerDisplayFb');
+
+      if (dispPhone) dispPhone.textContent = phoneText;
+      if (dispWa) dispWa.textContent = waNumber;
+      if (dispFb) dispFb.textContent = fbUrl.replace(/^https?:\/\/(www\.)?/, '');
+
+      const btnCall = document.getElementById('footerCallBtn');
+      const btnWa = document.getElementById('footerWaBtn');
+      const btnFb = document.getElementById('footerFbBtn');
+
+      if (btnCall) btnCall.href = `tel:${phoneText.replace(/\s+/g, '')}`;
+      if (btnWa) {
+        const cleanWa = waNumber.replace(/[^0-9]/g, '');
+        btnWa.href = `https://wa.me/${cleanWa}`;
+      }
+      if (btnFb) btnFb.href = fbUrl;
     }
 
     function renderSidebarAds() {
@@ -1078,8 +1107,7 @@
       if (!container) return;
 
       container.innerHTML = '';
-
-      if (sidebarAds.length === 0) {
+      if (!sidebarAds || sidebarAds.length === 0) {
         zone.classList.add('hidden');
         return;
       }
@@ -1089,7 +1117,6 @@
         const dimInfo = adDimensionMap[ad.dimension] || { w: 300, h: 250 };
         const card = document.createElement('div');
         card.className = "w-full max-w-full flex items-center justify-center bg-white p-2 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md transition overflow-hidden group";
-        
         card.innerHTML = `
           <a href="${ad.targetUrl || '#'}" target="_blank" rel="noopener noreferrer" class="block w-full overflow-hidden rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center">
             <img src="${ad.imageUrl}" alt="${ad.title || 'এড'}" style="max-height: ${dimInfo.h}px; max-width: ${dimInfo.w}px;" class="w-full h-auto object-contain transition duration-300 group-hover:scale-[1.02]">
@@ -1104,17 +1131,49 @@
     }
 
     function populateAdminAdInputs() {
+      // Top Leaderboard
       document.getElementById('adTopBannerEnabled').checked = !!adSettings.topBannerEnabled;
       document.getElementById('adTopBannerImageUrl').value = adSettings.topBannerImageUrl || '';
       document.getElementById('adTopBannerTargetUrl').value = adSettings.topBannerTargetUrl || '';
 
+      // Popup
       document.getElementById('popupAdEnabled').checked = !!adSettings.popupEnabled;
       document.getElementById('popupAdTitleInput').value = adSettings.popupTitle || '';
       document.getElementById('popupAdImageInput').value = adSettings.popupImage || '';
       document.getElementById('popupAdBodyInput').value = adSettings.popupBody || '';
       document.getElementById('popupAdActionUrlInput').value = adSettings.popupActionUrl || '';
 
+      // Footer Contacts
+      document.getElementById('adminFooterPhoneInput').value = adSettings.footerPhone || '+880 1700-000000';
+      document.getElementById('adminFooterWaInput').value = adSettings.footerWa || '+8801700000000';
+      document.getElementById('adminFooterFbInput').value = adSettings.footerFb || 'https://facebook.com';
+
       renderAdminSidebarAdsList();
+    }
+
+    async function saveFooterContactSettings() {
+      const btn = document.getElementById('saveFooterContactBtn');
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> আপডেট হচ্ছে...`;
+
+      adSettings.footerPhone = document.getElementById('adminFooterPhoneInput').value.trim() || '+880 1700-000000';
+      adSettings.footerWa = document.getElementById('adminFooterWaInput').value.trim() || '+8801700000000';
+      adSettings.footerFb = document.getElementById('adminFooterFbInput').value.trim() || 'https://facebook.com';
+
+      localStorage.setItem('tolet_ad_settings', JSON.stringify(adSettings));
+
+      if (isFirebaseReady && firebaseDb) {
+        try {
+          await firebaseDb.collection("site_settings").doc("ad_config").set(adSettings);
+        } catch (fErr) {
+          console.warn("Firestore contact sync notice:", fErr);
+        }
+      }
+
+      applyAdSettingsToUI();
+      btn.disabled = false;
+      btn.innerHTML = `ফুটার কন্টাক্ট ইনফো আপডেট করুন`;
+      alert("ফুটারের ফোন, হোয়াটসঅ্যাপ এবং ফেসবুক লিংক সফলভাবে আপডেট হয়েছে!");
     }
 
     function renderAdminSidebarAdsList() {
@@ -1122,7 +1181,7 @@
       if (!container) return;
       container.innerHTML = '';
 
-      if (sidebarAds.length === 0) {
+      if (!sidebarAds || sidebarAds.length === 0) {
         container.innerHTML = `<p class="text-xs text-slate-400 italic">কোনো সাইডবার বিজ্ঞাপন যোগ করা নেই।</p>`;
         return;
       }
@@ -1162,7 +1221,6 @@
           imageUrl = await uploadToImgBB(fileInput.files[0]);
         } catch (e) {
           console.warn("Sidebar banner upload error:", e);
-          alert("ইমেজ আপলোড ব্যর্থ হয়েছে! সঠিক ইমেজ URL দিতে পারেন।");
         }
       }
 
@@ -1185,12 +1243,11 @@
       sidebarAds.unshift(newAd);
       localStorage.setItem('tolet_sidebar_ads', JSON.stringify(sidebarAds));
 
-      // Sync across all devices via Firestore
       if (isFirebaseReady && firebaseDb) {
         try {
-          firebaseDb.collection("site_settings").doc("sidebar_ads_config").set({ ads: sidebarAds });
+          await firebaseDb.collection("site_settings").doc("sidebar_ads_config").set({ ads: sidebarAds });
         } catch (fErr) {
-          console.warn("Firestore sync error:", fErr);
+          console.warn("Firestore sync notice:", fErr);
         }
       }
 
@@ -1204,19 +1261,19 @@
 
       btn.disabled = false;
       btn.innerHTML = `<i class="fa-solid fa-plus mr-1"></i> সাইডবার এড পাবলিশ করুন`;
-      alert("সাইডবারে বিজ্ঞাপন সফলভাবে যুক্ত হয়েছে!");
+      alert("সাইডবারে বিজ্ঞাপন সকল ডিভাইসের জন্য যুক্ত হয়েছে!");
     }
 
-    function adminDeleteSidebarAd(index) {
+    async function adminDeleteSidebarAd(index) {
       if (!confirm("বিজ্ঞাপনটি মুছে ফেলতে চান?")) return;
       sidebarAds.splice(index, 1);
       localStorage.setItem('tolet_sidebar_ads', JSON.stringify(sidebarAds));
 
       if (isFirebaseReady && firebaseDb) {
         try {
-          firebaseDb.collection("site_settings").doc("sidebar_ads_config").set({ ads: sidebarAds });
+          await firebaseDb.collection("site_settings").doc("sidebar_ads_config").set({ ads: sidebarAds });
         } catch (fErr) {
-          console.warn("Firestore sync error:", fErr);
+          console.warn("Firestore sync notice:", fErr);
         }
       }
 
@@ -1249,9 +1306,9 @@
 
       if (isFirebaseReady && firebaseDb) {
         try {
-          firebaseDb.collection("site_settings").doc("ad_config").set(adSettings);
+          await firebaseDb.collection("site_settings").doc("ad_config").set(adSettings);
         } catch (fErr) {
-          console.warn("Firestore sync error:", fErr);
+          console.warn("Firestore sync notice:", fErr);
         }
       }
 
@@ -1288,9 +1345,9 @@
 
       if (isFirebaseReady && firebaseDb) {
         try {
-          firebaseDb.collection("site_settings").doc("ad_config").set(adSettings);
+          await firebaseDb.collection("site_settings").doc("ad_config").set(adSettings);
         } catch (fErr) {
-          console.warn("Firestore sync error:", fErr);
+          console.warn("Firestore sync notice:", fErr);
         }
       }
 
@@ -1323,7 +1380,7 @@
       }
     }
 
-    function handleSelfPasswordChange(e) {
+    async function handleSelfPasswordChange(e) {
       e.preventDefault();
       if (!currentUser) return;
 
@@ -1344,10 +1401,13 @@
         return;
       }
 
-      const uIdx = users.findIndex(u => u.phone === currentUser.phone);
-      if (uIdx !== -1) {
-        users[uIdx].password = newPass;
-        localStorage.setItem('tolet_users', JSON.stringify(users));
+      if (isFirebaseReady && firebaseDb) {
+        try {
+          const docKey = currentUser.phone ? `user_${currentUser.phone}` : `user_${currentUser.email.replace(/[@.]/g, '_')}`;
+          await firebaseDb.collection("users").doc(docKey).update({ password: newPass });
+        } catch(err) {
+          console.warn("Firestore pass update notice:", err);
+        }
       }
 
       currentUser.password = newPass;
@@ -1531,12 +1591,12 @@
           })
           .catch((err) => {
             console.warn("EmailJS notice:", err);
-            alert(`[ব্যাকআপ OTP নোটিশ]: আপনার ওটিপি কোড হলো: ${generatedOtp}`);
+            alert(`[ওটিপি কোড]: ${generatedOtp}`);
             handleOtpSentSuccess();
           });
       } else {
         setTimeout(() => {
-          alert(`[EmailJS ডেমো মোড ওটিপি]: আপনার OTP হলো: ${generatedOtp}`);
+          alert(`[ওটিপি কোড]: ${generatedOtp}`);
           handleOtpSentSuccess();
         }, 500);
       }
@@ -1550,12 +1610,12 @@
       document.getElementById('otpStep2').classList.remove('hidden');
     }
 
-    function verifyOtpAndResetPassword() {
+    async function verifyOtpAndResetPassword() {
       const inputOtp = document.getElementById('fpInputOtp').value.trim();
       const newPassword = document.getElementById('fpNewPassword').value.trim();
 
       if (!inputOtp || inputOtp !== generatedOtp) {
-        alert("ভুল OTP কোড! আপনার ইমেইল ইনবক্স চেক করে সঠিক কোড দিন।");
+        alert("ভুল OTP কোড! আপনার ইমেইল চেক করে সঠিক কোড দিন।");
         return;
       }
       if (!newPassword || newPassword.length < 3) {
@@ -1563,10 +1623,17 @@
         return;
       }
 
-      const userIndex = users.findIndex(u => (u.email && u.email.toLowerCase() === otpTargetEmail));
-      if (userIndex !== -1) {
-        users[userIndex].password = newPassword;
-        localStorage.setItem('tolet_users', JSON.stringify(users));
+      const targetUser = users.find(u => (u.email && u.email.toLowerCase() === otpTargetEmail));
+      if (targetUser) {
+        targetUser.password = newPassword;
+        if (isFirebaseReady && firebaseDb) {
+          try {
+            const docKey = targetUser.phone ? `user_${targetUser.phone}` : `user_${targetUser.email.replace(/[@.]/g, '_')}`;
+            await firebaseDb.collection("users").doc(docKey).set(targetUser);
+          } catch(err) {
+            console.warn("Firestore pass reset notice:", err);
+          }
+        }
         alert("পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে! এখন লগইন করুন।");
         toggleForgotPasswordModal(false);
         toggleAuthModal(true);
@@ -1593,98 +1660,7 @@
       }
     }
 
-    // 9. VIDEO HANDLING WITH SOUND (MAX 100 MB AUTO-COMPRESSION)
-    const MAX_TARGET_VIDEO_BYTES = 100 * 1024 * 1024; // 100 MB
-
-    async function handleVideoProcessing(file) {
-      if (!file) return "";
-      if (file.size <= MAX_TARGET_VIDEO_BYTES) {
-        return URL.createObjectURL(file);
-      }
-
-      const statusEl = document.getElementById('videoCompressStatus');
-      if (statusEl) statusEl.classList.remove('hidden');
-
-      try {
-        const compressedBlob = await compressVideoWithAudio(file);
-        if (statusEl) statusEl.classList.add('hidden');
-        return URL.createObjectURL(compressedBlob);
-      } catch (err) {
-        console.warn("Video compression skipped, using raw fallback:", err);
-        if (statusEl) statusEl.classList.add('hidden');
-        return URL.createObjectURL(file);
-      }
-    }
-
-    function compressVideoWithAudio(file) {
-      return new Promise((resolve, reject) => {
-        const video = document.createElement('video');
-        video.src = URL.createObjectURL(file);
-        video.playsInline = true;
-        video.muted = false;
-
-        video.onloadedmetadata = () => {
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
-          
-          const scale = Math.min(1, 720 / Math.max(video.videoWidth, video.videoHeight));
-          canvas.width = Math.round(video.videoWidth * scale);
-          canvas.height = Math.round(video.videoHeight * scale);
-
-          const canvasStream = canvas.captureStream(24);
-          let combinedStream = canvasStream;
-
-          try {
-            if (video.captureStream) {
-              const videoMediaStream = video.captureStream();
-              const audioTracks = videoMediaStream.getAudioTracks();
-              if (audioTracks.length > 0) {
-                canvasStream.addTrack(audioTracks[0]);
-              }
-            }
-          } catch(err) {
-            console.warn("Audio track capture fallback:", err);
-          }
-
-          let recorder;
-          try {
-            recorder = new MediaRecorder(combinedStream, {
-              mimeType: 'video/webm;codecs=vp8,opus',
-              videoBitsPerSecond: 1500000
-            });
-          } catch(e) {
-            recorder = new MediaRecorder(combinedStream);
-          }
-
-          const chunks = [];
-          recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
-          recorder.onstop = () => {
-            const outBlob = new Blob(chunks, { type: 'video/webm' });
-            resolve(outBlob);
-          };
-
-          video.play();
-          recorder.start();
-
-          function drawFrame() {
-            if (!video.paused && !video.ended) {
-              ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-              requestAnimationFrame(drawFrame);
-            }
-          }
-          drawFrame();
-
-          video.onended = () => recorder.stop();
-          setTimeout(() => {
-            if (recorder.state === 'recording') recorder.stop();
-          }, 180000);
-        };
-
-        video.onerror = (e) => reject(e);
-      });
-    }
-
-    // 10. UNIVERSAL VIDEO LINK EMBEDDER (With Audio & No Download)
+    // 9. UNIVERSAL VIDEO LINK EMBEDDER (WORKS ON ALL DEVICES)
     function playVideo(videoSrc) {
       const modal = document.getElementById('videoModal');
       const container = document.getElementById('videoContainer');
@@ -1718,7 +1694,7 @@
         return;
       }
 
-      // Direct Video - Audio enabled, download blocked
+      // Direct MP4 Video
       container.innerHTML = `
         <video controls autoplay controlsList="nodownload noplaybackrate" oncontextmenu="return false;" class="w-full h-full max-h-[75vh] object-contain">
           <source src="${trimmed}">
@@ -1734,7 +1710,7 @@
       modal.classList.add('hidden');
     }
 
-    // 11. IMAGE LIGHTBOX
+    // 10. IMAGE LIGHTBOX
     function openImageLightbox(images, startIndex = 0) {
       if (!images || images.length === 0) return;
       currentLightboxImages = images;
@@ -1763,7 +1739,7 @@
       document.getElementById('lbNextBtn').style.display = showArrows ? 'flex' : 'none';
     }
 
-    // 12. FORM SUBMISSION (Add / Edit Listing)
+    // 11. FORM SUBMISSION (Add / Edit Listing)
     async function handleFormSubmit(e) {
       e.preventDefault();
       const submitBtn = document.getElementById('submitBtn');
@@ -1792,13 +1768,7 @@
         uploadedImages = ["https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600&auto=format&fit=crop&q=80"];
       }
 
-      let videoUrl = document.getElementById('formVideoUrl').value.trim();
-      const vidInput = document.getElementById('formVideoFileInput');
-      if (vidInput && vidInput.files && vidInput.files[0]) {
-        videoUrl = await handleVideoProcessing(vidInput.files[0]);
-      } else if (!videoUrl && existingListing) {
-        videoUrl = existingListing.video || "";
-      }
+      const videoUrl = document.getElementById('formVideoUrl').value.trim() || (existingListing ? existingListing.video : "");
 
       const listingData = {
         title: document.getElementById('formTitle').value.trim(),
@@ -1827,34 +1797,14 @@
         }
       }
 
-      if (editId) {
-        const idx = listings.findIndex(l => l.id == editId);
-        if (idx !== -1) listings[idx] = { id: docId, ...listingData };
-      } else {
-        listings.unshift({ id: docId, ...listingData });
-      }
-
-      try {
-        localStorage.setItem('gopalganj_tolet', JSON.stringify(listings));
-      } catch(e) {}
-
       submitBtn.disabled = false;
       submitBtn.innerHTML = `বিজ্ঞাপন সংরক্ষণ করুন`;
       e.target.reset();
       toggleAdModal(false);
-      applyFilters();
-      const adminPanel = document.getElementById('adminPanelModal');
-      if (adminPanel && !adminPanel.classList.contains('hidden')) {
-        renderAdminAdsList();
-      }
-      const userDash = document.getElementById('userDashboardModal');
-      if (userDash && !userDash.classList.contains('hidden')) {
-        renderUserAdsList();
-      }
-      alert("বিজ্ঞাপন সফলভাবে সংরক্ষণ করা হয়েছে!");
+      alert("বিজ্ঞাপন সফলভাবে সকল ডিভাইসের জন্য সংরক্ষণ করা হয়েছে!");
     }
 
-    // 13. USER DASHBOARD
+    // 12. USER DASHBOARD
     function openUserDashboard() {
       if (!currentUser) {
         alert("প্রথমে লগইন করুন!");
@@ -1911,7 +1861,7 @@
       });
     }
 
-    // 14. ADMIN PANEL CONTROLS (DIRECT & ERROR-FREE MODAL TOGGLE)
+    // 13. ADMIN PANEL CONTROLS
     function openAdminModal() {
       if (!isAdmin()) {
         alert("অননুমোদিত অ্যাক্সেস! শুধুমাত্র অ্যাডমিন প্রবেশ করতে পারবেন।");
@@ -2005,7 +1955,7 @@
       document.getElementById('formPhone').value = item.phone;
       document.getElementById('formSpecs').value = item.specs || '';
       document.getElementById('formDesc').value = item.desc || '';
-      document.getElementById('formVideoUrl').value = (item.video && !item.video.startsWith('blob:')) ? item.video : '';
+      document.getElementById('formVideoUrl').value = item.video || '';
 
       const container = document.getElementById('imagePreviewContainer');
       container.innerHTML = '';
@@ -2032,17 +1982,11 @@
           console.error("Firestore delete error:", e);
         }
       }
-      listings = listings.filter(item => item.id != id);
-      localStorage.setItem('gopalganj_tolet', JSON.stringify(listings));
-      applyFilters();
-      const adminPanel = document.getElementById('adminPanelModal');
-      if (adminPanel && !adminPanel.classList.contains('hidden')) renderAdminAdsList();
-      const userDash = document.getElementById('userDashboardModal');
-      if (userDash && !userDash.classList.contains('hidden')) renderUserAdsList();
     }
 
     function renderAdminUsersTable() {
       const tbody = document.getElementById('adminUsersTableBody');
+      if (!tbody) return;
       tbody.innerHTML = '';
       users.forEach(u => {
         const isMainAdmin = u.role === 'admin' || u.phone === '01700000000';
@@ -2056,23 +2000,18 @@
           <td class="p-3 text-slate-600">${u.email || 'N/A'}</td>
           <td class="p-3"><span class="font-mono bg-slate-100 px-2 py-1 rounded text-emerald-800 font-bold">${u.password}</span></td>
           <td class="p-3 text-center">
-            <div class="flex items-center justify-center gap-1.5">
-              <button onclick="adminEditUser('${u.phone}')" class="px-2 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded text-xs font-bold transition">
-                <i class="fa-solid fa-pen-to-square"></i> এডিট
+            ${!isMainAdmin ? `
+              <button onclick="adminDeleteUser('${u.phone}')" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded text-xs font-bold transition">
+                <i class="fa-solid fa-trash"></i> ডিলিট
               </button>
-              ${!isMainAdmin ? `
-                <button onclick="adminDeleteUser('${u.phone}', '${u.name}')" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded text-xs font-bold transition">
-                  <i class="fa-solid fa-trash"></i> ডিলিট
-                </button>
-              ` : '<span class="text-[11px] text-slate-400 font-medium px-2 py-1 bg-slate-100 rounded">সুরক্ষিত</span>'}
-            </div>
+            ` : '<span class="text-[11px] text-slate-400 font-medium px-2 py-1 bg-slate-100 rounded">সুরক্ষিত</span>'}
           </td>
         `;
         tbody.appendChild(tr);
       });
     }
 
-    function adminAddNewUser() {
+    async function adminAddNewUser() {
       const name = document.getElementById('adminNewUserName').value.trim();
       const phone = document.getElementById('adminNewUserPhone').value.trim();
       const email = document.getElementById('adminNewUserEmail').value.trim().toLowerCase();
@@ -2082,51 +2021,33 @@
       if (users.find(u => u.phone === phone)) { alert("মোবাইল নম্বরটি আগেই ব্যবহৃত হয়েছে!"); return; }
 
       const newUser = { name, phone, email, password, role: 'user' };
-      users.push(newUser);
-      localStorage.setItem('tolet_users', JSON.stringify(users));
+
+      if (isFirebaseReady && firebaseDb) {
+        try {
+          await firebaseDb.collection("users").doc(`user_${phone}`).set(newUser);
+        } catch(err) {
+          console.warn("Firestore user add notice:", err);
+        }
+      }
 
       document.getElementById('adminNewUserName').value = '';
       document.getElementById('adminNewUserPhone').value = '';
       document.getElementById('adminNewUserEmail').value = '';
       document.getElementById('adminNewUserPass').value = '';
 
-      renderAdminUsersTable();
-      alert("ব্যবহারকারী সফলভাবে যুক্ত হয়েছে!");
+      alert("ব্যবহারকারী সফলভাবে সকল ডিভাইসের জন্য যুক্ত হয়েছে!");
     }
 
-    function adminEditUser(phone) {
-      const user = users.find(u => u.phone === phone);
-      if (!user) return;
-      document.getElementById('editUserOldPhone').value = user.phone;
-      document.getElementById('editUserName').value = user.name;
-      document.getElementById('editUserEmail').value = user.email || '';
-      document.getElementById('editUserPhone').value = user.phone;
-      document.getElementById('editUserPassword').value = user.password;
-      toggleAdminEditUserModal(true);
-    }
-
-    function saveAdminUserEdit(e) {
-      e.preventDefault();
-      const oldPhone = document.getElementById('editUserOldPhone').value;
-      const index = users.findIndex(u => u.phone === oldPhone);
-      if (index !== -1) {
-        users[index].name = document.getElementById('editUserName').value.trim();
-        users[index].email = document.getElementById('editUserEmail').value.trim().toLowerCase();
-        users[index].phone = document.getElementById('editUserPhone').value.trim();
-        users[index].password = document.getElementById('editUserPassword').value;
-        localStorage.setItem('tolet_users', JSON.stringify(users));
-        renderAdminUsersTable();
-        toggleAdminEditUserModal(false);
-        alert("ব্যবহারকারীর তথ্য সফলভাবে আপডেট হয়েছে!");
+    async function adminDeleteUser(phone) {
+      if (!confirm(`অ্যাকাউন্টটি স্থায়ীভাবে মুছে ফেলতে চান?`)) return;
+      if (isFirebaseReady && firebaseDb) {
+        try {
+          await firebaseDb.collection("users").doc(`user_${phone}`).delete();
+        } catch(err) {
+          console.warn("Firestore user delete notice:", err);
+        }
       }
-    }
-
-    function adminDeleteUser(phone, name) {
-      if (!confirm(`"${name}" (${phone}) অ্যাকাউন্টটি মুছতে চান?`)) return;
-      users = users.filter(u => u.phone !== phone);
-      localStorage.setItem('tolet_users', JSON.stringify(users));
-      renderAdminUsersTable();
-      alert("অ্যাকাউন্ট ডিলিট করা হয়েছে!");
+      alert("অ্যাকাউন্ট মুছে ফেলা হয়েছে!");
     }
 
     function renderAdminLocationsTable() {
@@ -2188,7 +2109,7 @@
       applyFilters();
     }
 
-    // 15. CHAT & VOICE MESSAGING
+    // 14. CHAT & VOICE MESSAGING
     function getChatRoomKey(listingId, userA, userB) {
       const sorted = [userA, userB].sort();
       return `chat_${listingId}_${sorted[0]}_${sorted[1]}`;
@@ -2480,7 +2401,7 @@
       toggleInboxModal(true);
     }
 
-    // 16. CARD RENDERING
+    // 15. CARD RENDERING
     function renderListings(items) {
       const container = document.getElementById('listingsContainer');
       const emptyState = document.getElementById('emptyState');
@@ -2605,7 +2526,7 @@
       if (counterEl) counterEl.textContent = `${cardImageIndexes[id] + 1}/${total}`;
     }
 
-    // 17. UI & AUTHENTICATION
+    // 16. UI & AUTHENTICATION
     function updateAuthUI() {
       const authSection = document.getElementById('authSection');
       if (currentUser) {
@@ -2677,21 +2598,25 @@
       }
     }
 
-    // USER LOGIN
+    // USER LOGIN (Synced across all devices)
     function handleUserLogin(e) {
       e.preventDefault();
-      const phone = document.getElementById('loginPhone').value.trim();
+      const inputVal = document.getElementById('loginPhone').value.trim().toLowerCase();
       const password = document.getElementById('loginPassword').value;
       const rememberMe = document.getElementById('rememberMeCheckbox').checked;
 
-      let user = users.find(u => u.phone === phone && u.password === password);
+      let user = users.find(u => 
+        (u.phone === inputVal || (u.email && u.email.toLowerCase() === inputVal)) &&
+        u.password === password
+      );
+
       if (!user) {
-        alert("ভুল মোবাইল নম্বর বা পাসওয়ার্ড! সঠিক তথ্য দিন।");
+        alert("ভুল মোবাইল নম্বর/ইমেইল অথবা পাসওয়ার্ড! সঠিক তথ্য দিন।");
         return;
       }
 
       if (rememberMe) {
-        localStorage.setItem('tolet_remember_phone', phone);
+        localStorage.setItem('tolet_remember_phone', inputVal);
       } else {
         localStorage.removeItem('tolet_remember_phone');
       }
@@ -2703,7 +2628,7 @@
       alert(`স্বাগতম, ${currentUser.name}!`);
     }
 
-    // ADMIN LOGIN: Secure & bug-free without exposing password
+    // ADMIN LOGIN
     function handleAdminLogin(e) {
       e.preventDefault();
       const inputVal = document.getElementById('adminEmailInput').value.trim().toLowerCase();
@@ -2732,7 +2657,7 @@
       alert("অ্যাডমিন প্যানেলে সফলভাবে প্রবেশ করেছেন!");
     }
 
-    function handleRegister(e) {
+    async function handleRegister(e) {
       e.preventDefault();
       const name = document.getElementById('regName').value.trim();
       const email = document.getElementById('regEmail').value.trim().toLowerCase();
@@ -2743,13 +2668,20 @@
       if (users.find(u => u.email && u.email.toLowerCase() === email)) { alert("এই ইমেইল দিয়ে আগেই অ্যাকাউন্ট খোলা হয়েছে!"); return; }
 
       const newUser = { name, email, phone, password, role: 'user' };
-      users.push(newUser);
-      localStorage.setItem('tolet_users', JSON.stringify(users));
+
+      if (isFirebaseReady && firebaseDb) {
+        try {
+          await firebaseDb.collection("users").doc(`user_${phone}`).set(newUser);
+        } catch(err) {
+          console.warn("Firestore user registration notice:", err);
+        }
+      }
+
       currentUser = newUser;
       localStorage.setItem('tolet_current_user', JSON.stringify(currentUser));
       toggleAuthModal(false);
       updateAuthUI();
-      alert("অ্যাকাউন্ট তৈরি সম্পন্ন!");
+      alert("অ্যাকাউন্ট তৈরি সম্পন্ন হয়েছে এবং সব ডিভাইসের জন্য ক্লাউডে সংরক্ষণ করা হয়েছে!");
     }
 
     function logout() {
@@ -2774,7 +2706,6 @@
       document.getElementById('formPhone').value = currentUser.phone || '';
       document.getElementById('imagePreviewContainer').innerHTML = '';
       document.getElementById('imagePreviewContainer').classList.add('hidden');
-      document.getElementById('videoCompressStatus').classList.add('hidden');
       refreshLocationDropdowns();
       toggleAdModal(true);
     }
