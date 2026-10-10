@@ -169,7 +169,7 @@
 
   <!-- ==================== MODALS ==================== -->
 
-  <!-- Modal: Inbox / Messages List -->
+  <!-- Modal: Inbox -->
   <div id="inboxModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-4">
     <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl border border-slate-100 flex flex-col max-h-[85vh]">
       <div class="px-5 py-4 bg-emerald-600 text-white flex justify-between items-center">
@@ -182,7 +182,7 @@
     </div>
   </div>
 
-  <!-- Modal: Direct Chat Box (SMS + Beautiful Voice SMS) -->
+  <!-- Modal: Direct Chat Box (SMS + Voice SMS) -->
   <div id="chatModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-2 sm:p-4">
     <div class="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl border border-slate-100 flex flex-col h-[90vh] max-h-[650px]">
       <div class="px-4 py-3 bg-emerald-700 text-white flex justify-between items-center flex-shrink-0 shadow-xs">
@@ -305,41 +305,146 @@
     </div>
   </div>
 
-  <!-- Modal: Admin Panel -->
+  <!-- ==================== ADMIN PANEL MODAL (সম্পূর্ণ Add, Edit, Remove সহ) ==================== -->
   <div id="adminPanelModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 md:p-6">
     <div class="bg-white rounded-2xl w-full max-w-5xl overflow-hidden shadow-2xl border border-slate-100 flex flex-col max-h-[92vh]">
       <div class="px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
-        <h3 class="text-base font-bold">প্রধান অ্যাডমিন কন্ট্রোল প্যানেল</h3>
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></span>
+          <h3 class="text-base font-bold">টু-লেট গোপালগঞ্জ — প্রধান অ্যাডমিন কন্ট্রোল প্যানেল</h3>
+        </div>
         <button onclick="toggleAdminModal(false)" class="text-white hover:text-slate-300 text-xl font-bold">&times;</button>
       </div>
-      <div class="p-3 bg-slate-100 border-b border-slate-200 flex gap-2">
-        <button id="adminTabAds" onclick="switchAdminTab('ads')" class="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-bold">বিজ্ঞাপন নিয়ন্ত্রণ</button>
-        <button id="adminTabUsers" onclick="switchAdminTab('users')" class="px-3 py-1.5 bg-white text-slate-700 border border-slate-300 rounded-lg text-xs font-bold">ব্যবহারকারীগণ</button>
+
+      <div class="p-3 bg-slate-100 border-b border-slate-200 flex flex-wrap gap-2 justify-between items-center">
+        <div class="flex flex-wrap gap-2">
+          <button id="adminTabAds" onclick="switchAdminTab('ads')" class="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-bold shadow-sm">
+            <i class="fa-solid fa-list-check mr-1"></i> বিজ্ঞাপন নিয়ন্ত্রণ
+          </button>
+          <button id="adminTabUsers" onclick="switchAdminTab('users')" class="px-3 py-1.5 bg-white text-slate-700 border border-slate-300 rounded-lg text-xs font-bold hover:bg-slate-50">
+            <i class="fa-solid fa-users-gear mr-1"></i> ব্যবহারকারী নিয়ন্ত্রণ
+          </button>
+          <button id="adminTabLocations" onclick="switchAdminTab('locations')" class="px-3 py-1.5 bg-white text-slate-700 border border-slate-300 rounded-lg text-xs font-bold hover:bg-slate-50">
+            <i class="fa-solid fa-map-location-dot mr-1"></i> এলাকা / স্থান নিয়ন্ত্রণ
+          </button>
+        </div>
       </div>
+
       <div class="p-4 md:p-6 overflow-y-auto flex-1 space-y-4">
+        <!-- 1. ADMIN ADS SECTION -->
         <div id="adminAdsSection" class="space-y-3">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-xs font-bold text-slate-600">সকল বিজ্ঞাপনের তালিকা</span>
+            <button onclick="openAdModalForCreate()" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1 shadow-sm">
+              <i class="fa-solid fa-plus"></i> নতুন বিজ্ঞাপন যুক্ত করুন
+            </button>
+          </div>
           <div id="adminAdsListContainer" class="space-y-3"></div>
         </div>
-        <div id="adminUsersSection" class="hidden">
-          <table class="w-full text-left border-collapse text-xs md:text-sm border border-slate-200 rounded-xl overflow-hidden">
-            <thead>
-              <tr class="bg-slate-50 border-b border-slate-200 text-slate-600">
-                <th class="p-3">নাম</th>
-                <th class="p-3">মোবাইল</th>
-                <th class="p-3">পাসওয়ার্ড</th>
-              </tr>
-            </thead>
-            <tbody id="adminUsersTableBody" class="divide-y divide-slate-100"></tbody>
-          </table>
+
+        <!-- 2. ADMIN USERS SECTION -->
+        <div id="adminUsersSection" class="hidden space-y-4">
+          <!-- Add User Form -->
+          <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl">
+            <h4 class="text-xs font-bold text-slate-700 mb-2 flex items-center gap-1">
+              <i class="fa-solid fa-user-plus text-emerald-600"></i> নতুন ব্যবহারকারী যুক্ত করুন
+            </h4>
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+              <input type="text" id="adminNewUserName" placeholder="নাম" class="p-2 text-xs rounded-lg border border-slate-300 outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+              <input type="tel" id="adminNewUserPhone" placeholder="মোবাইল নম্বর" class="p-2 text-xs rounded-lg border border-slate-300 outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+              <input type="email" id="adminNewUserEmail" placeholder="ইমেইল (ঐচ্ছিক)" class="p-2 text-xs rounded-lg border border-slate-300 outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+              <div class="flex gap-2">
+                <input type="text" id="adminNewUserPass" placeholder="পাসওয়ার্ড" class="flex-1 p-2 text-xs rounded-lg border border-slate-300 outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+                <button onclick="adminAddNewUser()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-sm whitespace-nowrap">
+                  যুক্ত করুন
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto border border-slate-200 rounded-xl">
+            <table class="w-full text-left border-collapse text-xs md:text-sm">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-200 text-slate-600">
+                  <th class="p-3 font-semibold">নাম</th>
+                  <th class="p-3 font-semibold">মোবাইল</th>
+                  <th class="p-3 font-semibold">ইমেইল</th>
+                  <th class="p-3 font-semibold">পাসওয়ার্ড</th>
+                  <th class="p-3 font-semibold text-center">অ্যাকশন</th>
+                </tr>
+              </thead>
+              <tbody id="adminUsersTableBody" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 3. ADMIN LOCATIONS SECTION -->
+        <div id="adminLocationsSection" class="hidden space-y-4">
+          <!-- Add Location Box -->
+          <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl flex flex-col sm:flex-row gap-3 items-end">
+            <div class="flex-1 w-full">
+              <label class="block text-xs font-semibold text-slate-700 mb-1">গোপালগঞ্জের নতুন এলাকা/স্থানের নাম যোগ করুন</label>
+              <input type="text" id="newLocationInput" placeholder="উদা: হরিদাসপুর বাজার" class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+            </div>
+            <button onclick="addNewLocation()" class="w-full sm:w-auto px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-sm whitespace-nowrap">
+              <i class="fa-solid fa-plus mr-1"></i> এলাকা যুক্ত করুন
+            </button>
+          </div>
+
+          <div class="border border-slate-200 rounded-xl overflow-hidden">
+            <table class="w-full text-left border-collapse text-xs md:text-sm">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-200 text-slate-600">
+                  <th class="p-3 font-semibold w-16">ক্রমিক</th>
+                  <th class="p-3 font-semibold">এলাকার নাম</th>
+                  <th class="p-3 font-semibold text-center w-32">অ্যাকশন</th>
+                </tr>
+              </thead>
+              <tbody id="adminLocationsTableBody" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Modal: Admin Edit User Modal -->
+  <div id="adminEditUserModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-slate-100">
+      <div class="px-6 py-4 bg-slate-800 text-white flex justify-between items-center">
+        <h3 class="text-sm font-bold">ইউজার ডেটা ও পাসওয়ার্ড এডিট</h3>
+        <button onclick="toggleAdminEditUserModal(false)" class="text-white hover:text-slate-300 text-xl font-bold">&times;</button>
+      </div>
+      <form id="adminUserEditForm" onsubmit="saveAdminUserEdit(event)" class="p-6 space-y-3 text-sm">
+        <input type="hidden" id="editUserOldPhone">
+        <div>
+          <label class="block font-medium text-slate-700 mb-1">ব্যবহারকারীর নাম</label>
+          <input type="text" id="editUserName" required class="w-full p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+        </div>
+        <div>
+          <label class="block font-medium text-slate-700 mb-1">ইমেইল ঠিকানা</label>
+          <input type="email" id="editUserEmail" class="w-full p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+        </div>
+        <div>
+          <label class="block font-medium text-slate-700 mb-1">মোবাইল নম্বর</label>
+          <input type="tel" id="editUserPhone" required class="w-full p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+        </div>
+        <div>
+          <label class="block font-medium text-slate-700 mb-1">পাসওয়ার্ড</label>
+          <input type="text" id="editUserPassword" required class="w-full p-2.5 rounded-lg border border-slate-200 font-bold text-emerald-700 focus:ring-2 focus:ring-emerald-500 outline-none">
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="toggleAdminEditUserModal(false)" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold">বাতিল</button>
+          <button type="submit" class="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold">সংরক্ষণ করুন</button>
+        </div>
+      </form>
     </div>
   </div>
 
   <!-- Modal: Add / Edit Ad Modal -->
   <div id="adModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-2 sm:p-4">
     <div class="bg-white rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl border border-slate-100 flex flex-col max-h-[92vh]">
-      <div class="px-6 py-4 bg-gradient-to-r from-emerald-600 to-teal-700 text-white flex justify-between items-center">
+      <div class="px-6 py-4 bg-gradient-to-r from-emerald-600 to-teal-700 text-white flex justify-between items-center flex-shrink-0">
         <h3 id="adModalTitle" class="text-base font-bold">নতুন বাসার বিজ্ঞাপন প্রকাশ করুন</h3>
         <button onclick="toggleAdModal(false)" class="text-white hover:text-slate-200 text-2xl font-bold">&times;</button>
       </div>
@@ -402,9 +507,9 @@
           <div id="imagePreviewContainer" class="flex flex-wrap gap-2 mt-2 hidden"></div>
         </div>
 
-        <!-- Video Upload / URL -->
+        <!-- Direct Video File (Max 500 MB) or URL -->
         <div>
-          <label class="block font-medium text-slate-700 mb-1">সরাসরি ভিডিও ফাইল (সর্বোচ্চ ৫০০ MB) অথবা লিঙ্ক:</label>
+          <label class="block font-medium text-slate-700 mb-1">ভিডিও ফাইল (সর্বোচ্চ ৫০০ MB) অথবা অনলাইন লিঙ্ক:</label>
           <input type="file" id="formVideoFileInput" accept="video/*" onchange="validateVideoSize(this)" class="w-full p-1.5 border border-slate-200 rounded-lg text-xs mb-1.5">
           <input type="url" id="formVideoUrl" placeholder="অথবা অনলাইন ভিডিও লিঙ্ক: https://..." class="w-full p-2 text-xs rounded-lg border border-slate-200">
         </div>
@@ -459,6 +564,7 @@
     let listings = [];
     let users = JSON.parse(localStorage.getItem('tolet_users')) || [];
 
+    // Ensure Admin & Default User exist
     let adminFound = users.find(u => u.email === 'admin@gmail.com' || u.role === 'admin');
     if (!adminFound) {
       users.unshift({ name: "প্রধান অ্যাডমিন", phone: "01700000000", email: "admin@gmail.com", password: "admin", role: "admin" });
@@ -498,6 +604,9 @@
             listings = JSON.parse(localStorage.getItem('gopalganj_tolet')) || [];
           }
           applyFilters();
+          if (!document.getElementById('adminPanelModal').classList.contains('hidden')) {
+            renderAdminAdsList();
+          }
         }, (error) => {
           console.warn("Firestore fetch error:", error);
           listings = JSON.parse(localStorage.getItem('gopalganj_tolet')) || [];
@@ -553,7 +662,7 @@
       });
     }
 
-    // 5. FORM SUBMISSION
+    // 5. FORM SUBMISSION (Add / Edit Listing)
     async function handleFormSubmit(e) {
       e.preventDefault();
       const submitBtn = document.getElementById('submitBtn');
@@ -603,7 +712,7 @@
         video: videoUrl,
         postedBy: currentUser ? currentUser.name : "বিজ্ঞাপনদাতা",
         ownerPhone: currentUser ? currentUser.phone : document.getElementById('formPhone').value.trim(),
-        createdAt: Date.now()
+        createdAt: existingListing ? (existingListing.createdAt || Date.now()) : Date.now()
       };
 
       const docId = editId ? String(editId) : String(Date.now());
@@ -632,10 +741,291 @@
       e.target.reset();
       toggleAdModal(false);
       applyFilters();
-      alert("বিজ্ঞাপন সফলভাবে প্রকাশ করা হয়েছে!");
+      if (!document.getElementById('adminPanelModal').classList.contains('hidden')) {
+        renderAdminAdsList();
+      }
+      alert("বিজ্ঞাপন সফলভাবে সংরক্ষণ করা হয়েছে!");
     }
 
-    // 6. CHAT & VOICE SMS SYSTEM
+    // 6. ADMIN PANEL CONTROLS (Full Add, Edit, Remove for Ads, Users, Locations)
+    function openAdminModal() {
+      if (!isAdmin()) {
+        alert("অননুমোদিত অ্যাক্সেস!");
+        return;
+      }
+      renderAdminAdsList();
+      renderAdminUsersTable();
+      renderAdminLocationsTable();
+      toggleAdminModal(true);
+    }
+
+    function toggleAdminModal(show) {
+      document.getElementById('adminPanelModal').classList.toggle('hidden', !show);
+    }
+
+    function toggleAdminEditUserModal(show) {
+      document.getElementById('adminEditUserModal').classList.toggle('hidden', !show);
+    }
+
+    function switchAdminTab(tab) {
+      document.getElementById('adminAdsSection').classList.toggle('hidden', tab !== 'ads');
+      document.getElementById('adminUsersSection').classList.toggle('hidden', tab !== 'users');
+      document.getElementById('adminLocationsSection').classList.toggle('hidden', tab !== 'locations');
+
+      const activeStyle = "px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-bold shadow-sm";
+      const inactiveStyle = "px-3 py-1.5 bg-white text-slate-700 border border-slate-300 rounded-lg text-xs font-bold hover:bg-slate-50";
+
+      document.getElementById('adminTabAds').className = (tab === 'ads') ? activeStyle : inactiveStyle;
+      document.getElementById('adminTabUsers').className = (tab === 'users') ? activeStyle : inactiveStyle;
+      document.getElementById('adminTabLocations').className = (tab === 'locations') ? activeStyle : inactiveStyle;
+    }
+
+    // --- Admin: Ads List & Operations ---
+    function renderAdminAdsList() {
+      const container = document.getElementById('adminAdsListContainer');
+      container.innerHTML = '';
+
+      if (listings.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">কোনো বিজ্ঞাপন নেই।</p>`;
+        return;
+      }
+
+      listings.forEach(item => {
+        const row = document.createElement('div');
+        row.className = "flex items-center justify-between p-3.5 bg-white rounded-xl border border-slate-200 shadow-sm gap-3";
+        row.innerHTML = `
+          <div class="flex items-center gap-3 overflow-hidden">
+            <img src="${(item.images && item.images[0]) || 'https://via.placeholder.com/80'}" class="w-12 h-12 rounded-lg object-cover bg-slate-100 flex-shrink-0">
+            <div class="truncate text-xs">
+              <h4 class="font-bold text-slate-800 text-sm truncate">${item.title}</h4>
+              <p class="text-slate-500">${item.area} • মালিক: ${item.postedBy} (${item.phone}) • <span class="text-emerald-600 font-bold">৳${Number(item.rent).toLocaleString('bn-BD')}</span></p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <button onclick="editListing('${item.id}')" class="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold rounded-lg transition">
+              <i class="fa-solid fa-pen"></i> এডিট
+            </button>
+            <button onclick="removeListing('${item.id}')" class="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-semibold rounded-lg transition">
+              <i class="fa-solid fa-trash"></i> ডিলিট
+            </button>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function editListing(id) {
+      const item = listings.find(l => l.id == id);
+      if (!item) return;
+
+      document.getElementById('editListingId').value = item.id;
+      document.getElementById('adModalTitle').textContent = 'বিজ্ঞাপন এডিট করুন';
+      document.getElementById('formTitle').value = item.title;
+      document.getElementById('formType').value = item.type;
+      refreshLocationDropdowns();
+      document.getElementById('formArea').value = item.area;
+      document.getElementById('formRent').value = item.rent;
+      document.getElementById('formAvailable').value = item.available;
+      document.getElementById('formPhone').value = item.phone;
+      document.getElementById('formSpecs').value = item.specs || '';
+      document.getElementById('formDesc').value = item.desc || '';
+      document.getElementById('formVideoUrl').value = (item.video && !item.video.startsWith('blob:')) ? item.video : '';
+
+      const container = document.getElementById('imagePreviewContainer');
+      container.innerHTML = '';
+      if (item.images && item.images.length > 0) {
+        container.classList.remove('hidden');
+        item.images.forEach((imgSrc, i) => {
+          const thumb = document.createElement('div');
+          thumb.className = "relative w-14 h-14 rounded-lg overflow-hidden border border-slate-200 shadow-xs";
+          thumb.innerHTML = `<img src="${imgSrc}" class="w-full h-full object-cover"><span class="absolute bottom-0 right-0 bg-black/60 text-white text-[9px] px-1 font-bold">#${i+1}</span>`;
+          container.appendChild(thumb);
+        });
+      }
+
+      toggleAdModal(true);
+    }
+
+    async function removeListing(id) {
+      if (!confirm("আপনি কি নিশ্চিত এই বিজ্ঞাপনটি মুছে ফেলতে চান?")) return;
+      if (isFirebaseReady && firebaseDb) {
+        try {
+          await firebaseDb.collection("listings").doc(String(id)).delete();
+        } catch (e) {
+          console.error("Firestore delete error:", e);
+        }
+      }
+      listings = listings.filter(item => item.id != id);
+      localStorage.setItem('gopalganj_tolet', JSON.stringify(listings));
+      renderAdminAdsList();
+      applyFilters();
+    }
+
+    // --- Admin: Users Operations (Add, Edit, Remove) ---
+    function renderAdminUsersTable() {
+      const tbody = document.getElementById('adminUsersTableBody');
+      tbody.innerHTML = '';
+      users.forEach(u => {
+        const isMainAdmin = u.role === 'admin' || u.phone === '01700000000';
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50 transition";
+        tr.innerHTML = `
+          <td class="p-3 font-semibold text-slate-800">
+            ${u.name} ${isMainAdmin ? '<span class="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded font-bold ml-1">ADMIN</span>' : ''}
+          </td>
+          <td class="p-3 text-slate-600">${u.phone}</td>
+          <td class="p-3 text-slate-600">${u.email || 'N/A'}</td>
+          <td class="p-3"><span class="font-mono bg-slate-100 px-2 py-1 rounded text-emerald-800 font-bold">${u.password}</span></td>
+          <td class="p-3 text-center">
+            <div class="flex items-center justify-center gap-1.5">
+              <button onclick="adminEditUser('${u.phone}')" class="px-2 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded text-xs font-bold transition">
+                <i class="fa-solid fa-pen-to-square"></i> এডিট
+              </button>
+              ${!isMainAdmin ? `
+                <button onclick="adminDeleteUser('${u.phone}', '${u.name}')" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded text-xs font-bold transition">
+                  <i class="fa-solid fa-trash"></i> ডিলিট
+                </button>
+              ` : '<span class="text-[11px] text-slate-400 font-medium px-2 py-1 bg-slate-100 rounded">সুরক্ষিত</span>'}
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function adminAddNewUser() {
+      const name = document.getElementById('adminNewUserName').value.trim();
+      const phone = document.getElementById('adminNewUserPhone').value.trim();
+      const email = document.getElementById('adminNewUserEmail').value.trim().toLowerCase();
+      const password = document.getElementById('adminNewUserPass').value.trim();
+
+      if (!name || !phone || !password) {
+        alert("দয়া করে নাম, মোবাইল নম্বর এবং পাসওয়ার্ড লিখুন!");
+        return;
+      }
+      if (users.find(u => u.phone === phone)) {
+        alert("এই মোবাইল নম্বর দিয়ে ইতিমধ্যে অ্যাকাউন্ট রয়েছে!");
+        return;
+      }
+
+      const newUser = { name, phone, email, password, role: 'user' };
+      users.push(newUser);
+      localStorage.setItem('tolet_users', JSON.stringify(users));
+
+      document.getElementById('adminNewUserName').value = '';
+      document.getElementById('adminNewUserPhone').value = '';
+      document.getElementById('adminNewUserEmail').value = '';
+      document.getElementById('adminNewUserPass').value = '';
+
+      renderAdminUsersTable();
+      alert("ব্যবহারকারী সফলভাবে যুক্ত করা হয়েছে!");
+    }
+
+    function adminEditUser(phone) {
+      const user = users.find(u => u.phone === phone);
+      if (!user) return;
+
+      document.getElementById('editUserOldPhone').value = user.phone;
+      document.getElementById('editUserName').value = user.name;
+      document.getElementById('editUserEmail').value = user.email || '';
+      document.getElementById('editUserPhone').value = user.phone;
+      document.getElementById('editUserPassword').value = user.password;
+
+      toggleAdminEditUserModal(true);
+    }
+
+    function saveAdminUserEdit(e) {
+      e.preventDefault();
+      const oldPhone = document.getElementById('editUserOldPhone').value;
+      const index = users.findIndex(u => u.phone === oldPhone);
+
+      if (index !== -1) {
+        users[index].name = document.getElementById('editUserName').value.trim();
+        users[index].email = document.getElementById('editUserEmail').value.trim().toLowerCase();
+        users[index].phone = document.getElementById('editUserPhone').value.trim();
+        users[index].password = document.getElementById('editUserPassword').value;
+
+        localStorage.setItem('tolet_users', JSON.stringify(users));
+        renderAdminUsersTable();
+        toggleAdminEditUserModal(false);
+        alert("ব্যবহারকারীর তথ্য সফলভাবে আপডেট হয়েছে!");
+      }
+    }
+
+    function adminDeleteUser(phone, name) {
+      if (!confirm(`আপনি কি "${name}" (${phone}) অ্যাকাউন্টটি ডিলিট করতে চান?`)) return;
+      users = users.filter(u => u.phone !== phone);
+      localStorage.setItem('tolet_users', JSON.stringify(users));
+      renderAdminUsersTable();
+      alert("অ্যাকাউন্ট ডিলিট করা হয়েছে!");
+    }
+
+    // --- Admin: Locations Operations (Add, Edit, Remove) ---
+    function renderAdminLocationsTable() {
+      const tbody = document.getElementById('adminLocationsTableBody');
+      tbody.innerHTML = '';
+      locations.forEach((loc, index) => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50 transition";
+        tr.innerHTML = `
+          <td class="p-3 font-semibold text-slate-500 w-16">${index + 1}</td>
+          <td class="p-3 font-bold text-slate-800">${loc}</td>
+          <td class="p-3 text-center w-32 space-x-1">
+            <button onclick="editLocation(${index})" class="px-2 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded text-xs font-semibold" title="এডিট">
+              <i class="fa-solid fa-pen"></i>
+            </button>
+            <button onclick="deleteLocation(${index})" class="px-2 py-1 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded text-xs font-semibold" title="ডিলিট">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function addNewLocation() {
+      const input = document.getElementById('newLocationInput');
+      const val = input.value.trim();
+      if (!val) { alert("দয়া করে এলাকার নাম লিখুন!"); return; }
+      if (locations.includes(val)) { alert("এই এলাকাটি ইতিমধ্যে রয়েছে!"); return; }
+
+      locations.push(val);
+      localStorage.setItem('gopalganj_locations', JSON.stringify(locations));
+      input.value = '';
+      renderAdminLocationsTable();
+      refreshLocationDropdowns();
+      applyFilters();
+    }
+
+    function editLocation(index) {
+      const oldName = locations[index];
+      const newName = prompt("এলাকার নতুন নাম লিখুন:", oldName);
+      if (newName && newName.trim() && newName.trim() !== oldName) {
+        const formatted = newName.trim();
+        listings.forEach(l => {
+          if (l.area === oldName) l.area = formatted;
+        });
+        localStorage.setItem('gopalganj_tolet', JSON.stringify(listings));
+
+        locations[index] = formatted;
+        localStorage.setItem('gopalganj_locations', JSON.stringify(locations));
+
+        renderAdminLocationsTable();
+        refreshLocationDropdowns();
+        applyFilters();
+      }
+    }
+
+    function deleteLocation(index) {
+      if (!confirm(`"${locations[index]}" এলাকাটি তালিকা থেকে মুছতে চান?`)) return;
+      locations.splice(index, 1);
+      localStorage.setItem('gopalganj_locations', JSON.stringify(locations));
+      renderAdminLocationsTable();
+      refreshLocationDropdowns();
+      applyFilters();
+    }
+
+    // 7. CHAT & VOICE SYSTEM
     function getChatRoomKey(listingId, userA, userB) {
       const sorted = [userA, userB].sort();
       return `chat_${listingId}_${sorted[0]}_${sorted[1]}`;
@@ -947,7 +1337,7 @@
       toggleInboxModal(true);
     }
 
-    // 7. CARD RENDERING
+    // 8. CARD RENDERING
     function renderListings(items) {
       const container = document.getElementById('listingsContainer');
       const emptyState = document.getElementById('emptyState');
@@ -1070,68 +1460,6 @@
       modal.classList.add('hidden');
     }
 
-    // 8. ADMIN FUNCTIONS
-    function openAdminModal() {
-      if (!isAdmin()) { alert("অননুমোদিত অ্যাক্সেস!"); return; }
-      renderAdminAdsList();
-      renderAdminUsersTable();
-      toggleAdminModal(true);
-    }
-
-    function toggleAdminModal(show) { document.getElementById('adminPanelModal').classList.toggle('hidden', !show); }
-
-    function switchAdminTab(tab) {
-      document.getElementById('adminAdsSection').classList.toggle('hidden', tab !== 'ads');
-      document.getElementById('adminUsersSection').classList.toggle('hidden', tab !== 'users');
-      document.getElementById('adminTabAds').className = (tab === 'ads') ? "px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-bold" : "px-3 py-1.5 bg-white text-slate-700 border border-slate-300 rounded-lg text-xs font-bold";
-      document.getElementById('adminTabUsers').className = (tab === 'users') ? "px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-bold" : "px-3 py-1.5 bg-white text-slate-700 border border-slate-300 rounded-lg text-xs font-bold";
-    }
-
-    function renderAdminAdsList() {
-      const container = document.getElementById('adminAdsListContainer');
-      container.innerHTML = '';
-      listings.forEach(item => {
-        const row = document.createElement('div');
-        row.className = "flex items-center justify-between p-3.5 bg-white rounded-xl border border-slate-200 shadow-sm gap-3";
-        row.innerHTML = `
-          <div>
-            <h4 class="font-bold text-slate-800 text-sm">${item.title}</h4>
-            <p class="text-xs text-slate-500">${item.area} • ৳${Number(item.rent).toLocaleString('bn-BD')}</p>
-          </div>
-          <button onclick="removeListing('${item.id}')" class="px-2.5 py-1.5 bg-rose-50 text-rose-600 text-xs font-semibold rounded-lg hover:bg-rose-100">ডিলিট</button>
-        `;
-        container.appendChild(row);
-      });
-    }
-
-    function renderAdminUsersTable() {
-      const tbody = document.getElementById('adminUsersTableBody');
-      tbody.innerHTML = '';
-      users.forEach(u => {
-        const tr = document.createElement('tr');
-        tr.className = "hover:bg-slate-50";
-        tr.innerHTML = `
-          <td class="p-3 font-semibold">${u.name}</td>
-          <td class="p-3">${u.phone}</td>
-          <td class="p-3 font-mono text-emerald-700 font-bold">${u.password}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    async function removeListing(id) {
-      if (!confirm("বিজ্ঞাপনটি ডিলিট করতে চান?")) return;
-      if (isFirebaseReady && firebaseDb) {
-        try {
-          await firebaseDb.collection("listings").doc(String(id)).delete();
-        } catch (e) {}
-      }
-      listings = listings.filter(item => item.id != id);
-      localStorage.setItem('gopalganj_tolet', JSON.stringify(listings));
-      renderAdminAdsList();
-      applyFilters();
-    }
-
     // 9. UI & AUTH
     function updateAuthUI() {
       const authSection = document.getElementById('authSection');
@@ -1178,7 +1506,7 @@
       const phone = document.getElementById('loginPhone').value.trim();
       const password = document.getElementById('loginPassword').value;
       let user = users.find(u => u.phone === phone && u.password === password);
-      if (!user) { alert("ভুল তথ্য!"); return; }
+      if (!user) { alert("ভুল মোবাইল নম্বর বা পাসওয়ার্ড!"); return; }
       currentUser = user;
       localStorage.setItem('tolet_current_user', JSON.stringify(currentUser));
       toggleAuthModal(false);
@@ -1231,8 +1559,12 @@
         toggleAuthModal(true);
         return;
       }
+      document.getElementById('editListingId').value = '';
+      document.getElementById('adModalTitle').textContent = 'নতুন বাসার বিজ্ঞাপন প্রকাশ করুন';
       document.getElementById('listingForm').reset();
       document.getElementById('formPhone').value = currentUser.phone || '';
+      document.getElementById('imagePreviewContainer').innerHTML = '';
+      document.getElementById('imagePreviewContainer').classList.add('hidden');
       refreshLocationDropdowns();
       toggleAdModal(true);
     }
@@ -1290,7 +1622,7 @@
       renderListings(listings);
     }
 
-    // Startup
+    // App Init
     refreshLocationDropdowns();
     updateAuthUI();
     listenToListings();
