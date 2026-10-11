@@ -9,6 +9,7 @@
   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap');
@@ -530,6 +531,7 @@
         <button id="adminTabUsers" onclick="switchAdminTab('users')" class="px-2.5 sm:px-3 py-1.5 bg-white text-slate-700 border border-slate-300 rounded-lg text-[11px] sm:text-xs font-bold hover:bg-slate-50"><i class="fa-solid fa-users-gear mr-1"></i> ব্যবহারকারী</button>
         <button id="adminTabLocations" onclick="switchAdminTab('locations')" class="px-2.5 sm:px-3 py-1.5 bg-white text-slate-700 border border-slate-300 rounded-lg text-[11px] sm:text-xs font-bold hover:bg-slate-50"><i class="fa-solid fa-map-location-dot mr-1"></i> এলাকা / স্থান</button>
         <button id="adminTabBanners" onclick="switchAdminTab('banners')" class="px-2.5 sm:px-3 py-1.5 bg-white text-slate-700 border border-slate-300 rounded-lg text-[11px] sm:text-xs font-bold hover:bg-slate-50"><i class="fa-solid fa-image mr-1"></i> ব্যানার ও ফুটার</button>
+        <button id="adminTabExcel" onclick="switchAdminTab('excel')" class="px-2.5 sm:px-3 py-1.5 bg-white text-slate-700 border border-slate-300 rounded-lg text-[11px] sm:text-xs font-bold hover:bg-slate-50"><i class="fa-solid fa-file-excel mr-1 text-emerald-600"></i> Excel আপলোড / ডাউনলোড</button>
       </div>
       <div class="p-3 sm:p-6 overflow-y-auto flex-1 space-y-4">
 
@@ -579,6 +581,44 @@
               </tr></thead>
               <tbody id="adminLocationsTableBody" class="divide-y divide-slate-100"></tbody>
             </table>
+          </div>
+        </div>
+
+        <div id="adminExcelSection" class="hidden space-y-4">
+          <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs p-3 rounded-xl flex items-start gap-2">
+            <i class="fa-solid fa-circle-info text-emerald-600 mt-0.5"></i>
+            <span>এখান থেকে বিজ্ঞাপন ছাড়া বাকি সব তথ্য (ব্যবহারকারী, এলাকা, ফুটার যোগাযোগ) Excel (.xlsx) ফাইলে ডাউনলোড ও আপলোড করা যাবে। আপলোডে কিছু মুছে যায় না: ফোন নম্বর মিললে আপডেট হয়, নতুন হলে যুক্ত হয়। ডাউনলোড করা ফাইলের কলামের নাম পরিবর্তন করবেন না।</span>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2.5">
+              <h4 class="text-xs font-bold text-slate-800 flex items-center gap-1.5"><i class="fa-solid fa-users text-emerald-600"></i> ব্যবহারকারী</h4>
+              <p class="text-[11px] text-slate-500">কলাম: Name, Phone, Email, Password, Role</p>
+              <button onclick="downloadUsersExcel()" class="w-full py-2 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 text-xs font-bold rounded-lg active:scale-95"><i class="fa-solid fa-download mr-1"></i> Excel ডাউনলোড</button>
+              <button onclick="document.getElementById('xlUsersFile').click()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg active:scale-95"><i class="fa-solid fa-upload mr-1"></i> Excel আপলোড</button>
+              <input type="file" id="xlUsersFile" accept=".xlsx,.xls,.csv" class="hidden" onchange="excelUpload('users',this)">
+            </div>
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2.5">
+              <h4 class="text-xs font-bold text-slate-800 flex items-center gap-1.5"><i class="fa-solid fa-map-location-dot text-emerald-600"></i> এলাকা / স্থান</h4>
+              <p class="text-[11px] text-slate-500">কলাম: Area</p>
+              <button onclick="downloadLocationsExcel()" class="w-full py-2 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 text-xs font-bold rounded-lg active:scale-95"><i class="fa-solid fa-download mr-1"></i> Excel ডাউনলোড</button>
+              <button onclick="document.getElementById('xlLocationsFile').click()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg active:scale-95"><i class="fa-solid fa-upload mr-1"></i> Excel আপলোড</button>
+              <input type="file" id="xlLocationsFile" accept=".xlsx,.xls,.csv" class="hidden" onchange="excelUpload('locations',this)">
+            </div>
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2.5">
+              <h4 class="text-xs font-bold text-slate-800 flex items-center gap-1.5"><i class="fa-solid fa-address-book text-emerald-600"></i> ফুটার যোগাযোগ</h4>
+              <p class="text-[11px] text-slate-500">কলাম: Key, Label, Value</p>
+              <button onclick="downloadSettingsExcel()" class="w-full py-2 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 text-xs font-bold rounded-lg active:scale-95"><i class="fa-solid fa-download mr-1"></i> Excel ডাউনলোড</button>
+              <button onclick="document.getElementById('xlSettingsFile').click()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg active:scale-95"><i class="fa-solid fa-upload mr-1"></i> Excel আপলোড</button>
+              <input type="file" id="xlSettingsFile" accept=".xlsx,.xls,.csv" class="hidden" onchange="excelUpload('settings',this)">
+            </div>
+          </div>
+          <div class="bg-emerald-50/70 border border-emerald-200 rounded-xl p-3.5 space-y-2.5">
+            <h4 class="text-xs font-bold text-emerald-900 flex items-center gap-1.5"><i class="fa-solid fa-file-excel text-emerald-600"></i> সব তথ্য একসাথে (একটি Excel ফাইলে ৩টি শীট: Users, Locations, Settings)</h4>
+            <div class="flex flex-col sm:flex-row gap-2">
+              <button onclick="downloadAllExcel()" class="flex-1 py-2 bg-white hover:bg-slate-100 border border-emerald-300 text-emerald-800 text-xs font-bold rounded-lg active:scale-95"><i class="fa-solid fa-download mr-1"></i> সব একসাথে ডাউনলোড</button>
+              <button onclick="document.getElementById('xlAllFile').click()" class="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg active:scale-95"><i class="fa-solid fa-upload mr-1"></i> সব একসাথে আপলোড</button>
+              <input type="file" id="xlAllFile" accept=".xlsx,.xls" class="hidden" onchange="excelUpload('all',this)">
+            </div>
           </div>
         </div>
 
@@ -1172,7 +1212,7 @@
     }
 
     function switchAdminTab(tab) {
-      ['ads', 'users', 'locations', 'banners'].forEach(t => {
+      ['ads', 'users', 'locations', 'banners', 'excel'].forEach(t => {
         document.getElementById('admin' + t.charAt(0).toUpperCase() + t.slice(1) + 'Section').classList.toggle('hidden', tab !== t);
         document.getElementById('adminTab' + t.charAt(0).toUpperCase() + t.slice(1)).className = (tab === t)
           ? "px-2.5 sm:px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-[11px] sm:text-xs font-bold shadow-sm"
@@ -1701,20 +1741,42 @@ async function handleSelfPasswordChange(e){
 
 /* forgot password: OTP never shown on screen, expires, limited tries, secure random */
 let _otpExpiry=0,_otpTries=0;
-function sendOtpViaEmail(){
+function emailErrHint(status,text){
+  const t=String(text||'');
+  if(status===undefined)return 'ইন্টারনেট সংযোগ বা ব্রাউজারের ব্লকার (AdBlock) সমস্যা হতে পারে।';
+  if(/recipients address is empty/i.test(t))return 'EmailJS টেমপ্লেটের "To Email" ঘরে {{to_email}} লিখুন।';
+  if(status===412||/gmail|authentication|insufficient/i.test(t))return 'EmailJS Dashboard > Email Services এ Gmail সার্ভিসটি আবার Reconnect করুন।';
+  if(status===401||status===403||/public key|origin|domain/i.test(t))return 'EmailJS এর Public Key সঠিক কিনা এবং Account > Security এ আপনার সাইটের ডোমেইন অনুমোদিত কিনা দেখুন।';
+  if(status===400)return 'Service ID / Template ID ভুল অথবা টেমপ্লেটের ভেরিয়েবল মিলছে না।';
+  if(status===404)return 'Service ID অথবা Template ID পাওয়া যায়নি।';
+  if(status===429)return 'EmailJS এর ফ্রি লিমিট (মাসে ২০০টি) শেষ হয়ে গেছে।';
+  return '';
+}
+async function sendOtpViaEmail(){
   const email=document.getElementById('fpEmail').value.trim().toLowerCase();
   if(!email)return alert('দয়া করে আপনার নিবন্ধিত ইমেইল ঠিকানা লিখুন!');
+  if(!users.length)return alert('ব্যবহারকারীর তালিকা লোড হয়নি। ইন্টারনেট চেক করে পেজ রিফ্রেশ করুন।');
   const user=users.find(u=>u.email&&u.email.toLowerCase()===email);
   if(!user)return alert('এই ইমেইল দিয়ে কোনো অ্যাকাউন্ট পাওয়া যায়নি!');
   const a=new Uint32Array(1);crypto.getRandomValues(a);
-  generatedOtp=String(100000+a[0]%900000);otpTargetEmail=email;_otpExpiry=Date.now()+10*60000;_otpTries=0;
+  const otp=String(100000+a[0]%900000);
   const btn=document.getElementById('btnSendOtp');
   const reset=()=>{btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-paper-plane text-xs"></i> ইমেইলে OTP পাঠান';};
-  if(typeof emailjs==='undefined'){generatedOtp=null;return alert('ইমেইল সার্ভিস লোড হয়নি, পেজ রিফ্রেশ করুন।');}
   btn.disabled=true;btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> ওটিপি পাঠানো হচ্ছে...';
-  emailjs.send(EMAILJS_SERVICE_ID,EMAILJS_TEMPLATE_ID,{to_email:email,to_name:user.name||'ব্যবহারকারী',otp_code:generatedOtp,message:`আপনার টু-লেট গোপালগঞ্জ অ্যাকাউন্টের পাসওয়ার্ড পুনরুদ্ধারের ৬ সংখ্যার ওটিপি কোড হলো: ${generatedOtp} (১০ মিনিট পর্যন্ত বৈধ)`})
-    .then(()=>handleOtpSentSuccess())
-    .catch(err=>{console.error(err);generatedOtp=null;reset();alert('OTP পাঠানো যায়নি। কিছুক্ষণ পরে আবার চেষ্টা করুন।');});
+  const nm=user.name||'ব্যবহারকারী';
+  const msg='আপনার টু-লেট গোপালগঞ্জ অ্যাকাউন্টের পাসওয়ার্ড পুনরুদ্ধারের ৬ সংখ্যার ওটিপি কোড হলো: '+otp+' (১০ মিনিট পর্যন্ত বৈধ)';
+  const params={to_email:email,email:email,user_email:email,to:email,reply_to:email,recipient:email,to_name:nm,name:nm,user_name:nm,otp_code:otp,otp:otp,code:otp,passcode:otp,message:msg,app_name:'টু-লেট গোপালগঞ্জ'};
+  try{
+    const res=await fetch('https://api.emailjs.com/api/v1.0/email/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({service_id:EMAILJS_SERVICE_ID,template_id:EMAILJS_TEMPLATE_ID,user_id:EMAILJS_PUBLIC_KEY,template_params:params})});
+    const txt=await res.text();
+    if(!res.ok)throw {status:res.status,text:txt};
+    generatedOtp=otp;otpTargetEmail=email;_otpExpiry=Date.now()+10*60000;_otpTries=0;
+    handleOtpSentSuccess();
+  }catch(err){
+    console.error('EmailJS error:',err);reset();
+    const st=err&&err.status,tx=(err&&err.text)||(err&&err.message)||'';
+    alert('OTP পাঠানো যায়নি।\nকারণ: '+(st?st+' - ':'')+tx+'\n\n'+emailErrHint(st,tx));
+  }
 }
 async function verifyOtpAndResetPassword(){
   const otp=document.getElementById('fpInputOtp').value.trim(),np=document.getElementById('fpNewPassword').value.trim();
@@ -1775,7 +1837,6 @@ async function saveAdminUserEdit(e){
   const old=users.find(u=>u.phone===oldPhone)||{};
   const u={name:cleanName(document.getElementById('editUserName').value),email:document.getElementById('editUserEmail').value.trim().toLowerCase(),phone:normPhone(document.getElementById('editUserPhone').value),password:document.getElementById('editUserPassword').value.trim(),role:old.role||'user'};
   if(!u.name||!validPhone(u.phone)||!u.password)return alert('সঠিক তথ্য দিন!');
-  if(old.role==='admin'&&(u.phone!==old.phone||u.email!==(old.email||'')))return alert('মূল অ্যাডমিনের ফোন/ইমেইল বদলানো যাবে না, শুধু পাসওয়ার্ড বদলান।');
   if(u.phone!==oldPhone&&users.some(x=>x.phone===u.phone))return alert('এই মোবাইল নম্বর আগেই ব্যবহৃত!');
   try{
     if(isFirebaseReady)await saveUserDoc(u,oldPhone);
@@ -1932,6 +1993,105 @@ function closePopupAd(){const m=document.getElementById('popupAdModal');m.classL
 const _origApplyAd=applyAdSettingsToUI;
 applyAdSettingsToUI=function(){_origApplyAd();showPopupAdIfEnabled();};
 
+
+/* ================= EXCEL IMPORT / EXPORT (ads/listings excluded) ================= */
+function _xlsxOk(){if(typeof XLSX==='undefined'){alert('Excel লাইব্রেরি লোড হয়নি। ইন্টারনেট চেক করে পেজ রিফ্রেশ করুন।');return false;}return true;}
+function _xlStamp(){return new Date().toISOString().slice(0,10);}
+function _saveXlsx(sheets,filename){
+  if(!_xlsxOk())return;
+  const wb=XLSX.utils.book_new();
+  sheets.forEach(sh=>{
+    const ws=XLSX.utils.json_to_sheet(sh.rows,{header:sh.headers});
+    ws['!cols']=sh.headers.map(h=>({wch:Math.max(14,String(h).length+6)}));
+    XLSX.utils.book_append_sheet(wb,ws,sh.name);
+  });
+  XLSX.writeFile(wb,filename);
+}
+function _usersSheet(){return {name:'Users',headers:['Name','Phone','Email','Password','Role'],rows:users.map(u=>({Name:u.name||'',Phone:String(u.phone||''),Email:u.email||'',Password:u.password||'',Role:u.role||'user'}))};}
+function _locationsSheet(){return {name:'Locations',headers:['Area'],rows:locations.map(l=>({Area:l}))};}
+const _SETTING_LABELS={footerPhone:'কল নম্বর',footerWa:'হোয়াটসঅ্যাপ নম্বর',footerFb:'ফেসবুক পেজ লিংক'};
+function _settingsSheet(){return {name:'Settings',headers:['Key','Label','Value'],rows:Object.keys(_SETTING_LABELS).map(k=>({Key:k,Label:_SETTING_LABELS[k],Value:adSettings[k]||''}))};}
+function downloadUsersExcel(){if(!isAdmin())return;_saveXlsx([_usersSheet()],'users-'+_xlStamp()+'.xlsx');}
+function downloadLocationsExcel(){if(!isAdmin())return;_saveXlsx([_locationsSheet()],'locations-'+_xlStamp()+'.xlsx');}
+function downloadSettingsExcel(){if(!isAdmin())return;_saveXlsx([_settingsSheet()],'footer-settings-'+_xlStamp()+'.xlsx');}
+function downloadAllExcel(){if(!isAdmin())return;_saveXlsx([_usersSheet(),_locationsSheet(),_settingsSheet()],'tolet-gopalganj-data-'+_xlStamp()+'.xlsx');}
+
+function _readXlsx(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>{try{res(XLSX.read(r.result,{type:'array'}));}catch(e){rej(e);}};r.onerror=()=>rej(r.error);r.readAsArrayBuffer(file);});}
+function _sheetRows(wb,names,fallbackFirst){
+  let n=wb.SheetNames.find(x=>names.includes(String(x).trim().toLowerCase()));
+  if(!n&&fallbackFirst)n=wb.SheetNames[0];
+  if(!n)return null;
+  return XLSX.utils.sheet_to_json(wb.Sheets[n],{defval:'',raw:false});
+}
+function _pick(row,keys){for(const k in row){if(keys.includes(String(k).trim().toLowerCase()))return String(row[k]==null?'':row[k]).trim();}return '';}
+function _errTail(errs){return errs.length?'\n'+errs.slice(0,5).join('\n')+(errs.length>5?'\n... আরও '+(errs.length-5)+'টি':''):'';}
+
+async function importUsersRows(rows){
+  const K={name:['name','নাম','ব্যবহারকারীর নাম'],phone:['phone','mobile','মোবাইল','মোবাইল নম্বর','ফোন'],email:['email','ইমেইল','ইমেইল ঠিকানা'],password:['password','পাসওয়ার্ড'],role:['role','ভূমিকা']};
+  let skipped=0;const errs=[],list=[],seen=new Set();
+  rows.forEach((r,i)=>{
+    const name=cleanName(_pick(r,K.name)),phone=normPhone(_pick(r,K.phone)),email=_pick(r,K.email).toLowerCase(),password=_pick(r,K.password),roleRaw=_pick(r,K.role).toLowerCase();
+    if(!name&&!phone&&!email&&!password)return;
+    const line=i+2;
+    if(!name||!validPhone(phone)||password.length<4){skipped++;errs.push('লাইন '+line+': নাম, সঠিক মোবাইল ও কমপক্ষে ৪ অক্ষরের পাসওয়ার্ড দরকার');return;}
+    if(seen.has(phone)){skipped++;errs.push('লাইন '+line+': মোবাইল নম্বর ফাইলে দুইবার আছে');return;}
+    if(email&&(users.some(u=>u.phone!==phone&&u.email&&u.email.toLowerCase()===email)||list.some(x=>x.u.phone!==phone&&x.u.email&&x.u.email===email))){skipped++;errs.push('লাইন '+line+': ইমেইল অন্য অ্যাকাউন্টে ব্যবহৃত');return;}
+    seen.add(phone);
+    const ex=users.find(u=>u.phone===phone);
+    list.push({isNew:!ex,u:{name,phone,email,password,role:ex?(ex.role||'user'):(roleRaw==='admin'?'admin':'user')}});
+  });
+  if(!list.length)return 'ব্যবহারকারী: কোনো সঠিক সারি পাওয়া যায়নি।'+_errTail(errs);
+  if(isFirebaseReady){
+    for(let i=0;i<list.length;i+=400){
+      const b=firebaseDb.batch();
+      list.slice(i,i+400).forEach(x=>b.set(firebaseDb.collection('users').doc('user_'+x.u.phone),x.u));
+      await b.commit();
+    }
+  }else{
+    list.forEach(x=>{const ix=users.findIndex(u=>u.phone===x.u.phone);if(ix>=0)users[ix]=x.u;else users.push(x.u);});
+    localStorage.setItem('tolet_users',JSON.stringify(users));renderAdminUsersTable();
+  }
+  const added=list.filter(x=>x.isNew).length;
+  return 'ব্যবহারকারী: '+added+'জন নতুন যুক্ত, '+(list.length-added)+'জন আপডেট, '+skipped+'টি বাদ।'+_errTail(errs);
+}
+
+async function importLocationsRows(rows){
+  const names=[];
+  rows.forEach(r=>{const v=_pick(r,['area','এলাকা','এলাকার নাম','name']);if(v&&!names.includes(v))names.push(v);});
+  if(!names.length)return 'এলাকা: কোনো এলাকার নাম পাওয়া যায়নি (কলামের নাম: Area)।';
+  const replace=confirm('এলাকা তালিকা: ফাইলে '+names.length+'টি এলাকা আছে।\n\nOK = বর্তমান তালিকা সম্পূর্ণ বদলে ফাইলের তালিকা বসাও\nCancel = শুধু নতুন এলাকাগুলো যুক্ত করো');
+  if(replace)locations=names;
+  else{let n=0;names.forEach(x=>{if(!locations.includes(x)){locations.push(x);n++;}});if(!n)return 'এলাকা: নতুন কোনো এলাকা নেই, সব আগেই আছে।';}
+  afterLocChange();
+  return 'এলাকা: '+(replace?'তালিকা প্রতিস্থাপন হয়েছে':'নতুন এলাকা যুক্ত হয়েছে')+' (এখন মোট '+locations.length+'টি)।';
+}
+
+async function importSettingsRows(rows){
+  const patch={};
+  rows.forEach(r=>{
+    const k=_pick(r,['key','কী']);const v=_pick(r,['value','মান']);
+    if(!(k in _SETTING_LABELS))return;
+    if(k==='footerFb'){patch[k]=v?(safeUrl(v)||adSettings.footerFb):'https://facebook.com';}
+    else patch[k]=v;
+  });
+  if(!Object.keys(patch).length)return 'ফুটার: কোনো সঠিক সেটিং পাওয়া যায়নি (কলাম: Key, Value)।';
+  await persistAdSettings(patch);
+  return 'ফুটার যোগাযোগ তথ্য আপডেট হয়েছে।';
+}
+
+async function excelUpload(kind,input){
+  const f=input.files&&input.files[0];input.value='';
+  if(!f)return;
+  if(!isAdmin())return alert('অননুমোদিত!');
+  if(!_xlsxOk())return;
+  try{
+    const wb=await _readXlsx(f);const msgs=[];
+    if(kind==='users'||kind==='all'){const r=_sheetRows(wb,['users','ব্যবহারকারী'],kind==='users');if(r)msgs.push(await importUsersRows(r));}
+    if(kind==='locations'||kind==='all'){const r=_sheetRows(wb,['locations','এলাকা'],kind==='locations');if(r)msgs.push(await importLocationsRows(r));}
+    if(kind==='settings'||kind==='all'){const r=_sheetRows(wb,['settings','সেটিংস'],kind==='settings');if(r)msgs.push(await importSettingsRows(r));}
+    alert(msgs.length?msgs.join('\n\n'):'ফাইলে উপযুক্ত শীট পাওয়া যায়নি (Users / Locations / Settings)।');
+  }catch(e){console.error(e);alert(fbErrMsg(e,'Excel আপলোড ব্যর্থ হয়েছে।'));}
+}
 
     // ============ 12. START ============
     refreshLocationDropdowns();
