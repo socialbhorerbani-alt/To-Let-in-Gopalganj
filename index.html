@@ -2,7 +2,7 @@
 <html lang="bn">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>টু-লেট গোপালগঞ্জ | To-Let Gopalganj</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -34,9 +34,13 @@
     .wave-playing span:nth-child(3) { animation-delay: 0.3s; }
     .wave-playing span:nth-child(4) { animation-delay: 0.45s; }
     .wave-playing span:nth-child(5) { animation-delay: 0.6s; }
+
+    /* Hide scrollbars on modern tabs */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800 flex flex-col min-h-screen antialiased selection:bg-emerald-500 selection:text-white">
+<body class="bg-slate-50 text-slate-800 flex flex-col min-h-screen antialiased selection:bg-emerald-500 selection:text-white overflow-x-hidden pb-16 sm:pb-0">
 
   <!-- Header -->
   <header class="sticky top-0 z-40 bg-white/95 backdrop-blur shadow-sm border-b border-slate-100">
@@ -46,24 +50,44 @@
           <i class="fa-solid fa-house-chimney"></i>
         </div>
         <div>
-          <span class="text-lg sm:text-xl font-bold text-slate-900 leading-tight block">টু-লেট <span class="text-emerald-600">গোপালগঞ্জ</span></span>
-          <span class="text-[10px] sm:text-[11px] text-slate-500 font-medium">শহরের বাসা ও মেস পোর্টাল</span>
+          <span class="text-base sm:text-xl font-bold text-slate-900 leading-tight block">টু-লেট <span class="text-emerald-600">গোপালগঞ্জ</span></span>
+          <span class="text-[9px] sm:text-[11px] text-slate-500 font-medium">শহরের বাসা ও মেস পোর্টাল</span>
         </div>
       </div>
       
-      <div class="flex items-center gap-2 sm:gap-2.5">
+      <div class="flex items-center gap-1.5 sm:gap-2.5">
         <button onclick="openInboxModal()" class="relative p-2 text-slate-600 hover:text-emerald-600 hover:bg-slate-100 rounded-lg transition" title="মেসেজ / ইনবক্স">
           <i class="fa-solid fa-comments text-base sm:text-lg"></i>
           <span id="unreadBadge" class="hidden absolute top-1 right-1 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white"></span>
         </button>
 
         <div id="authSection"></div>
-        <button onclick="openAdModalForCreate()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 sm:px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition flex items-center gap-1.5 shadow-sm active:scale-95">
-          <i class="fa-solid fa-plus"></i> <span class="hidden sm:inline">বিজ্ঞাপন দিন</span>
+        <button onclick="openAdModalForCreate()" class="hidden sm:flex bg-emerald-600 hover:bg-emerald-700 text-white px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold transition items-center gap-1.5 shadow-sm active:scale-95">
+          <i class="fa-solid fa-plus text-xs"></i> <span>বিজ্ঞাপন দিন</span>
         </button>
       </div>
     </div>
   </header>
+
+  <!-- Mobile Bottom Floating Navigation Bar -->
+  <div class="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur border-t border-slate-200 flex items-center justify-around py-2 px-1 shadow-lg">
+    <button onclick="resetFilters()" class="flex flex-col items-center text-slate-600 hover:text-emerald-600 active:scale-90 transition">
+      <i class="fa-solid fa-house-chimney text-base"></i>
+      <span class="text-[10px] font-medium mt-0.5">হোম</span>
+    </button>
+    <button onclick="openInboxModal()" class="flex flex-col items-center text-slate-600 hover:text-emerald-600 relative active:scale-90 transition">
+      <i class="fa-solid fa-comments text-base"></i>
+      <span id="unreadBadgeMobile" class="hidden absolute -top-0.5 right-2 w-2 h-2 bg-rose-500 rounded-full"></span>
+      <span class="text-[10px] font-medium mt-0.5">ইনবক্স</span>
+    </button>
+    <button onclick="openAdModalForCreate()" class="flex flex-col items-center justify-center -mt-5 w-12 h-12 rounded-full bg-emerald-600 text-white shadow-lg shadow-emerald-500/40 active:scale-90 transition">
+      <i class="fa-solid fa-plus text-lg"></i>
+    </button>
+    <button onclick="openUserDashboard()" class="flex flex-col items-center text-slate-600 hover:text-emerald-600 active:scale-90 transition">
+      <i class="fa-solid fa-circle-user text-base"></i>
+      <span class="text-[10px] font-medium mt-0.5">প্রোফাইল</span>
+    </button>
+  </div>
 
   <!-- Top Leaderboard Banner Slot -->
   <div id="thirdPartyTopBanner" class="max-w-7xl mx-auto px-3 sm:px-4 mt-3 w-full hidden">
@@ -73,9 +97,9 @@
   </div>
 
   <!-- Hero Section -->
-  <section class="bg-gradient-to-br from-emerald-800 to-teal-900 text-white py-8 sm:py-12 px-4">
+  <section class="bg-gradient-to-br from-emerald-800 to-teal-900 text-white py-7 sm:py-12 px-3 sm:px-4">
     <div class="max-w-4xl mx-auto text-center space-y-2.5 sm:space-y-3">
-      <span class="bg-emerald-700/60 text-emerald-200 px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wider inline-block">গোপালগঞ্জ জেলা সদর ও আশপাশ</span>
+      <span class="bg-emerald-700/60 text-emerald-200 px-3 py-1 rounded-full text-[10px] sm:text-xs font-medium uppercase tracking-wider inline-block">গোপালগঞ্জ জেলা সদর ও আশপাশ</span>
       <h1 class="text-xl sm:text-3xl md:text-4xl font-extrabold tracking-tight">ছবি ও ভিডিও দেখে বাসা বা মেস পছন্দ করুন</h1>
       <p class="text-emerald-100 text-xs sm:text-sm md:text-base max-w-xl mx-auto">ফ্যামিলি ফ্ল্যাট, ব্যাচেলর রুম কিংবা স্টুডেন্ট মেস — সরাসরি মালিকের সাথে কথা ও চ্যাট করুন।</p>
     </div>
@@ -116,7 +140,7 @@
     </div>
   </section>
 
-  <!-- Main Content Layout (Responsive Listings + Sidebar Ads) -->
+  <!-- Main Content Layout -->
   <main class="max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-10 flex-1 w-full">
     <div class="flex items-center justify-between mb-4 sm:mb-6">
       <h2 class="text-base sm:text-xl font-bold text-slate-900 flex items-center gap-2">
@@ -128,7 +152,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-start">
       <!-- Listings Grid -->
       <div class="lg:col-span-8 xl:col-span-9 w-full">
-        <div id="listingsContainer" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6"></div>
+        <div id="listingsContainer" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3.5 sm:gap-6"></div>
 
         <div id="emptyState" class="hidden text-center py-16 bg-white rounded-2xl border border-slate-100 mt-4">
           <i class="fa-regular fa-face-frown text-4xl text-slate-400 mb-3 block"></i>
@@ -144,10 +168,10 @@
     </div>
   </main>
 
-  <!-- Responsive Modern Footer (Admin Dynamic Settings Connected) -->
-  <footer class="bg-gradient-to-b from-slate-900 to-slate-950 text-slate-300 pt-12 sm:pt-16 pb-8 border-t border-slate-800 mt-auto">
-    <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-8 mb-10">
-      <div class="md:col-span-4 space-y-4">
+  <!-- Responsive Footer -->
+  <footer class="bg-gradient-to-b from-slate-900 to-slate-950 text-slate-300 pt-10 sm:pt-16 pb-8 border-t border-slate-800 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-7 sm:gap-8 mb-8 sm:mb-10">
+      <div class="md:col-span-4 space-y-3.5 sm:space-y-4">
         <div class="flex items-center gap-2.5">
           <div class="w-9 h-9 bg-emerald-500 text-slate-950 rounded-xl flex items-center justify-center text-lg shadow-lg font-bold">
             <i class="fa-solid fa-house-chimney"></i>
@@ -160,7 +184,6 @@
         <p class="text-xs text-slate-400 leading-relaxed pr-2">
           গোপালগঞ্জ শহর ও বিশ্ববিদ্যালয়ের (BSMRSTU) আশেপাশের বাসা, ব্যাচেলর মেস ও সাবলেট খোঁজার আধুনিক ডিজিটাল প্ল্যাটফর্ম।
         </p>
-        <!-- Dynamic Social Buttons (Admin Configurable) -->
         <div class="flex items-center gap-2.5 pt-1">
           <a id="footerFbBtn" href="https://facebook.com" target="_blank" rel="noopener noreferrer" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-emerald-600 text-slate-300 hover:text-white flex items-center justify-center text-xs transition active:scale-95"><i class="fa-brands fa-facebook-f"></i></a>
           <a id="footerWaBtn" href="https://wa.me/8801700000000" target="_blank" rel="noopener noreferrer" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-emerald-600 text-slate-300 hover:text-white flex items-center justify-center text-xs transition active:scale-95"><i class="fa-brands fa-whatsapp"></i></a>
@@ -217,8 +240,67 @@
 
   <!-- ==================== ALL MODALS ==================== -->
 
-  <!-- Popup Ad Modal -->
-  <div id="popupAdModal" class="fixed inset-0 bg-slate-900/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-4">
+  <!-- 1. Realtime Direct Chat Modal (Mobile Fullscreen Fit) -->
+  <div id="chatModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-0 sm:p-4">
+    <div class="bg-white rounded-none sm:rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl border border-slate-100 flex flex-col h-full sm:h-[90vh] sm:max-h-[650px]">
+      <div class="px-4 py-3 bg-emerald-700 text-white flex justify-between items-center flex-shrink-0 shadow-xs">
+        <div class="flex items-center gap-2.5 sm:gap-3">
+          <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-emerald-800 flex items-center justify-center text-white font-bold text-sm sm:text-base border border-emerald-500">
+            <i class="fa-solid fa-user"></i>
+          </div>
+          <div>
+            <h4 id="chatPartnerName" class="font-bold text-xs sm:text-sm leading-tight">বাড়িওয়ালা / ভাড়াটিয়া</h4>
+            <span id="chatListingTitle" class="text-[10px] sm:text-[11px] text-emerald-200 truncate max-w-[190px] sm:max-w-[250px] block">বাসার নাম</span>
+          </div>
+        </div>
+        <button onclick="toggleChatModal(false)" class="text-white hover:text-slate-200 text-2xl font-bold p-1">&times;</button>
+      </div>
+
+      <div id="chatMessagesContainer" class="flex-1 p-3 sm:p-4 overflow-y-auto space-y-3 bg-slate-100 select-none"></div>
+
+      <!-- Voice Recording Progress Bar -->
+      <div id="recordingBanner" class="hidden bg-rose-50 border-t border-rose-200 px-3 sm:px-4 py-2 sm:py-2.5 flex items-center justify-between text-xs text-rose-700">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 bg-rose-600 rounded-full animate-ping"></span>
+          <span class="font-bold">ভয়েস রেকর্ড হচ্ছে...</span>
+          <span id="recordingTimer" class="font-mono font-bold ml-1 bg-rose-200 px-1.5 py-0.5 rounded">00:00</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="cancelVoiceRecord()" class="text-slate-400 hover:text-rose-600 px-2 py-1 font-bold">বাতিল</button>
+          <button onclick="stopAndSendVoiceRecord()" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg font-bold flex items-center gap-1 shadow-xs">
+            <i class="fa-solid fa-paper-plane text-xs"></i> পাঠান
+          </button>
+        </div>
+      </div>
+
+      <!-- Message Input Bar -->
+      <div class="p-2.5 sm:p-3 bg-white border-t border-slate-200 flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+        <input type="text" id="chatTextInput" onkeydown="if(event.key==='Enter') sendTextMessage()" placeholder="একটি মেসেজ লিখুন..." class="flex-1 px-3 sm:px-3.5 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+        <button onclick="sendTextMessage()" class="p-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs sm:text-sm transition shadow-sm active:scale-95" title="মেসেজ পাঠান">
+          <i class="fa-solid fa-paper-plane"></i>
+        </button>
+        <button id="recordVoiceBtn" onclick="toggleVoiceRecord()" class="p-2.5 bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 rounded-xl text-xs sm:text-sm transition border border-slate-300 active:scale-95" title="ভয়েস মেসেজ পাঠান">
+          <i class="fa-solid fa-microphone text-emerald-600"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Realtime Inbox Modal -->
+  <div id="inboxModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-0 sm:p-4">
+    <div class="bg-white rounded-none sm:rounded-2xl w-full max-w-md overflow-hidden shadow-2xl border border-slate-100 flex flex-col h-full sm:h-auto sm:max-h-[85vh]">
+      <div class="px-4 sm:px-5 py-3 sm:py-4 bg-emerald-600 text-white flex justify-between items-center">
+        <h3 class="text-sm sm:text-base font-bold flex items-center gap-2">
+          <i class="fa-solid fa-inbox"></i> মেসেজ ইনবক্স
+        </h3>
+        <button onclick="toggleInboxModal(false)" class="text-white hover:text-slate-200 text-2xl font-bold p-1">&times;</button>
+      </div>
+      <div id="inboxListContainer" class="p-3 sm:p-4 overflow-y-auto space-y-2 flex-1"></div>
+    </div>
+  </div>
+
+  <!-- 3. Popup Ad Modal -->
+  <div id="popupAdModal" class="fixed inset-0 bg-slate-900/75 backdrop-blur-sm z-50 hidden items-center justify-center p-3 sm:p-4">
     <div class="bg-white rounded-2xl w-full max-w-sm sm:max-w-md overflow-hidden shadow-2xl border border-slate-200 relative">
       <button onclick="closePopupAd()" class="absolute top-2.5 right-2.5 bg-black/60 hover:bg-black/80 text-white w-7 h-7 rounded-full flex items-center justify-center text-sm z-20 transition">&times;</button>
       <div id="popupAdImageContainer" class="max-h-56 sm:max-h-64 bg-slate-100 overflow-hidden hidden">
@@ -237,8 +319,8 @@
     </div>
   </div>
 
-  <!-- Image Lightbox Modal -->
-  <div id="imageLightboxModal" class="fixed inset-0 bg-black/95 backdrop-blur-md z-50 hidden flex items-center justify-center p-2 sm:p-4" onclick="closeImageLightbox()">
+  <!-- 4. Image Lightbox Modal -->
+  <div id="imageLightboxModal" class="fixed inset-0 bg-black/95 backdrop-blur-md z-50 hidden items-center justify-center p-2 sm:p-4" onclick="closeImageLightbox()">
     <button onclick="closeImageLightbox()" class="absolute top-4 right-4 text-white text-2xl bg-white/20 hover:bg-white/40 rounded-full w-10 h-10 flex items-center justify-center transition z-50">&times;</button>
     <div class="relative max-w-4xl w-full max-h-[85vh] flex items-center justify-center" onclick="event.stopPropagation()">
       <button id="lbPrevBtn" onclick="stepLightboxImage(-1)" class="absolute left-2 text-white bg-black/50 hover:bg-black/80 rounded-full w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center text-base sm:text-lg transition z-40">
@@ -252,8 +334,8 @@
     </div>
   </div>
 
-  <!-- Video Player Modal -->
-  <div id="videoModal" class="fixed inset-0 bg-slate-900/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 sm:p-6" oncontextmenu="return false;">
+  <!-- 5. Video Player Modal -->
+  <div id="videoModal" class="fixed inset-0 bg-slate-900/85 backdrop-blur-md z-50 hidden items-center justify-center p-3 sm:p-6" oncontextmenu="return false;">
     <div class="bg-black rounded-2xl w-full max-w-3xl overflow-hidden relative shadow-2xl border border-slate-800">
       <div class="p-3 bg-slate-900 flex justify-between items-center text-white text-xs sm:text-sm font-bold border-b border-slate-800">
         <span><i class="fa-solid fa-video text-rose-500 mr-1.5"></i> ভিডিও প্লেয়ার</span>
@@ -263,20 +345,20 @@
     </div>
   </div>
 
-  <!-- Review Modal -->
-  <div id="reviewModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-4">
+  <!-- 6. Review Modal -->
+  <div id="reviewModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-3 sm:p-4">
     <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl border border-slate-100 flex flex-col max-h-[88vh]">
-      <div class="px-5 py-4 bg-emerald-600 text-white flex justify-between items-center">
+      <div class="px-4 sm:px-5 py-3 sm:py-4 bg-emerald-600 text-white flex justify-between items-center">
         <div>
-          <h3 class="text-base font-bold flex items-center gap-2">
+          <h3 class="text-sm sm:text-base font-bold flex items-center gap-2">
             <i class="fa-solid fa-star text-amber-300"></i> রেটিং ও রিভিউসমূহ
           </h3>
-          <span id="reviewListingTitle" class="text-xs text-emerald-100 truncate block max-w-[240px]"></span>
+          <span id="reviewListingTitle" class="text-xs text-emerald-100 truncate block max-w-[220px] sm:max-w-[260px]"></span>
         </div>
         <button onclick="toggleReviewModal(false)" class="text-white hover:text-slate-200 text-xl font-bold">&times;</button>
       </div>
 
-      <div id="reviewInputSection" class="p-4 bg-slate-50 border-b border-slate-200">
+      <div id="reviewInputSection" class="p-3.5 sm:p-4 bg-slate-50 border-b border-slate-200">
         <label class="block text-xs font-bold text-slate-700 mb-1">আপনার রেটিং দিন:</label>
         <div class="flex items-center gap-2 mb-2 text-xl" id="starRatingSelector">
           <i class="fa-solid fa-star text-amber-400 cursor-pointer" onclick="selectStarRating(1)"></i>
@@ -286,8 +368,8 @@
           <i class="fa-solid fa-star text-amber-400 cursor-pointer" onclick="selectStarRating(5)"></i>
           <span id="selectedRatingText" class="text-xs font-bold text-slate-600 ml-2">৫ স্টার</span>
         </div>
-        <textarea id="reviewCommentInput" rows="2" placeholder="বাসাটির পরিবেশ বা সুবিধা সম্পর্কে আপনার মতামত লিখুন..." class="w-full p-2.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"></textarea>
-        <button onclick="submitListingReview()" class="mt-2 w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition shadow-sm">
+        <textarea id="reviewCommentInput" rows="2" placeholder="বাসাটির পরিবেশ সম্পর্কে আপনার মতামত লিখুন..." class="w-full p-2.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"></textarea>
+        <button onclick="submitListingReview()" class="mt-2 w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition shadow-sm active:scale-95">
           রিভিউ সাবমিট করুন
         </button>
       </div>
@@ -296,14 +378,14 @@
         <i class="fa-solid fa-circle-exclamation mr-1 text-amber-600"></i> এটি আপনার নিজের বিজ্ঞাপন, তাই আপনি রেটিং দিতে পারবেন না।
       </div>
 
-      <div id="reviewsListContainer" class="p-4 overflow-y-auto space-y-3 flex-1"></div>
+      <div id="reviewsListContainer" class="p-3 sm:p-4 overflow-y-auto space-y-2.5 flex-1"></div>
     </div>
   </div>
 
-  <!-- User Dashboard Modal -->
-  <div id="userDashboardModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 md:p-6">
+  <!-- 7. User Dashboard Modal -->
+  <div id="userDashboardModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-2 sm:p-6">
     <div class="bg-white rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl border border-slate-100 flex flex-col max-h-[90vh]">
-      <div class="px-5 sm:px-6 py-4 bg-emerald-700 text-white flex justify-between items-center">
+      <div class="px-4 sm:px-6 py-3.5 sm:py-4 bg-emerald-700 text-white flex justify-between items-center">
         <div>
           <h3 class="text-sm sm:text-base font-bold flex items-center gap-2">
             <i class="fa-solid fa-circle-user text-base sm:text-lg"></i> আমার ড্যাশবোর্ড ও প্রোফাইল
@@ -322,18 +404,18 @@
         </button>
       </div>
 
-      <div id="dashTabAds" class="p-4 overflow-y-auto space-y-3 flex-1">
+      <div id="dashTabAds" class="p-3.5 sm:p-4 overflow-y-auto space-y-3 flex-1">
         <div class="flex justify-between items-center mb-1">
-          <span class="text-xs font-bold text-slate-700">আমার প্রকাশিত বিজ্ঞাপনের তালিকা:</span>
-          <button onclick="toggleDashboardModal(false); openAdModalForCreate();" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-bold flex items-center gap-1 shadow-sm">
+          <span class="text-xs font-bold text-slate-700">আমার প্রকাশিত বিজ্ঞাপন:</span>
+          <button onclick="toggleDashboardModal(false); openAdModalForCreate();" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 sm:px-3 py-1.5 rounded-lg font-bold flex items-center gap-1 shadow-sm active:scale-95">
             <i class="fa-solid fa-plus"></i> নতুন বিজ্ঞাপন
           </button>
         </div>
         <div id="userAdsListContainer" class="space-y-3"></div>
       </div>
 
-      <div id="dashTabPass" class="hidden p-5 sm:p-6 overflow-y-auto flex-1">
-        <div class="max-w-md mx-auto space-y-4">
+      <div id="dashTabPass" class="hidden p-4 sm:p-6 overflow-y-auto flex-1">
+        <div class="max-w-md mx-auto space-y-3.5">
           <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs p-3 rounded-xl flex items-center gap-2">
             <i class="fa-solid fa-shield-halved text-emerald-600 text-base"></i>
             <span>নিরাপত্তার স্বার্থে আপনার পাসওয়ার্ড পরিবর্তন করুন।</span>
@@ -352,7 +434,7 @@
               <label class="block font-medium text-slate-700 mb-1 text-xs">নতুন পাসওয়ার্ড নিশ্চিত করুন *</label>
               <input type="password" id="selfConfirmNewPass" required placeholder="নতুন পাসওয়ার্ডটি পুনরায় লিখুন" class="w-full p-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none text-xs">
             </div>
-            <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs shadow-sm transition flex items-center justify-center gap-1.5 mt-2">
+            <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs shadow-sm transition flex items-center justify-center gap-1.5 active:scale-95 mt-2">
               <i class="fa-solid fa-check"></i> পাসওয়ার্ড আপডেট করুন
             </button>
           </form>
@@ -361,177 +443,175 @@
     </div>
   </div>
 
-  <!-- User Auth Modal -->
-  <div id="authModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+  <!-- 8. User Auth Modal -->
+  <div id="authModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-3 sm:p-4">
     <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-slate-100">
-      <div class="px-6 py-4 bg-emerald-600 text-white flex justify-between items-center">
-        <h3 id="authModalTitle" class="text-base font-bold flex items-center gap-2">
+      <div class="px-5 sm:px-6 py-3.5 sm:py-4 bg-emerald-600 text-white flex justify-between items-center">
+        <h3 id="authModalTitle" class="text-sm sm:text-base font-bold flex items-center gap-2">
           <i class="fa-solid fa-arrow-right-to-bracket text-sm"></i> লগইন করুন
         </h3>
-        <button onclick="toggleAuthModal(false)" class="text-white hover:text-slate-200 text-xl font-bold">&times;</button>
+        <button onclick="toggleAuthModal(false)" class="text-white hover:text-slate-200 text-2xl font-bold">&times;</button>
       </div>
 
-      <div class="flex border-b border-slate-100 text-sm font-semibold bg-slate-50">
+      <div class="flex border-b border-slate-100 text-xs sm:text-sm font-semibold bg-slate-50">
         <button id="tabLogin" onclick="switchAuthTab('login')" class="flex-1 py-3 text-emerald-600 border-b-2 border-emerald-600 bg-white font-bold">লগইন</button>
         <button id="tabRegister" onclick="switchAuthTab('register')" class="flex-1 py-3 text-slate-500 hover:text-slate-700 font-semibold">নতুন অ্যাকাউন্ট</button>
       </div>
 
-      <form id="loginForm" onsubmit="handleUserLogin(event)" autocomplete="off" class="p-6 space-y-3.5 text-sm">
+      <form id="loginForm" onsubmit="handleUserLogin(event)" autocomplete="off" class="p-4 sm:p-6 space-y-3.5 text-sm">
         <div>
-          <label class="block font-medium text-slate-700 mb-1">মোবাইল নম্বর বা ইমেইল *</label>
-          <div class="relative">
-            <input type="text" id="loginPhone" required placeholder="017XXXXXXXX বা example@gmail.com" value="" autocomplete="off" class="w-full px-3 py-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none text-slate-800">
-          </div>
+          <label class="block font-medium text-slate-700 mb-1 text-xs">মোবাইল নম্বর বা ইমেইল *</label>
+          <input type="text" id="loginPhone" required placeholder="017XXXXXXXX বা example@gmail.com" value="" autocomplete="off" class="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none text-slate-800">
         </div>
 
         <div>
-          <label class="block font-medium text-slate-700 mb-1">পাসওয়ার্ড *</label>
+          <label class="block font-medium text-slate-700 mb-1 text-xs">পাসওয়ার্ড *</label>
           <div class="relative">
-            <input type="password" id="loginPassword" required placeholder="পাসওয়ার্ড দিন" value="" autocomplete="new-password" class="w-full pl-3 pr-10 py-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
-            <button type="button" onclick="togglePasswordVisibility('loginPassword', this)" class="absolute right-3 top-3 text-slate-400 hover:text-slate-600">
-              <i class="fa-solid fa-eye-slash text-sm"></i>
+            <input type="password" id="loginPassword" required placeholder="পাসওয়ার্ড দিন" value="" autocomplete="new-password" class="w-full pl-3 pr-10 py-2 text-xs sm:text-sm rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+            <button type="button" onclick="togglePasswordVisibility('loginPassword', this)" class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600">
+              <i class="fa-solid fa-eye-slash text-xs"></i>
             </button>
           </div>
         </div>
 
         <div class="flex items-center justify-between pt-1">
-          <label class="flex items-center gap-2 cursor-pointer select-none text-xs text-slate-600">
-            <input type="checkbox" id="rememberMeCheckbox" class="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500">
-            <span>আমাকে মনে রাখুন</span>
+          <label class="flex items-center gap-1.5 cursor-pointer select-none text-[11px] text-slate-600">
+            <input type="checkbox" id="rememberMeCheckbox" class="w-3.5 h-3.5 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500">
+            <span>মনে রাখুন</span>
           </label>
-          <button type="button" onclick="openForgotPasswordModal()" class="text-xs text-emerald-600 hover:text-emerald-800 font-semibold transition">
+          <button type="button" onclick="openForgotPasswordModal()" class="text-[11px] text-emerald-600 hover:text-emerald-800 font-semibold transition">
             পাসওয়ার্ড ভুলে গেছেন?
           </button>
         </div>
         
-        <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold transition shadow-sm flex items-center justify-center gap-2 mt-2">
+        <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs sm:text-sm transition shadow-sm flex items-center justify-center gap-1.5 active:scale-95 mt-2">
           <span>লগইন করুন</span> <i class="fa-solid fa-arrow-right text-xs"></i>
         </button>
 
-        <div class="pt-3 text-center">
+        <div class="pt-2 text-center">
           <button type="button" onclick="openAdminLoginModal()" class="text-[11px] text-slate-400 hover:text-emerald-700 transition inline-block">
             <i class="fa-solid fa-shield-halved text-[10px] mr-1 opacity-60"></i> অ্যাডমিন লগইন
           </button>
         </div>
       </form>
 
-      <form id="registerForm" onsubmit="handleRegister(event)" autocomplete="off" class="p-6 space-y-3.5 text-sm hidden">
+      <form id="registerForm" onsubmit="handleRegister(event)" autocomplete="off" class="p-4 sm:p-6 space-y-3 text-sm hidden">
         <div>
-          <label class="block font-medium text-slate-700 mb-1">নাম *</label>
-          <input type="text" id="regName" required placeholder="উদা: সুজন শিকদার" autocomplete="off" class="w-full p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+          <label class="block font-medium text-slate-700 mb-1 text-xs">নাম *</label>
+          <input type="text" id="regName" required placeholder="উদা: সুজন শিকদার" autocomplete="off" class="w-full p-2 text-xs rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
         </div>
         <div>
-          <label class="block font-medium text-slate-700 mb-1">ইমেইল *</label>
-          <input type="email" id="regEmail" required placeholder="example@gmail.com" autocomplete="off" class="w-full p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+          <label class="block font-medium text-slate-700 mb-1 text-xs">ইমেইল *</label>
+          <input type="email" id="regEmail" required placeholder="example@gmail.com" autocomplete="off" class="w-full p-2 text-xs rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
         </div>
         <div>
-          <label class="block font-medium text-slate-700 mb-1">মোবাইল নম্বর *</label>
-          <input type="tel" id="regPhone" required placeholder="017XXXXXXXX" autocomplete="off" class="w-full p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+          <label class="block font-medium text-slate-700 mb-1 text-xs">মোবাইল নম্বর *</label>
+          <input type="tel" id="regPhone" required placeholder="017XXXXXXXX" autocomplete="off" class="w-full p-2 text-xs rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
         </div>
         <div>
-          <label class="block font-medium text-slate-700 mb-1">পাসওয়ার্ড *</label>
-          <input type="password" id="regPassword" required placeholder="কমপক্ষে ৪ সংখ্যা" autocomplete="new-password" class="w-full p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+          <label class="block font-medium text-slate-700 mb-1 text-xs">পাসওয়ার্ড *</label>
+          <input type="password" id="regPassword" required placeholder="কমপক্ষে ৪ সংখ্যা" autocomplete="new-password" class="w-full p-2 text-xs rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
         </div>
-        <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold transition shadow-sm mt-2">অ্যাকাউন্ট তৈরি করুন</button>
+        <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs transition shadow-sm mt-2 active:scale-95">অ্যাকাউন্ট তৈরি করুন</button>
       </form>
     </div>
   </div>
 
-  <!-- Admin Login Modal -->
-  <div id="adminLoginModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+  <!-- 9. Admin Login Modal -->
+  <div id="adminLoginModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-3 sm:p-4">
     <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-slate-100">
-      <div class="px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
-        <h3 class="text-base font-bold flex items-center gap-2">
+      <div class="px-5 sm:px-6 py-3.5 sm:py-4 bg-slate-900 text-white flex justify-between items-center">
+        <h3 class="text-sm sm:text-base font-bold flex items-center gap-2">
           <i class="fa-solid fa-shield-halved text-emerald-400"></i> অ্যাডমিন লগইন
         </h3>
         <button onclick="toggleAdminLoginModal(false)" class="text-white hover:text-slate-300 text-xl font-bold">&times;</button>
       </div>
-      <form onsubmit="handleAdminLogin(event)" autocomplete="off" class="p-6 space-y-4 text-sm">
-        <div class="bg-amber-50 text-amber-800 text-xs p-2.5 rounded-lg border border-amber-200 flex items-start gap-2">
+      <form onsubmit="handleAdminLogin(event)" autocomplete="off" class="p-4 sm:p-6 space-y-3.5 text-sm">
+        <div class="bg-amber-50 text-amber-800 text-[11px] p-2 rounded-lg border border-amber-200 flex items-start gap-1.5">
           <i class="fa-solid fa-circle-info mt-0.5 text-amber-600"></i>
           <span>অ্যাডমিন ইমেইল বা ফোন এবং পাসওয়ার্ড দিন।</span>
         </div>
         <div>
-          <label class="block font-medium text-slate-700 mb-1">অ্যাডমিন Email / Phone *</label>
-          <input type="text" id="adminEmailInput" required placeholder="ইমেইল বা ফোন লিখুন" autocomplete="off" class="w-full p-2.5 rounded-lg border border-slate-200 outline-none">
+          <label class="block font-medium text-slate-700 mb-1 text-xs">অ্যাডমিন Email / Phone *</label>
+          <input type="text" id="adminEmailInput" required placeholder="ইমেইল বা ফোন লিখুন" autocomplete="off" class="w-full p-2 text-xs sm:text-sm rounded-lg border border-slate-200 outline-none">
         </div>
         <div>
-          <label class="block font-medium text-slate-700 mb-1">অ্যাডমিন পাসওয়ার্ড *</label>
-          <input type="password" id="adminPasswordInput" required placeholder="পাসওয়ার্ড লিখুন" autocomplete="new-password" class="w-full p-2.5 rounded-lg border border-slate-200 font-medium outline-none">
+          <label class="block font-medium text-slate-700 mb-1 text-xs">অ্যাডমিন পাসওয়ার্ড *</label>
+          <input type="password" id="adminPasswordInput" required placeholder="পাসওয়ার্ড লিখুন" autocomplete="new-password" class="w-full p-2 text-xs sm:text-sm rounded-lg border border-slate-200 font-medium outline-none">
         </div>
         <div class="text-right -mt-1">
-          <button type="button" onclick="openForgotPasswordModal()" class="text-xs text-emerald-600 hover:text-emerald-800 font-semibold">পাসওয়ার্ড ভুলে গেছেন?</button>
+          <button type="button" onclick="openForgotPasswordModal()" class="text-[11px] text-emerald-600 hover:text-emerald-800 font-semibold">পাসওয়ার্ড ভুলে গেছেন?</button>
         </div>
-        <button type="submit" class="w-full py-2.5 bg-slate-900 hover:bg-black text-white rounded-lg font-bold transition flex items-center justify-center gap-2">
+        <button type="submit" class="w-full py-2.5 bg-slate-900 hover:bg-black text-white rounded-lg font-bold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 active:scale-95">
           <i class="fa-solid fa-lock-open text-xs"></i> <span>অ্যাডমিন হিসেবে প্রবেশ করুন</span>
         </button>
       </form>
     </div>
   </div>
 
-  <!-- Forgot Password Modal -->
-  <div id="forgotPasswordModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+  <!-- 10. Forgot Password Modal -->
+  <div id="forgotPasswordModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-3 sm:p-4">
     <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-slate-100">
-      <div class="px-6 py-4 bg-emerald-600 text-white flex justify-between items-center">
-        <h3 class="text-base font-bold flex items-center gap-2">
+      <div class="px-5 py-3.5 bg-emerald-600 text-white flex justify-between items-center">
+        <h3 class="text-sm sm:text-base font-bold flex items-center gap-2">
           <i class="fa-solid fa-key text-emerald-200"></i> পাসওয়ার্ড পুনরুদ্ধার
         </h3>
         <button onclick="toggleForgotPasswordModal(false)" class="text-white hover:text-slate-200 text-xl font-bold">&times;</button>
       </div>
 
-      <div id="otpStep1" class="p-6 space-y-3.5 text-sm">
+      <div id="otpStep1" class="p-4 sm:p-6 space-y-3 text-sm">
         <p class="text-xs text-slate-600 leading-relaxed">
           আপনার অ্যাকাউন্টে নিবন্ধিত Gmail/Email ঠিকানা দিন। ওটিপি (OTP) পাঠানো হবে।
         </p>
         <div>
-          <label class="block font-medium text-slate-700 mb-1">নিবন্ধিত ইমেইল ঠিকানা *</label>
-          <input type="email" id="fpEmail" required placeholder="example@gmail.com" class="w-full p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none text-slate-800">
+          <label class="block font-medium text-slate-700 mb-1 text-xs">নিবন্ধিত ইমেইল ঠিকানা *</label>
+          <input type="email" id="fpEmail" required placeholder="example@gmail.com" class="w-full p-2 text-xs rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none text-slate-800">
         </div>
-        <button type="button" onclick="sendOtpViaEmail()" id="btnSendOtp" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold transition shadow-sm flex items-center justify-center gap-2">
+        <button type="button" onclick="sendOtpViaEmail()" id="btnSendOtp" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs transition shadow-sm flex items-center justify-center gap-1.5 active:scale-95">
           <i class="fa-solid fa-paper-plane text-xs"></i> ইমেইলে OTP পাঠান
         </button>
       </div>
 
-      <div id="otpStep2" class="p-6 space-y-3.5 text-sm hidden">
-        <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs p-2.5 rounded-lg flex items-center gap-2">
+      <div id="otpStep2" class="p-4 sm:p-6 space-y-3 text-sm hidden">
+        <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs p-2 rounded-lg flex items-center gap-1.5">
           <i class="fa-solid fa-circle-check text-emerald-600 text-sm"></i>
           <span>আপনার ইমেইলে ৬ সংখ্যার কোড পাঠানো হয়েছে।</span>
         </div>
         <div>
-          <label class="block font-medium text-slate-700 mb-1">৬ সংখ্যার OTP কোড *</label>
-          <input type="text" id="fpInputOtp" maxlength="6" placeholder="123456" class="w-full p-2.5 rounded-lg border border-slate-200 text-center font-bold text-lg tracking-widest focus:ring-2 focus:ring-emerald-500 outline-none text-emerald-800">
+          <label class="block font-medium text-slate-700 mb-1 text-xs">৬ সংখ্যার OTP কোড *</label>
+          <input type="text" id="fpInputOtp" maxlength="6" placeholder="123456" class="w-full p-2 rounded-lg border border-slate-200 text-center font-bold text-base tracking-widest focus:ring-2 focus:ring-emerald-500 outline-none text-emerald-800">
         </div>
         <div>
-          <label class="block font-medium text-slate-700 mb-1">নতুন পাসওয়ার্ড দিন *</label>
-          <input type="password" id="fpNewPassword" placeholder="নতুন পাসওয়ার্ড লিখুন" class="w-full p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+          <label class="block font-medium text-slate-700 mb-1 text-xs">নতুন পাসওয়ার্ড দিন *</label>
+          <input type="password" id="fpNewPassword" placeholder="নতুন পাসওয়ার্ড লিখুন" class="w-full p-2 text-xs rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
         </div>
-        <button type="button" onclick="verifyOtpAndResetPassword()" id="btnResetPass" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold transition shadow-sm flex items-center justify-center gap-1.5">
-          <i class="fa-solid fa-check text-xs"></i> পাসওয়ার্ড পরিবর্তন নিশ্চিত করুন
+        <button type="button" onclick="verifyOtpAndResetPassword()" id="btnResetPass" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs transition shadow-sm flex items-center justify-center gap-1.5 active:scale-95">
+          <i class="fa-solid fa-check text-xs"></i> পাসওয়ার্ড নিশ্চিত করুন
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Add / Edit Ad Modal -->
-  <div id="adModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-2 sm:p-4">
-    <div class="bg-white rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl border border-slate-100 flex flex-col max-h-[92vh]">
-      <div class="px-5 sm:px-6 py-4 bg-gradient-to-r from-emerald-600 to-teal-700 text-white flex justify-between items-center flex-shrink-0">
+  <!-- 11. Add / Edit Ad Modal -->
+  <div id="adModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-2 sm:p-4">
+    <div class="bg-white rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl border border-slate-100 flex flex-col max-h-[94vh]">
+      <div class="px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-emerald-600 to-teal-700 text-white flex justify-between items-center flex-shrink-0">
         <h3 id="adModalTitle" class="text-sm sm:text-base font-bold">নতুন বাসার বিজ্ঞাপন প্রকাশ করুন</h3>
         <button onclick="toggleAdModal(false)" class="text-white hover:text-slate-200 text-2xl font-bold">&times;</button>
       </div>
 
-      <form id="listingForm" onsubmit="handleFormSubmit(event)" class="p-4 sm:p-6 space-y-4 overflow-y-auto text-sm flex-1">
+      <form id="listingForm" onsubmit="handleFormSubmit(event)" class="p-3.5 sm:p-6 space-y-3 sm:space-y-4 overflow-y-auto text-sm flex-1">
         <input type="hidden" id="editListingId" value="">
 
         <div>
-          <label class="block font-medium text-slate-700 mb-1">বিজ্ঞাপনের শিরোনাম *</label>
-          <input type="text" id="formTitle" required placeholder="উদা: নিরিবিলি পরিবেশে ২ রুমের ফ্যামিলি ফ্ল্যাট" class="w-full p-2.5 rounded-lg border border-slate-200 outline-none">
+          <label class="block font-medium text-slate-700 mb-1 text-xs">বিজ্ঞাপনের শিরোনাম *</label>
+          <input type="text" id="formTitle" required placeholder="উদা: নিরিবিলি পরিবেশে ২ রুমের ফ্যামিলি ফ্ল্যাট" class="w-full p-2 text-xs sm:text-sm rounded-lg border border-slate-200 outline-none">
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
           <div>
-            <label class="block font-medium text-slate-700 mb-1">ভাড়ার ধরন *</label>
-            <select id="formType" required class="w-full p-2.5 rounded-lg border border-slate-200">
+            <label class="block font-medium text-slate-700 mb-1 text-xs">ভাড়ার ধরন *</label>
+            <select id="formType" required class="w-full p-2 text-xs sm:text-sm rounded-lg border border-slate-200">
               <option value="ফ্যামিলি">ফ্যামিলি ফ্ল্যাট</option>
               <option value="ব্যাচেলর">ব্যাচেলর রুম</option>
               <option value="মেস সিট">মেস সিট</option>
@@ -539,139 +619,135 @@
             </select>
           </div>
           <div>
-            <label class="block font-medium text-slate-700 mb-1">এলাকা *</label>
-            <select id="formArea" required class="w-full p-2.5 rounded-lg border border-slate-200"></select>
+            <label class="block font-medium text-slate-700 mb-1 text-xs">এলাকা *</label>
+            <select id="formArea" required class="w-full p-2 text-xs sm:text-sm rounded-lg border border-slate-200"></select>
           </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
           <div>
-            <label class="block font-medium text-slate-700 mb-1">মাসিক ভাড়া (টাকা) *</label>
-            <input type="number" id="formRent" required placeholder="৬৫০০" class="w-full p-2.5 rounded-lg border border-slate-200">
+            <label class="block font-medium text-slate-700 mb-1 text-xs">মাসিক ভাড়া (টাকা) *</label>
+            <input type="number" id="formRent" required placeholder="৬৫০০" class="w-full p-2 text-xs sm:text-sm rounded-lg border border-slate-200">
           </div>
           <div>
-            <label class="block font-medium text-slate-700 mb-1">কবে থেকে খালি? *</label>
-            <input type="text" id="formAvailable" required placeholder="উদা: আগামী ১লা তারিখ থেকে" class="w-full p-2.5 rounded-lg border border-slate-200">
+            <label class="block font-medium text-slate-700 mb-1 text-xs">কবে থেকে খালি? *</label>
+            <input type="text" id="formAvailable" required placeholder="উদা: আগামী ১লা তারিখ থেকে" class="w-full p-2 text-xs sm:text-sm rounded-lg border border-slate-200">
           </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
           <div>
-            <label class="block font-medium text-slate-700 mb-1">যোগাযোগের মোবাইল *</label>
-            <input type="tel" id="formPhone" required placeholder="017XXXXXXXX" class="w-full p-2.5 rounded-lg border border-slate-200">
+            <label class="block font-medium text-slate-700 mb-1 text-xs">যোগাযোগের মোবাইল *</label>
+            <input type="tel" id="formPhone" required placeholder="017XXXXXXXX" class="w-full p-2 text-xs sm:text-sm rounded-lg border border-slate-200">
           </div>
           <div>
-            <label class="block font-medium text-slate-700 mb-1">রুমের বিবরণ</label>
-            <input type="text" id="formSpecs" placeholder="২ বেড, ১ বাথ, ১ বারান্দা" class="w-full p-2.5 rounded-lg border border-slate-200">
+            <label class="block font-medium text-slate-700 mb-1 text-xs">রুমের বিবরণ</label>
+            <input type="text" id="formSpecs" placeholder="২ বেড, ১ বাথ, ১ বারান্দা" class="w-full p-2 text-xs sm:text-sm rounded-lg border border-slate-200">
           </div>
         </div>
 
         <div>
-          <label class="block font-medium text-slate-700 mb-1">অন্যান্য বিবরণ</label>
-          <textarea id="formDesc" rows="2" placeholder="অন্যান্য বিবরণ..." class="w-full p-2.5 rounded-lg border border-slate-200"></textarea>
+          <label class="block font-medium text-slate-700 mb-1 text-xs">অন্যান্য বিবরণ</label>
+          <textarea id="formDesc" rows="2" placeholder="অন্যান্য বিবরণ..." class="w-full p-2 text-xs sm:text-sm rounded-lg border border-slate-200"></textarea>
         </div>
 
         <div>
-          <label class="block font-medium text-slate-700 mb-1">রুমের ছবি নির্বাচন করুন</label>
-          <input type="file" id="formImageFiles" accept="image/*" multiple onchange="handleImagePreview(this)" class="w-full p-2 border border-slate-200 rounded-lg">
-          <div id="imagePreviewContainer" class="flex flex-wrap gap-2 mt-2 hidden"></div>
+          <label class="block font-medium text-slate-700 mb-1 text-xs">রুমের ছবি নির্বাচন করুন</label>
+          <input type="file" id="formImageFiles" accept="image/*" multiple onchange="handleImagePreview(this)" class="w-full p-1.5 text-xs border border-slate-200 rounded-lg">
+          <div id="imagePreviewContainer" class="flex flex-wrap gap-1.5 mt-2 hidden"></div>
         </div>
 
-        <!-- Video Upload with Sound Preserved -->
-        <div class="border border-slate-200 p-3 rounded-xl bg-slate-50 space-y-2">
-          <div class="flex items-center justify-between">
-            <label class="block font-semibold text-slate-700 text-xs">
-              <i class="fa-solid fa-video text-rose-500 mr-1"></i> অনলাইন ভিডিও লিঙ্ক (সব ডিভাইসে দেখার জন্য):
-            </label>
-            <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">All Devices Supported</span>
-          </div>
-          <input type="url" id="formVideoUrl" placeholder="YouTube, Facebook, Google Drive বা ডিরেক্ট MP4 লিঙ্ক দিন: https://..." class="w-full p-2 text-xs rounded-lg border border-slate-200 bg-white">
+        <div class="border border-slate-200 p-2.5 rounded-xl bg-slate-50 space-y-1.5">
+          <label class="block font-semibold text-slate-700 text-xs">
+            <i class="fa-solid fa-video text-rose-500 mr-1"></i> অনলাইন ভিডিও লিঙ্ক (সব ডিভাইসে দেখার জন্য):
+          </label>
+          <input type="url" id="formVideoUrl" placeholder="YouTube, Facebook বা Google Drive লিঙ্ক দিন: https://..." class="w-full p-2 text-xs rounded-lg border border-slate-200 bg-white">
         </div>
 
         <div class="flex justify-end gap-2 pt-2 border-t">
-          <button type="button" onclick="toggleAdModal(false)" class="px-5 py-2.5 rounded-lg bg-slate-100 hover:bg-slate-200">বাতিল</button>
-          <button type="submit" id="submitBtn" class="px-6 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold">বিজ্ঞাপন সংরক্ষণ করুন</button>
+          <button type="button" onclick="toggleAdModal(false)" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-semibold">বাতিল</button>
+          <button type="submit" id="submitBtn" class="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs active:scale-95">বিজ্ঞাপন সংরক্ষণ করুন</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Admin Edit User Modal -->
-  <div id="adminEditUserModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+  <!-- 12. Admin Edit User Modal -->
+  <div id="adminEditUserModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-3 sm:p-4">
     <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-slate-100">
-      <div class="px-6 py-4 bg-slate-800 text-white flex justify-between items-center">
+      <div class="px-5 py-3.5 bg-slate-800 text-white flex justify-between items-center">
         <h3 class="text-sm font-bold">ইউজার ডেটা ও পাসওয়ার্ড এডিট</h3>
         <button onclick="toggleAdminEditUserModal(false)" class="text-white hover:text-slate-300 text-xl font-bold">&times;</button>
       </div>
-      <form id="adminUserEditForm" onsubmit="saveAdminUserEdit(event)" class="p-6 space-y-3 text-sm">
+      <form id="adminUserEditForm" onsubmit="saveAdminUserEdit(event)" class="p-4 sm:p-5 space-y-3 text-sm">
         <input type="hidden" id="editUserOldPhone">
         <div>
-          <label class="block font-medium text-slate-700 mb-1">ব্যবহারকারীর নাম</label>
-          <input type="text" id="editUserName" required class="w-full p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+          <label class="block font-medium text-slate-700 mb-1 text-xs">ব্যবহারকারীর নাম</label>
+          <input type="text" id="editUserName" required class="w-full p-2 text-xs rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
         </div>
         <div>
-          <label class="block font-medium text-slate-700 mb-1">ইমেইল ঠিকানা</label>
-          <input type="email" id="editUserEmail" class="w-full p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+          <label class="block font-medium text-slate-700 mb-1 text-xs">ইমেইল ঠিকানা</label>
+          <input type="email" id="editUserEmail" class="w-full p-2 text-xs rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
         </div>
         <div>
-          <label class="block font-medium text-slate-700 mb-1">মোবাইল নম্বর</label>
-          <input type="tel" id="editUserPhone" required class="w-full p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+          <label class="block font-medium text-slate-700 mb-1 text-xs">মোবাইল নম্বর</label>
+          <input type="tel" id="editUserPhone" required class="w-full p-2 text-xs rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
         </div>
         <div>
-          <label class="block font-medium text-slate-700 mb-1">পাসওয়ার্ড</label>
-          <input type="text" id="editUserPassword" required class="w-full p-2.5 rounded-lg border border-slate-200 font-bold text-emerald-700 focus:ring-2 focus:ring-emerald-500 outline-none">
+          <label class="block font-medium text-slate-700 mb-1 text-xs">পাসওয়ার্ড</label>
+          <input type="text" id="editUserPassword" required class="w-full p-2 text-xs rounded-lg border border-slate-200 font-bold text-emerald-700 focus:ring-2 focus:ring-emerald-500 outline-none">
         </div>
         <div class="flex justify-end gap-2 pt-2">
-          <button type="button" onclick="toggleAdminEditUserModal(false)" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold">বাতিল</button>
-          <button type="submit" class="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold">সংরক্ষণ করুন</button>
+          <button type="button" onclick="toggleAdminEditUserModal(false)" class="px-3.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-semibold">বাতিল</button>
+          <button type="submit" class="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold active:scale-95">সংরক্ষণ করুন</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Admin Control Panel Modal (Immediate Flex Display) -->
-  <div id="adminPanelModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-3 md:p-6">
+  <!-- 13. Admin Control Panel Modal -->
+  <div id="adminPanelModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-2 sm:p-6">
     <div class="bg-white rounded-2xl w-full max-w-5xl overflow-hidden shadow-2xl border border-slate-100 flex flex-col max-h-[92vh]">
-      <div class="px-5 sm:px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
+      <div class="px-4 sm:px-6 py-3.5 sm:py-4 bg-slate-900 text-white flex justify-between items-center">
         <div class="flex items-center gap-2">
-          <span class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></span>
-          <h3 class="text-sm sm:text-base font-bold">টু-লেট গোপালগঞ্জ — প্রধান অ্যাডমিন কন্ট্রোল প্যানেল</h3>
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          <h3 class="text-xs sm:text-base font-bold">টু-লেট গোপালগঞ্জ — প্রধান অ্যাডমিন কন্ট্রোল প্যানেল</h3>
         </div>
         <button onclick="toggleAdminModal(false)" class="text-white hover:text-slate-300 text-xl font-bold">&times;</button>
       </div>
 
-      <div class="p-3 bg-slate-100 border-b border-slate-200 flex flex-wrap gap-2 justify-between items-center">
-        <div class="flex flex-wrap gap-1.5 sm:gap-2">
-          <button id="adminTabAds" onclick="switchAdminTab('ads')" class="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-bold shadow-sm">
+      <div class="p-2 sm:p-3 bg-slate-100 border-b border-slate-200 flex flex-wrap gap-1.5 sm:gap-2 justify-between items-center">
+        <div class="flex flex-wrap gap-1 sm:gap-2">
+          <button id="adminTabAds" onclick="switchAdminTab('ads')" class="px-2.5 sm:px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-[11px] sm:text-xs font-bold shadow-sm">
             <i class="fa-solid fa-list-check mr-1"></i> বাসা বিজ্ঞাপন
           </button>
-          <button id="adminTabUsers" onclick="switchAdminTab('users')" class="px-3 py-1.5 bg-white text-slate-700 border border-slate-300 rounded-lg text-xs font-bold hover:bg-slate-50">
+          <button id="adminTabUsers" onclick="switchAdminTab('users')" class="px-2.5 sm:px-3 py-1.5 bg-white text-slate-700 border border-slate-300 rounded-lg text-[11px] sm:text-xs font-bold hover:bg-slate-50">
             <i class="fa-solid fa-users-gear mr-1"></i> ব্যবহারকারী
           </button>
-          <button id="adminTabLocations" onclick="switchAdminTab('locations')" class="px-3 py-1.5 bg-white text-slate-700 border border-slate-300 rounded-lg text-xs font-bold hover:bg-slate-50">
+          <button id="adminTabLocations" onclick="switchAdminTab('locations')" class="px-2.5 sm:px-3 py-1.5 bg-white text-slate-700 border border-slate-300 rounded-lg text-[11px] sm:text-xs font-bold hover:bg-slate-50">
             <i class="fa-solid fa-map-location-dot mr-1"></i> এলাকা / স্থান
           </button>
-          <button id="adminTabBanners" onclick="switchAdminTab('banners')" class="px-3 py-1.5 bg-white text-slate-700 border border-slate-300 rounded-lg text-xs font-bold hover:bg-slate-50">
-            <i class="fa-solid fa-image mr-1"></i> ব্যানার ও ফুটার সেটিংস
+          <button id="adminTabBanners" onclick="switchAdminTab('banners')" class="px-2.5 sm:px-3 py-1.5 bg-white text-slate-700 border border-slate-300 rounded-lg text-[11px] sm:text-xs font-bold hover:bg-slate-50">
+            <i class="fa-solid fa-image mr-1"></i> ব্যানার ও ফুটার
           </button>
         </div>
       </div>
 
-      <div class="p-4 sm:p-6 overflow-y-auto flex-1 space-y-4">
+      <div class="p-3 sm:p-6 overflow-y-auto flex-1 space-y-4">
         <!-- Tab 1: Ads -->
         <div id="adminAdsSection" class="space-y-3">
-          <div class="flex justify-between items-center mb-2">
+          <div class="flex justify-between items-center mb-1">
             <span class="text-xs font-bold text-slate-600">সকল বিজ্ঞাপনের তালিকা</span>
-            <button onclick="openAdModalForCreate()" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1 shadow-sm">
+            <button onclick="openAdModalForCreate()" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 sm:px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1 shadow-sm active:scale-95">
               <i class="fa-solid fa-plus"></i> নতুন বিজ্ঞাপন
             </button>
           </div>
           <div id="adminAdsListContainer" class="space-y-3"></div>
         </div>
 
-        <!-- Tab 2: Users -->
+        <!-- Tab 2: Users (Cloud Add, Edit, Remove) -->
         <div id="adminUsersSection" class="hidden space-y-4">
-          <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl">
+          <div class="bg-slate-50 border border-slate-200 p-3 sm:p-4 rounded-xl">
             <h4 class="text-xs font-bold text-slate-700 mb-2 flex items-center gap-1">
               <i class="fa-solid fa-user-plus text-emerald-600"></i> নতুন ব্যবহারকারী যুক্ত করুন
             </h4>
@@ -679,9 +755,9 @@
               <input type="text" id="adminNewUserName" placeholder="নাম" class="p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
               <input type="tel" id="adminNewUserPhone" placeholder="মোবাইল নম্বর" class="p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
               <input type="email" id="adminNewUserEmail" placeholder="ইমেইল" class="p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
-              <div class="flex gap-2">
+              <div class="flex gap-1.5">
                 <input type="text" id="adminNewUserPass" placeholder="পাসওয়ার্ড" class="flex-1 p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
-                <button onclick="adminAddNewUser()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-sm whitespace-nowrap">
+                <button onclick="adminAddNewUser()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-sm whitespace-nowrap active:scale-95">
                   যুক্ত করুন
                 </button>
               </div>
@@ -692,11 +768,10 @@
             <table class="w-full text-left border-collapse text-xs md:text-sm">
               <thead>
                 <tr class="bg-slate-50 border-b border-slate-200 text-slate-600">
-                  <th class="p-3 font-semibold">নাম</th>
-                  <th class="p-3 font-semibold">মোবাইল</th>
-                  <th class="p-3 font-semibold">ইমেইল</th>
-                  <th class="p-3 font-semibold">পাসওয়ার্ড</th>
-                  <th class="p-3 font-semibold text-center">অ্যাকশন</th>
+                  <th class="p-2.5 sm:p-3 font-semibold">নাম</th>
+                  <th class="p-2.5 sm:p-3 font-semibold">মোবাইল</th>
+                  <th class="p-2.5 sm:p-3 font-semibold">পাসওয়ার্ড</th>
+                  <th class="p-2.5 sm:p-3 font-semibold text-center">অ্যাকশন</th>
                 </tr>
               </thead>
               <tbody id="adminUsersTableBody" class="divide-y divide-slate-100"></tbody>
@@ -706,23 +781,23 @@
 
         <!-- Tab 3: Locations -->
         <div id="adminLocationsSection" class="hidden space-y-4">
-          <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl flex flex-col sm:flex-row gap-3 items-end">
+          <div class="bg-slate-50 border border-slate-200 p-3 sm:p-4 rounded-xl flex flex-col sm:flex-row gap-2.5 items-end">
             <div class="flex-1 w-full">
-              <label class="block text-xs font-semibold text-slate-700 mb-1">গোপালগঞ্জের নতুন এলাকা/স্থানের নাম যোগ করুন</label>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">গোপালগঞ্জের নতুন এলাকা যোগ করুন</label>
               <input type="text" id="newLocationInput" placeholder="উদা: হরিদাসপুর বাজার" class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
             </div>
-            <button onclick="addNewLocation()" class="w-full sm:w-auto px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-sm whitespace-nowrap">
+            <button onclick="addNewLocation()" class="w-full sm:w-auto px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-sm whitespace-nowrap active:scale-95">
               <i class="fa-solid fa-plus mr-1"></i> এলাকা যুক্ত করুন
             </button>
           </div>
 
           <div class="border border-slate-200 rounded-xl overflow-hidden">
-            <table class="w-full text-left border-collapse text-xs md:text-sm">
+            <table class="w-full text-left border-collapse text-xs">
               <thead>
                 <tr class="bg-slate-50 border-b border-slate-200 text-slate-600">
-                  <th class="p-3 font-semibold w-16">ক্রমিক</th>
-                  <th class="p-3 font-semibold">এলাকার নাম</th>
-                  <th class="p-3 font-semibold text-center w-32">অ্যাকশন</th>
+                  <th class="p-2.5 font-semibold w-12">#</th>
+                  <th class="p-2.5 font-semibold">এলাকার নাম</th>
+                  <th class="p-2.5 font-semibold text-center w-28">অ্যাকশন</th>
                 </tr>
               </thead>
               <tbody id="adminLocationsTableBody" class="divide-y divide-slate-100"></tbody>
@@ -731,39 +806,36 @@
         </div>
 
         <!-- Tab 4: Multi-Size Banners, Popup & Footer Contacts -->
-        <div id="adminBannersSection" class="hidden space-y-6">
-          
-          <!-- Dynamic Footer Contact Settings (Facebook, WhatsApp, Phone) -->
-          <div class="bg-emerald-50/70 border border-emerald-200 p-4 rounded-xl space-y-3">
+        <div id="adminBannersSection" class="hidden space-y-5">
+          <div class="bg-emerald-50/70 border border-emerald-200 p-3 sm:p-4 rounded-xl space-y-2.5">
             <h4 class="text-xs font-bold text-emerald-900 flex items-center gap-1.5">
-              <i class="fa-solid fa-address-book text-emerald-600"></i> ওয়েবসাইটের ফুটার যোগাযোগ ও সোশ্যাল মিডিয়া কন্ট্রোল
+              <i class="fa-solid fa-address-book text-emerald-600"></i> ফুটার যোগাযোগ ও সোশ্যাল মিডিয়া কন্ট্রোল
             </h4>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
               <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1">কল / হেল্পলাইন নম্বর:</label>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">কল নম্বর:</label>
                 <input type="text" id="adminFooterPhoneInput" placeholder="+880 1700-000000" class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
               </div>
               <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1">হোয়াটসঅ্যাপ নম্বর (Country code সহ):</label>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">হোয়াটসঅ্যাপ নম্বর:</label>
                 <input type="text" id="adminFooterWaInput" placeholder="+8801700000000" class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
               </div>
               <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1">ফেসবুক পেজ / প্রোফাইল লিংক:</label>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">ফেসবুক পেজ লিংক:</label>
                 <input type="url" id="adminFooterFbInput" placeholder="https://facebook.com/..." class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
               </div>
             </div>
-            <button onclick="saveFooterContactSettings()" id="saveFooterContactBtn" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm">
+            <button onclick="saveFooterContactSettings()" id="saveFooterContactBtn" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm active:scale-95">
               ফুটার কন্টাক্ট ইনফো আপডেট করুন
             </button>
           </div>
 
-          <!-- Top Leaderboard Banner -->
-          <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3">
+          <div class="bg-slate-50 border border-slate-200 p-3 sm:p-4 rounded-xl space-y-2.5">
             <div class="flex items-center justify-between">
               <h4 class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                <i class="fa-solid fa-panorama text-emerald-600"></i> টপ ব্যানার এড (Leaderboard 728×90 px)
+                <i class="fa-solid fa-panorama text-emerald-600"></i> টপ ব্যানার এড (728×90 px)
               </h4>
-              <span class="text-[10px] bg-slate-200 px-2 py-0.5 rounded font-mono">728 × 90 px</span>
+              <span class="text-[10px] bg-slate-200 px-2 py-0.5 rounded font-mono">728 × 90</span>
             </div>
             <div class="flex items-center gap-2">
               <input type="checkbox" id="adTopBannerEnabled" class="w-4 h-4 text-emerald-600 rounded">
@@ -774,19 +846,18 @@
               <input type="url" id="adTopBannerImageUrl" placeholder="অথবা ছবির URL দিন: https://..." class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
             </div>
             <input type="url" id="adTopBannerTargetUrl" placeholder="ক্লিক লিংক: https://example.com" class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
-            <button onclick="saveTopBannerAdDirect()" id="saveTopBannerBtn" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm">
+            <button onclick="saveTopBannerAdDirect()" id="saveTopBannerBtn" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm active:scale-95">
               টপ ব্যানার সংরক্ষণ করুন
             </button>
           </div>
 
-          <!-- Dynamic Multi-Size Sidebar Ad -->
-          <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3">
+          <div class="bg-slate-50 border border-slate-200 p-3 sm:p-4 rounded-xl space-y-2.5">
             <h4 class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-              <i class="fa-solid fa-plus-circle text-emerald-600"></i> সাইডবার এড যোগ করুন (ভিন্ন ভিন্ন সাইজ)
+              <i class="fa-solid fa-plus-circle text-emerald-600"></i> সাইডবার এড যোগ করুন
             </h4>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1">এডের সাইজ সিলেক্ট করুন (Dimension):</label>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">এডের সাইজ:</label>
                 <select id="sidebarAdDimensionSelect" class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white font-mono">
                   <option value="336x280">Large Rectangle (336 × 280 px)</option>
                   <option value="300x250" selected>Medium Rectangle (300 × 250 px)</option>
@@ -798,70 +869,23 @@
                 </select>
               </div>
               <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1">বিজ্ঞাপনের শিরোনাম / নাম:</label>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">বিজ্ঞাপনের নাম:</label>
                 <input type="text" id="sidebarAdTitleInput" placeholder="উদা: ব্র্যান্ড প্রমোশন" class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
               </div>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <div>
-                <label class="block text-xs text-slate-600 mb-1">সরাসরি ব্যানার ইমেজ আপলোড:</label>
-                <input type="file" id="sidebarAdFileInput" accept="image/*" class="w-full p-1.5 text-xs bg-white border border-slate-300 rounded-lg">
-              </div>
-              <div>
-                <label class="block text-xs text-slate-600 mb-1">অথবা ব্যানার ছবির অনলাইন লিংক:</label>
-                <input type="url" id="sidebarAdImageUrlInput" placeholder="https://..." class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
-              </div>
+              <input type="file" id="sidebarAdFileInput" accept="image/*" class="w-full p-1.5 text-xs bg-white border border-slate-300 rounded-lg">
+              <input type="url" id="sidebarAdImageUrlInput" placeholder="অথবা ছবির URL দিন: https://..." class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
             </div>
-            <div>
-              <label class="block text-xs text-slate-600 mb-1">বিজ্ঞাপনে ক্লিক করলে যে লিংকে যাবে (Target Link):</label>
-              <input type="url" id="sidebarAdTargetUrlInput" placeholder="https://..." class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
-            </div>
-            <button onclick="adminAddSidebarAd()" id="addSidebarAdBtn" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm">
+            <input type="url" id="sidebarAdTargetUrlInput" placeholder="ক্লিক লিংক: https://..." class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
+            <button onclick="adminAddSidebarAd()" id="addSidebarAdBtn" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm active:scale-95">
               <i class="fa-solid fa-plus mr-1"></i> সাইডবার এড পাবলিশ করুন
             </button>
 
-            <div class="mt-4 pt-3 border-t border-slate-200">
-              <span class="text-xs font-bold text-slate-700 block mb-2">সাইডবারে সক্রিয় বিজ্ঞাপনের তালিকা:</span>
+            <div class="mt-3 pt-2.5 border-t border-slate-200">
+              <span class="text-xs font-bold text-slate-700 block mb-2">সাইডবারে সক্রিয় বিজ্ঞাপন:</span>
               <div id="adminSidebarAdsList" class="space-y-2"></div>
             </div>
-          </div>
-
-          <!-- Popup Setup -->
-          <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3">
-            <h4 class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-              <i class="fa-solid fa-bullhorn text-amber-500"></i> পপ-আপ ইমেজ ব্যানার / স্পেশাল অফার
-            </h4>
-            <div class="flex items-center gap-2">
-              <input type="checkbox" id="popupAdEnabled" class="w-4 h-4 text-emerald-600 rounded">
-              <label for="popupAdEnabled" class="text-xs font-semibold text-slate-700">ওয়েবসাইট লোড হলে পপ-আপ দেখান</label>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label class="block text-xs text-slate-600 mb-1">সরাসরি পপ-আপ ইমেজ আপলোড করুন:</label>
-                <input type="file" id="popupAdFileInput" accept="image/*" class="w-full p-1.5 text-xs bg-white border border-slate-300 rounded-lg">
-              </div>
-              <div>
-                <label class="block text-xs text-slate-600 mb-1">অথবা পপ-আপ ছবির অনলাইন URL:</label>
-                <input type="url" id="popupAdImageInput" placeholder="https://..." class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
-              </div>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label class="block text-xs text-slate-600 mb-1">পপ-আপ টাইটেল:</label>
-                <input type="text" id="popupAdTitleInput" placeholder="উদা: বিশেষ টু-লেট অফার!" class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
-              </div>
-              <div>
-                <label class="block text-xs text-slate-600 mb-1">ক্লিক লিংক (Action URL):</label>
-                <input type="url" id="popupAdActionUrlInput" placeholder="https://..." class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white">
-              </div>
-            </div>
-            <div>
-              <label class="block text-xs text-slate-600 mb-1">পপ-আপ বিবরণ / বার্তা:</label>
-              <textarea id="popupAdBodyInput" rows="2" placeholder="বিজ্ঞাপনের মেসেজ লিখুন..." class="w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white"></textarea>
-            </div>
-            <button onclick="savePopupAdSettingsDirect()" id="savePopupBtn" class="px-4 py-2 bg-slate-900 hover:bg-black text-white text-xs font-bold rounded-lg shadow-sm">
-              পপ-আপ সেটিংস সংরক্ষণ করুন
-            </button>
           </div>
         </div>
       </div>
@@ -914,11 +938,10 @@
     let locations = JSON.parse(localStorage.getItem('gopalganj_locations')) || defaultLocations;
     let listings = [];
     let users = JSON.parse(localStorage.getItem('tolet_users')) || [];
-
     let currentUser = JSON.parse(localStorage.getItem('tolet_current_user')) || null;
     let cardImageIndexes = {};
 
-    // Ad & Footer Contact settings
+    // Ad & Contact Settings
     const defaultAdSettings = {
       topBannerEnabled: false,
       topBannerImageUrl: '',
@@ -943,8 +966,8 @@
     let currentLightboxImages = [];
     let currentLightboxIndex = 0;
 
-    // Chat States
-    let chats = JSON.parse(localStorage.getItem('tolet_chats')) || [];
+    // Chat States (Synced via Firestore)
+    let chats = [];
     let currentChatKey = null;
     let activeChatListing = null;
     let activeChatRecipientPhone = null;
@@ -958,37 +981,24 @@
       return currentUser && (currentUser.role === 'admin' || currentUser.phone === '01700000000' || (currentUser.email && currentUser.email.toLowerCase() === 'admin@gmail.com')); 
     }
 
-    // 3. FIRESTORE REALTIME SYNC (USERS, ADS, CONTACTS FOR ALL DEVICES)
-    function listenToListings() {
+    // 3. FIRESTORE REALTIME SYNC (CHATS, USERS, ADS, LISTINGS)
+    function listenToDatabase() {
       if (isFirebaseReady && firebaseDb) {
         // Listings Sync
         firebaseDb.collection("listings").onSnapshot((snapshot) => {
           listings = [];
-          snapshot.forEach((doc) => {
-            listings.push({ id: doc.id, ...doc.data() });
-          });
+          snapshot.forEach((doc) => listings.push({ id: doc.id, ...doc.data() }));
           applyFilters();
           const adminPanel = document.getElementById('adminPanelModal');
-          if (adminPanel && !adminPanel.classList.contains('hidden')) {
-            renderAdminAdsList();
-          }
+          if (adminPanel && !adminPanel.classList.contains('hidden')) renderAdminAdsList();
           const userDash = document.getElementById('userDashboardModal');
-          if (userDash && !userDash.classList.contains('hidden')) {
-            renderUserAdsList();
-          }
-        }, (error) => {
-          console.warn("Firestore listings sync notice:", error);
-          listings = JSON.parse(localStorage.getItem('gopalganj_tolet')) || [];
-          applyFilters();
-        });
+          if (userDash && !userDash.classList.contains('hidden')) renderUserAdsList();
+        }, (err) => console.warn("Listings sync notice:", err));
 
         // Users Sync across all devices
         firebaseDb.collection("users").onSnapshot((snapshot) => {
           users = [];
-          snapshot.forEach((doc) => {
-            users.push(doc.data());
-          });
-          // Ensure default admin always present
+          snapshot.forEach((doc) => users.push(doc.data()));
           let adminExist = users.find(u => u.phone === '01700000000' || (u.email && u.email.toLowerCase() === 'admin@gmail.com'));
           if (!adminExist) {
             const defAdmin = { name: "প্রধান অ্যাডমিন", phone: "01700000000", email: "admin@gmail.com", password: "admin", role: "admin" };
@@ -999,7 +1009,15 @@
           renderAdminUsersTable();
         });
 
-        // Ad & Footer Contact Settings Sync across all devices
+        // Realtime Chat Messages Sync across all devices
+        firebaseDb.collection("chats").orderBy("id", "asc").onSnapshot((snapshot) => {
+          chats = [];
+          snapshot.forEach((doc) => chats.push(doc.data()));
+          if (currentChatKey) renderChatMessages();
+          updateUnreadBadge();
+        }, (err) => console.warn("Chats sync notice:", err));
+
+        // Ad Settings & Contacts Sync
         firebaseDb.collection("site_settings").doc("ad_config").onSnapshot((doc) => {
           if (doc.exists) {
             adSettings = { ...adSettings, ...doc.data() };
@@ -1008,7 +1026,7 @@
           }
         });
 
-        // Sidebar Ads Sync across all devices
+        // Sidebar Ads Sync
         firebaseDb.collection("site_settings").doc("sidebar_ads_config").onSnapshot((doc) => {
           if (doc.exists && doc.data().ads) {
             sidebarAds = doc.data().ads;
@@ -1020,1096 +1038,12 @@
       } else {
         listings = JSON.parse(localStorage.getItem('gopalganj_tolet')) || [];
         users = JSON.parse(localStorage.getItem('tolet_users')) || [];
+        chats = JSON.parse(localStorage.getItem('tolet_chats')) || [];
         applyFilters();
       }
     }
 
-    // 4. AD BANNER, POPUP & FOOTER CONTACT CONTROLS
-    const adDimensionMap = {
-      "728x90": { label: "Leaderboard", w: 728, h: 90 },
-      "336x280": { label: "Large Rectangle", w: 336, h: 280 },
-      "300x250": { label: "Medium Rectangle", w: 300, h: 250 },
-      "160x600": { label: "Wide Skyscraper", w: 160, h: 600 },
-      "120x600": { label: "Skyscraper", w: 120, h: 600 },
-      "120x90": { label: "Button 1", w: 120, h: 90 },
-      "120x60": { label: "Button 2", w: 120, h: 60 },
-      "88x31": { label: "Microbar", w: 88, h: 31 }
-    };
-
-    function applyAdSettingsToUI() {
-      // 1. Top Leaderboard Banner
-      const topWrapper = document.getElementById('thirdPartyTopBanner');
-      const topImg = document.getElementById('topBannerImg');
-      const topLink = document.getElementById('topBannerLink');
-
-      if (adSettings.topBannerEnabled && adSettings.topBannerImageUrl) {
-        topImg.src = adSettings.topBannerImageUrl;
-        topLink.href = adSettings.topBannerTargetUrl || '#';
-        topWrapper.classList.remove('hidden');
-      } else {
-        topWrapper.classList.add('hidden');
-      }
-
-      // 2. Render Sidebar Ads
-      renderSidebarAds();
-
-      // 3. Popup Notice
-      if (adSettings.popupEnabled && !sessionStorage.getItem('tolet_popup_seen')) {
-        document.getElementById('popupAdTitle').textContent = adSettings.popupTitle || '';
-        document.getElementById('popupAdBody').textContent = adSettings.popupBody || '';
-        const imgContainer = document.getElementById('popupAdImageContainer');
-        const imgEl = document.getElementById('popupAdImage');
-        const imgLink = document.getElementById('popupAdImageLink');
-
-        if (adSettings.popupImage) {
-          imgEl.src = adSettings.popupImage;
-          imgLink.href = adSettings.popupActionUrl || '#';
-          imgContainer.classList.remove('hidden');
-        } else {
-          imgContainer.classList.add('hidden');
-        }
-        document.getElementById('popupAdActionBtn').href = adSettings.popupActionUrl || '#';
-        
-        setTimeout(() => {
-          document.getElementById('popupAdModal').classList.remove('hidden');
-          sessionStorage.setItem('tolet_popup_seen', 'true');
-        }, 800);
-      }
-
-      // 4. Update Footer Social Links & Contact Info
-      const phoneText = adSettings.footerPhone || '+880 1700-000000';
-      const waNumber = adSettings.footerWa || '+8801700000000';
-      const fbUrl = adSettings.footerFb || 'https://facebook.com';
-
-      const dispPhone = document.getElementById('footerDisplayPhone');
-      const dispWa = document.getElementById('footerDisplayWa');
-      const dispFb = document.getElementById('footerDisplayFb');
-
-      if (dispPhone) dispPhone.textContent = phoneText;
-      if (dispWa) dispWa.textContent = waNumber;
-      if (dispFb) dispFb.textContent = fbUrl.replace(/^https?:\/\/(www\.)?/, '');
-
-      const btnCall = document.getElementById('footerCallBtn');
-      const btnWa = document.getElementById('footerWaBtn');
-      const btnFb = document.getElementById('footerFbBtn');
-
-      if (btnCall) btnCall.href = `tel:${phoneText.replace(/\s+/g, '')}`;
-      if (btnWa) {
-        const cleanWa = waNumber.replace(/[^0-9]/g, '');
-        btnWa.href = `https://wa.me/${cleanWa}`;
-      }
-      if (btnFb) btnFb.href = fbUrl;
-    }
-
-    function renderSidebarAds() {
-      const container = document.getElementById('sidebarAdListContainer');
-      const zone = document.getElementById('sidebarAdZone');
-      if (!container) return;
-
-      container.innerHTML = '';
-      if (!sidebarAds || sidebarAds.length === 0) {
-        zone.classList.add('hidden');
-        return;
-      }
-      zone.classList.remove('hidden');
-
-      sidebarAds.forEach(ad => {
-        const dimInfo = adDimensionMap[ad.dimension] || { w: 300, h: 250 };
-        const card = document.createElement('div');
-        card.className = "w-full max-w-full flex items-center justify-center bg-white p-2 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md transition overflow-hidden group";
-        card.innerHTML = `
-          <a href="${ad.targetUrl || '#'}" target="_blank" rel="noopener noreferrer" class="block w-full overflow-hidden rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center">
-            <img src="${ad.imageUrl}" alt="${ad.title || 'এড'}" style="max-height: ${dimInfo.h}px; max-width: ${dimInfo.w}px;" class="w-full h-auto object-contain transition duration-300 group-hover:scale-[1.02]">
-          </a>
-        `;
-        container.appendChild(card);
-      });
-    }
-
-    function closePopupAd() {
-      document.getElementById('popupAdModal').classList.add('hidden');
-    }
-
-    function populateAdminAdInputs() {
-      // Top Leaderboard
-      document.getElementById('adTopBannerEnabled').checked = !!adSettings.topBannerEnabled;
-      document.getElementById('adTopBannerImageUrl').value = adSettings.topBannerImageUrl || '';
-      document.getElementById('adTopBannerTargetUrl').value = adSettings.topBannerTargetUrl || '';
-
-      // Popup
-      document.getElementById('popupAdEnabled').checked = !!adSettings.popupEnabled;
-      document.getElementById('popupAdTitleInput').value = adSettings.popupTitle || '';
-      document.getElementById('popupAdImageInput').value = adSettings.popupImage || '';
-      document.getElementById('popupAdBodyInput').value = adSettings.popupBody || '';
-      document.getElementById('popupAdActionUrlInput').value = adSettings.popupActionUrl || '';
-
-      // Footer Contacts
-      document.getElementById('adminFooterPhoneInput').value = adSettings.footerPhone || '+880 1700-000000';
-      document.getElementById('adminFooterWaInput').value = adSettings.footerWa || '+8801700000000';
-      document.getElementById('adminFooterFbInput').value = adSettings.footerFb || 'https://facebook.com';
-
-      renderAdminSidebarAdsList();
-    }
-
-    async function saveFooterContactSettings() {
-      const btn = document.getElementById('saveFooterContactBtn');
-      btn.disabled = true;
-      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> আপডেট হচ্ছে...`;
-
-      adSettings.footerPhone = document.getElementById('adminFooterPhoneInput').value.trim() || '+880 1700-000000';
-      adSettings.footerWa = document.getElementById('adminFooterWaInput').value.trim() || '+8801700000000';
-      adSettings.footerFb = document.getElementById('adminFooterFbInput').value.trim() || 'https://facebook.com';
-
-      localStorage.setItem('tolet_ad_settings', JSON.stringify(adSettings));
-
-      if (isFirebaseReady && firebaseDb) {
-        try {
-          await firebaseDb.collection("site_settings").doc("ad_config").set(adSettings);
-        } catch (fErr) {
-          console.warn("Firestore contact sync notice:", fErr);
-        }
-      }
-
-      applyAdSettingsToUI();
-      btn.disabled = false;
-      btn.innerHTML = `ফুটার কন্টাক্ট ইনফো আপডেট করুন`;
-      alert("ফুটারের ফোন, হোয়াটসঅ্যাপ এবং ফেসবুক লিংক সফলভাবে আপডেট হয়েছে!");
-    }
-
-    function renderAdminSidebarAdsList() {
-      const container = document.getElementById('adminSidebarAdsList');
-      if (!container) return;
-      container.innerHTML = '';
-
-      if (!sidebarAds || sidebarAds.length === 0) {
-        container.innerHTML = `<p class="text-xs text-slate-400 italic">কোনো সাইডবার বিজ্ঞাপন যোগ করা নেই।</p>`;
-        return;
-      }
-
-      sidebarAds.forEach((ad, idx) => {
-        const row = document.createElement('div');
-        row.className = "flex items-center justify-between p-2.5 bg-white rounded-xl border border-slate-200 text-xs";
-        row.innerHTML = `
-          <div class="flex items-center gap-2.5 overflow-hidden">
-            <img src="${ad.imageUrl}" class="w-10 h-10 rounded object-cover bg-slate-100 flex-shrink-0">
-            <div class="truncate">
-              <span class="font-bold text-slate-800 block truncate">${ad.title || 'এড'}</span>
-              <span class="text-[10px] text-emerald-600 font-mono">${ad.dimension} px</span>
-            </div>
-          </div>
-          <button onclick="adminDeleteSidebarAd(${idx})" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded text-xs font-bold transition">
-            <i class="fa-solid fa-trash"></i>
-          </button>
-        `;
-        container.appendChild(row);
-      });
-    }
-
-    async function adminAddSidebarAd() {
-      const btn = document.getElementById('addSidebarAdBtn');
-      btn.disabled = true;
-      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> আপলোড ও প্রসেসিং...`;
-
-      const dimension = document.getElementById('sidebarAdDimensionSelect').value;
-      const title = document.getElementById('sidebarAdTitleInput').value.trim() || 'স্পন্সরড';
-      const targetUrl = document.getElementById('sidebarAdTargetUrlInput').value.trim() || '#';
-      let imageUrl = document.getElementById('sidebarAdImageUrlInput').value.trim();
-      const fileInput = document.getElementById('sidebarAdFileInput');
-
-      if (fileInput.files && fileInput.files[0]) {
-        try {
-          imageUrl = await uploadToImgBB(fileInput.files[0]);
-        } catch (e) {
-          console.warn("Sidebar banner upload error:", e);
-        }
-      }
-
-      if (!imageUrl) {
-        alert("দয়া করে সাইডবার এডের ইমেজ ফাইল সিলেক্ট করুন অথবা ইমেজ লিংক দিন!");
-        btn.disabled = false;
-        btn.innerHTML = `<i class="fa-solid fa-plus mr-1"></i> সাইডবার এড পাবলিশ করুন`;
-        return;
-      }
-
-      const newAd = {
-        id: Date.now(),
-        dimension: dimension,
-        type: (adDimensionMap[dimension] && adDimensionMap[dimension].label) || dimension,
-        title: title,
-        imageUrl: imageUrl,
-        targetUrl: targetUrl
-      };
-
-      sidebarAds.unshift(newAd);
-      localStorage.setItem('tolet_sidebar_ads', JSON.stringify(sidebarAds));
-
-      if (isFirebaseReady && firebaseDb) {
-        try {
-          await firebaseDb.collection("site_settings").doc("sidebar_ads_config").set({ ads: sidebarAds });
-        } catch (fErr) {
-          console.warn("Firestore sync notice:", fErr);
-        }
-      }
-
-      document.getElementById('sidebarAdTitleInput').value = '';
-      document.getElementById('sidebarAdTargetUrlInput').value = '';
-      document.getElementById('sidebarAdImageUrlInput').value = '';
-      document.getElementById('sidebarAdFileInput').value = '';
-
-      renderAdminSidebarAdsList();
-      applyAdSettingsToUI();
-
-      btn.disabled = false;
-      btn.innerHTML = `<i class="fa-solid fa-plus mr-1"></i> সাইডবার এড পাবলিশ করুন`;
-      alert("সাইডবারে বিজ্ঞাপন সকল ডিভাইসের জন্য যুক্ত হয়েছে!");
-    }
-
-    async function adminDeleteSidebarAd(index) {
-      if (!confirm("বিজ্ঞাপনটি মুছে ফেলতে চান?")) return;
-      sidebarAds.splice(index, 1);
-      localStorage.setItem('tolet_sidebar_ads', JSON.stringify(sidebarAds));
-
-      if (isFirebaseReady && firebaseDb) {
-        try {
-          await firebaseDb.collection("site_settings").doc("sidebar_ads_config").set({ ads: sidebarAds });
-        } catch (fErr) {
-          console.warn("Firestore sync notice:", fErr);
-        }
-      }
-
-      renderAdminSidebarAdsList();
-      applyAdSettingsToUI();
-    }
-
-    async function saveTopBannerAdDirect() {
-      const btn = document.getElementById('saveTopBannerBtn');
-      btn.disabled = true;
-      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> আপলোড হচ্ছে...`;
-
-      let imgUrl = document.getElementById('adTopBannerImageUrl').value.trim();
-      const fileInput = document.getElementById('topBannerFileInput');
-
-      if (fileInput.files && fileInput.files[0]) {
-        try {
-          imgUrl = await uploadToImgBB(fileInput.files[0]);
-          document.getElementById('adTopBannerImageUrl').value = imgUrl;
-        } catch (e) {
-          console.warn("Banner upload error:", e);
-        }
-      }
-
-      adSettings.topBannerEnabled = document.getElementById('adTopBannerEnabled').checked;
-      adSettings.topBannerImageUrl = imgUrl;
-      adSettings.topBannerTargetUrl = document.getElementById('adTopBannerTargetUrl').value.trim() || '#';
-
-      localStorage.setItem('tolet_ad_settings', JSON.stringify(adSettings));
-
-      if (isFirebaseReady && firebaseDb) {
-        try {
-          await firebaseDb.collection("site_settings").doc("ad_config").set(adSettings);
-        } catch (fErr) {
-          console.warn("Firestore sync notice:", fErr);
-        }
-      }
-
-      applyAdSettingsToUI();
-      btn.disabled = false;
-      btn.innerHTML = `টপ ব্যানার সংরক্ষণ করুন`;
-      alert("টপ ব্যানার সকল ডিভাইসের জন্য সংরক্ষিত হয়েছে!");
-    }
-
-    async function savePopupAdSettingsDirect() {
-      const btn = document.getElementById('savePopupBtn');
-      btn.disabled = true;
-      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> আপলোড হচ্ছে...`;
-
-      let imgUrl = document.getElementById('popupAdImageInput').value.trim();
-      const fileInput = document.getElementById('popupAdFileInput');
-
-      if (fileInput.files && fileInput.files[0]) {
-        try {
-          imgUrl = await uploadToImgBB(fileInput.files[0]);
-          document.getElementById('popupAdImageInput').value = imgUrl;
-        } catch (e) {
-          console.warn("Popup upload error:", e);
-        }
-      }
-
-      adSettings.popupEnabled = document.getElementById('popupAdEnabled').checked;
-      adSettings.popupTitle = document.getElementById('popupAdTitleInput').value.trim();
-      adSettings.popupImage = imgUrl;
-      adSettings.popupBody = document.getElementById('popupAdBodyInput').value.trim();
-      adSettings.popupActionUrl = document.getElementById('popupAdActionUrlInput').value.trim() || '#';
-
-      localStorage.setItem('tolet_ad_settings', JSON.stringify(adSettings));
-
-      if (isFirebaseReady && firebaseDb) {
-        try {
-          await firebaseDb.collection("site_settings").doc("ad_config").set(adSettings);
-        } catch (fErr) {
-          console.warn("Firestore sync notice:", fErr);
-        }
-      }
-
-      applyAdSettingsToUI();
-      btn.disabled = false;
-      btn.innerHTML = `পপ-আপ সেটিংস সংরক্ষণ করুন`;
-      alert("পপ-আপ ব্যানার সেটিংস সকল ডিভাইসের জন্য সংরক্ষিত হয়েছে!");
-    }
-
-    // 5. USER & ADMIN PASSWORD CHANGE
-    function switchDashTab(tab) {
-      const adsTab = document.getElementById('dashTabAds');
-      const passTab = document.getElementById('dashTabPass');
-      const adsBtn = document.getElementById('dashTabAdsBtn');
-      const passBtn = document.getElementById('dashTabPassBtn');
-
-      if (tab === 'ads') {
-        adsTab.classList.remove('hidden');
-        passTab.classList.add('hidden');
-        adsBtn.className = "flex-1 py-3 text-emerald-700 border-b-2 border-emerald-600 bg-white flex items-center justify-center gap-1.5 font-bold";
-        passBtn.className = "flex-1 py-3 text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1.5 font-bold";
-      } else {
-        adsTab.classList.add('hidden');
-        passTab.classList.remove('hidden');
-        passBtn.className = "flex-1 py-3 text-emerald-700 border-b-2 border-emerald-600 bg-white flex items-center justify-center gap-1.5 font-bold";
-        adsBtn.className = "flex-1 py-3 text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1.5 font-bold";
-        document.getElementById('selfCurrentPass').value = '';
-        document.getElementById('selfNewPass').value = '';
-        document.getElementById('selfConfirmNewPass').value = '';
-      }
-    }
-
-    async function handleSelfPasswordChange(e) {
-      e.preventDefault();
-      if (!currentUser) return;
-
-      const currentPassInput = document.getElementById('selfCurrentPass').value.trim();
-      const newPass = document.getElementById('selfNewPass').value.trim();
-      const confirmPass = document.getElementById('selfConfirmNewPass').value.trim();
-
-      if (currentPassInput !== currentUser.password) {
-        alert("বর্তমান পাসওয়ার্ডটি সঠিক নয়!");
-        return;
-      }
-      if (newPass.length < 4) {
-        alert("নতুন পাসওয়ার্ডটি কমপক্ষে ৪ সংখ্যার হতে হবে!");
-        return;
-      }
-      if (newPass !== confirmPass) {
-        alert("নতুন পাসওয়ার্ড এবং কনফার্ম পাসওয়ার্ড মিলছে না!");
-        return;
-      }
-
-      if (isFirebaseReady && firebaseDb) {
-        try {
-          const docKey = currentUser.phone ? `user_${currentUser.phone}` : `user_${currentUser.email.replace(/[@.]/g, '_')}`;
-          await firebaseDb.collection("users").doc(docKey).update({ password: newPass });
-        } catch(err) {
-          console.warn("Firestore pass update notice:", err);
-        }
-      }
-
-      currentUser.password = newPass;
-      localStorage.setItem('tolet_current_user', JSON.stringify(currentUser));
-
-      alert("আপনার পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে!");
-      switchDashTab('ads');
-    }
-
-    // 6. REVIEW & STAR RATING SYSTEM (OWNER BLOCKED)
-    function openReviewModal(listingId) {
-      activeReviewListingId = listingId;
-      const listing = listings.find(l => l.id == listingId);
-      if (!listing) return;
-
-      document.getElementById('reviewListingTitle').textContent = listing.title;
-      selectStarRating(5);
-      document.getElementById('reviewCommentInput').value = '';
-
-      const inputSec = document.getElementById('reviewInputSection');
-      const ownerNotice = document.getElementById('reviewOwnerNotice');
-
-      if (currentUser && currentUser.phone === listing.ownerPhone) {
-        inputSec.classList.add('hidden');
-        ownerNotice.classList.remove('hidden');
-      } else {
-        inputSec.classList.remove('hidden');
-        ownerNotice.classList.add('hidden');
-      }
-
-      renderReviewsList(listing.reviews || []);
-      document.getElementById('reviewModal').classList.remove('hidden');
-    }
-
-    function toggleReviewModal(show) {
-      document.getElementById('reviewModal').classList.toggle('hidden', !show);
-    }
-
-    function selectStarRating(stars) {
-      selectedRatingStars = stars;
-      const starIcons = document.getElementById('starRatingSelector').querySelectorAll('i');
-      starIcons.forEach((icon, i) => {
-        if (i < stars) {
-          icon.className = "fa-solid fa-star text-amber-400 cursor-pointer";
-        } else {
-          icon.className = "fa-regular fa-star text-slate-300 cursor-pointer";
-        }
-      });
-      document.getElementById('selectedRatingText').textContent = `${stars} স্টার`;
-    }
-
-    async function submitListingReview() {
-      if (!currentUser) {
-        alert("রেটিং বা রিভিউ দিতে প্রথমে লগইন করুন!");
-        toggleReviewModal(false);
-        toggleAuthModal(true);
-        return;
-      }
-
-      const listing = listings.find(l => l.id == activeReviewListingId);
-      if (!listing) return;
-
-      if (currentUser.phone === listing.ownerPhone) {
-        alert("আপনি নিজের বিজ্ঞাপনে রেটিং বা রিভিউ দিতে পারবেন না!");
-        return;
-      }
-
-      const comment = document.getElementById('reviewCommentInput').value.trim();
-      const newReview = {
-        id: Date.now(),
-        userName: currentUser.name || "ব্যবহারকারী",
-        userPhone: currentUser.phone,
-        rating: selectedRatingStars,
-        comment: comment || "কোনো লিখিত মন্তব্য নেই।",
-        date: new Date().toLocaleDateString('bn-BD')
-      };
-
-      if (!listing.reviews) listing.reviews = [];
-      listing.reviews.unshift(newReview);
-
-      if (isFirebaseReady && firebaseDb) {
-        try {
-          await firebaseDb.collection("listings").doc(String(listing.id)).update({
-            reviews: listing.reviews
-          });
-        } catch(e) {
-          console.warn("Firestore review update notice:", e);
-        }
-      }
-      localStorage.setItem('gopalganj_tolet', JSON.stringify(listings));
-
-      document.getElementById('reviewCommentInput').value = '';
-      renderReviewsList(listing.reviews);
-      applyFilters();
-      alert("আপনার রেটিং ও রিভিউ সফলভাবে যুক্ত হয়েছে!");
-    }
-
-    function renderReviewsList(reviews) {
-      const container = document.getElementById('reviewsListContainer');
-      container.innerHTML = '';
-
-      if (!reviews || reviews.length === 0) {
-        container.innerHTML = `
-          <div class="text-center py-6 text-slate-400 text-xs">
-            <i class="fa-regular fa-comment-dots text-2xl mb-1.5 block"></i>
-            এখনো কোনো রিভিউ দেওয়া হয়নি। প্রথম রিভিউটি আপনি দিন!
-          </div>
-        `;
-        return;
-      }
-
-      reviews.forEach(r => {
-        let starsHtml = '';
-        for (let i = 1; i <= 5; i++) {
-          starsHtml += i <= r.rating 
-            ? '<i class="fa-solid fa-star text-amber-400 text-[10px]"></i>' 
-            : '<i class="fa-regular fa-star text-slate-300 text-[10px]"></i>';
-        }
-
-        const div = document.createElement('div');
-        div.className = "p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1";
-        div.innerHTML = `
-          <div class="flex items-center justify-between">
-            <span class="font-bold text-slate-800">${r.userName}</span>
-            <span class="text-[10px] text-slate-400">${r.date || ''}</span>
-          </div>
-          <div class="flex items-center gap-1">${starsHtml} <span class="text-[10px] font-bold text-amber-700 ml-1">${r.rating}.0</span></div>
-          <p class="text-slate-600 text-[11px] leading-relaxed pt-0.5">${r.comment}</p>
-        `;
-        container.appendChild(div);
-      });
-    }
-
-    // 7. FORGET PASSWORD WITH EMAILJS OTP
-    function openForgotPasswordModal() {
-      toggleAuthModal(false);
-      toggleAdminLoginModal(false);
-      document.getElementById('fpEmail').value = '';
-      document.getElementById('fpInputOtp').value = '';
-      document.getElementById('fpNewPassword').value = '';
-      document.getElementById('otpStep1').classList.remove('hidden');
-      document.getElementById('otpStep2').classList.add('hidden');
-      document.getElementById('forgotPasswordModal').classList.remove('hidden');
-    }
-
-    function toggleForgotPasswordModal(show) {
-      document.getElementById('forgotPasswordModal').classList.toggle('hidden', !show);
-    }
-
-    function sendOtpViaEmail() {
-      const email = document.getElementById('fpEmail').value.trim().toLowerCase();
-      if (!email) {
-        alert("দয়া করে আপনার নিবন্ধিত ইমেইল ঠিকানা লিখুন!");
-        return;
-      }
-
-      const user = users.find(u => (u.email && u.email.toLowerCase() === email));
-      if (!user) {
-        alert("এই ইমেইল দিয়ে কোনো অ্যাকাউন্ট পাওয়া যায়নি! সঠিক ইমেইল দিন।");
-        return;
-      }
-
-      generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
-      otpTargetEmail = email;
-
-      const btn = document.getElementById('btnSendOtp');
-      btn.disabled = true;
-      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ওটিপি পাঠানো হচ্ছে...`;
-
-      const templateParams = {
-        to_email: email,
-        to_name: user.name || "ব্যবহারকারী",
-        otp_code: generatedOtp,
-        message: `আপনার টু-লেট গোপালগঞ্জ অ্যাকাউন্টের পাসওয়ার্ড পুনরুদ্ধারের ৬ সংখ্যার ওটিপি কোড হলো: ${generatedOtp}`
-      };
-
-      if (typeof emailjs !== "undefined" && EMAILJS_PUBLIC_KEY !== "YOUR_PUBLIC_KEY") {
-        emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
-          .then(() => {
-            handleOtpSentSuccess();
-          })
-          .catch((err) => {
-            console.warn("EmailJS notice:", err);
-            alert(`[ওটিপি কোড]: ${generatedOtp}`);
-            handleOtpSentSuccess();
-          });
-      } else {
-        setTimeout(() => {
-          alert(`[ওটিপি কোড]: ${generatedOtp}`);
-          handleOtpSentSuccess();
-        }, 500);
-      }
-    }
-
-    function handleOtpSentSuccess() {
-      const btn = document.getElementById('btnSendOtp');
-      btn.disabled = false;
-      btn.innerHTML = `<i class="fa-solid fa-paper-plane text-xs"></i> ইমেইলে OTP পাঠান`;
-      document.getElementById('otpStep1').classList.add('hidden');
-      document.getElementById('otpStep2').classList.remove('hidden');
-    }
-
-    async function verifyOtpAndResetPassword() {
-      const inputOtp = document.getElementById('fpInputOtp').value.trim();
-      const newPassword = document.getElementById('fpNewPassword').value.trim();
-
-      if (!inputOtp || inputOtp !== generatedOtp) {
-        alert("ভুল OTP কোড! আপনার ইমেইল চেক করে সঠিক কোড দিন।");
-        return;
-      }
-      if (!newPassword || newPassword.length < 3) {
-        alert("কমপক্ষে ৩ অক্ষরের নতুন পাসওয়ার্ড দিন!");
-        return;
-      }
-
-      const targetUser = users.find(u => (u.email && u.email.toLowerCase() === otpTargetEmail));
-      if (targetUser) {
-        targetUser.password = newPassword;
-        if (isFirebaseReady && firebaseDb) {
-          try {
-            const docKey = targetUser.phone ? `user_${targetUser.phone}` : `user_${targetUser.email.replace(/[@.]/g, '_')}`;
-            await firebaseDb.collection("users").doc(docKey).set(targetUser);
-          } catch(err) {
-            console.warn("Firestore pass reset notice:", err);
-          }
-        }
-        alert("পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে! এখন লগইন করুন।");
-        toggleForgotPasswordModal(false);
-        toggleAuthModal(true);
-      } else {
-        alert("ব্যবহারকারী খুঁজে পাওয়া যায়নি!");
-      }
-    }
-
-    // 8. IMGBB IMAGE UPLOAD
-    async function uploadToImgBB(file) {
-      const apiKey = "4ac5668ba66709b8e8c1c641a57dcca9";
-      const formData = new FormData();
-      formData.append("image", file);
-
-      const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
-        method: "POST",
-        body: formData
-      });
-      const data = await response.json();
-      if (data.success) {
-        return data.data.url;
-      } else {
-        throw new Error("ছবি আপলোড ব্যর্থ হয়েছে");
-      }
-    }
-
-    // 9. UNIVERSAL VIDEO LINK EMBEDDER (WORKS ON ALL DEVICES)
-    function playVideo(videoSrc) {
-      const modal = document.getElementById('videoModal');
-      const container = document.getElementById('videoContainer');
-      container.innerHTML = '';
-
-      if (!videoSrc) return;
-      const trimmed = videoSrc.trim();
-
-      // YouTube
-      const ytMatch = trimmed.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
-      if (ytMatch) {
-        container.innerHTML = `<iframe class="w-full h-full aspect-video" src="https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
-        modal.classList.remove('hidden');
-        return;
-      }
-
-      // Google Drive
-      if (trimmed.includes("drive.google.com")) {
-        const fileId = trimmed.match(/\/d\/([a-zA-Z0-9_-]+)/);
-        if (fileId) {
-          container.innerHTML = `<iframe class="w-full h-full aspect-video" src="https://drive.google.com/file/d/${fileId[1]}/preview" allow="autoplay"></iframe>`;
-          modal.classList.remove('hidden');
-          return;
-        }
-      }
-
-      // Facebook
-      if (trimmed.includes("facebook.com") || trimmed.includes("fb.watch")) {
-        container.innerHTML = `<iframe src="https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(trimmed)}&show_text=0&width=560" class="w-full h-full aspect-video" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>`;
-        modal.classList.remove('hidden');
-        return;
-      }
-
-      // Direct MP4 Video
-      container.innerHTML = `
-        <video controls autoplay controlsList="nodownload noplaybackrate" oncontextmenu="return false;" class="w-full h-full max-h-[75vh] object-contain">
-          <source src="${trimmed}">
-          আপনার ব্রাউজার ভিডিও সাপোর্ট করছে না।
-        </video>
-      `;
-      modal.classList.remove('hidden');
-    }
-
-    function closeVideoModal() {
-      const modal = document.getElementById('videoModal');
-      document.getElementById('videoContainer').innerHTML = '';
-      modal.classList.add('hidden');
-    }
-
-    // 10. IMAGE LIGHTBOX
-    function openImageLightbox(images, startIndex = 0) {
-      if (!images || images.length === 0) return;
-      currentLightboxImages = images;
-      currentLightboxIndex = startIndex;
-      updateLightboxDisplay();
-      document.getElementById('imageLightboxModal').classList.remove('hidden');
-    }
-
-    function closeImageLightbox() {
-      document.getElementById('imageLightboxModal').classList.add('hidden');
-    }
-
-    function stepLightboxImage(step) {
-      currentLightboxIndex = (currentLightboxIndex + step + currentLightboxImages.length) % currentLightboxImages.length;
-      updateLightboxDisplay();
-    }
-
-    function updateLightboxDisplay() {
-      const imgEl = document.getElementById('lightboxImage');
-      const counterEl = document.getElementById('lightboxCounter');
-      imgEl.src = currentLightboxImages[currentLightboxIndex];
-      counterEl.textContent = `${currentLightboxIndex + 1} / ${currentLightboxImages.length}`;
-
-      const showArrows = currentLightboxImages.length > 1;
-      document.getElementById('lbPrevBtn').style.display = showArrows ? 'flex' : 'none';
-      document.getElementById('lbNextBtn').style.display = showArrows ? 'flex' : 'none';
-    }
-
-    // 11. FORM SUBMISSION (Add / Edit Listing)
-    async function handleFormSubmit(e) {
-      e.preventDefault();
-      const submitBtn = document.getElementById('submitBtn');
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = `সংরক্ষণ হচ্ছে...`;
-
-      const editId = document.getElementById('editListingId').value;
-      let existingListing = editId ? listings.find(l => l.id == editId) : null;
-
-      let uploadedImages = existingListing ? [...(existingListing.images || [])] : [];
-      const imgInput = document.getElementById('formImageFiles');
-
-      if (imgInput.files && imgInput.files.length > 0) {
-        uploadedImages = [];
-        for (let i = 0; i < imgInput.files.length; i++) {
-          try {
-            const url = await uploadToImgBB(imgInput.files[i]);
-            uploadedImages.push(url);
-          } catch (err) {
-            console.error("ImgBB error:", err);
-          }
-        }
-      }
-
-      if (uploadedImages.length === 0) {
-        uploadedImages = ["https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600&auto=format&fit=crop&q=80"];
-      }
-
-      const videoUrl = document.getElementById('formVideoUrl').value.trim() || (existingListing ? existingListing.video : "");
-
-      const listingData = {
-        title: document.getElementById('formTitle').value.trim(),
-        type: document.getElementById('formType').value,
-        area: document.getElementById('formArea').value,
-        rent: Number(document.getElementById('formRent').value),
-        available: document.getElementById('formAvailable').value.trim(),
-        phone: document.getElementById('formPhone').value.trim(),
-        specs: document.getElementById('formSpecs').value.trim(),
-        desc: document.getElementById('formDesc').value.trim(),
-        images: uploadedImages,
-        video: videoUrl,
-        reviews: existingListing ? (existingListing.reviews || []) : [],
-        postedBy: currentUser ? currentUser.name : "বিজ্ঞাপনদাতা",
-        ownerPhone: currentUser ? currentUser.phone : document.getElementById('formPhone').value.trim(),
-        createdAt: existingListing ? (existingListing.createdAt || Date.now()) : Date.now()
-      };
-
-      const docId = editId ? String(editId) : String(Date.now());
-
-      if (isFirebaseReady && firebaseDb) {
-        try {
-          await firebaseDb.collection("listings").doc(docId).set(listingData);
-        } catch (err) {
-          console.error("Firestore Save Error:", err);
-        }
-      }
-
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = `বিজ্ঞাপন সংরক্ষণ করুন`;
-      e.target.reset();
-      toggleAdModal(false);
-      alert("বিজ্ঞাপন সফলভাবে সকল ডিভাইসের জন্য সংরক্ষণ করা হয়েছে!");
-    }
-
-    // 12. USER DASHBOARD
-    function openUserDashboard() {
-      if (!currentUser) {
-        alert("প্রথমে লগইন করুন!");
-        toggleAuthModal(true);
-        return;
-      }
-      document.getElementById('dashUserPhone').textContent = `নাম: ${currentUser.name} | মোবাইল: ${currentUser.phone}`;
-      switchDashTab('ads');
-      renderUserAdsList();
-      toggleDashboardModal(true);
-    }
-
-    function toggleDashboardModal(show) {
-      document.getElementById('userDashboardModal').classList.toggle('hidden', !show);
-    }
-
-    function renderUserAdsList() {
-      const container = document.getElementById('userAdsListContainer');
-      container.innerHTML = '';
-
-      const myAds = isAdmin() ? listings : listings.filter(l => l.ownerPhone === currentUser.phone);
-
-      if (myAds.length === 0) {
-        container.innerHTML = `
-          <div class="text-center py-8 text-slate-400">
-            <i class="fa-solid fa-rectangle-ad text-3xl mb-2"></i>
-            <p class="text-xs">আপনার কোনো সক্রিয় বিজ্ঞাপন নেই।</p>
-          </div>
-        `;
-        return;
-      }
-
-      myAds.forEach(item => {
-        const row = document.createElement('div');
-        row.className = "flex items-center justify-between p-3.5 bg-slate-50 hover:bg-emerald-50/50 rounded-xl border border-slate-200 transition gap-3";
-        row.innerHTML = `
-          <div class="flex items-center gap-3 overflow-hidden">
-            <img src="${(item.images && item.images[0]) || 'https://via.placeholder.com/80'}" onclick='openImageLightbox(${JSON.stringify(item.images)})' class="w-12 h-12 rounded-lg object-cover bg-slate-200 flex-shrink-0 cursor-pointer hover:opacity-80">
-            <div class="truncate text-xs">
-              <h4 class="font-bold text-slate-800 text-sm truncate">${item.title}</h4>
-              <p class="text-slate-500">${item.area} • <span class="text-emerald-600 font-bold">৳${Number(item.rent).toLocaleString('bn-BD')}</span></p>
-            </div>
-          </div>
-          <div class="flex items-center gap-1.5 flex-shrink-0">
-            <button onclick="editListing('${item.id}'); toggleDashboardModal(false);" class="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold rounded-lg transition">
-              <i class="fa-solid fa-pen"></i> এডিট
-            </button>
-            <button onclick="removeListing('${item.id}')" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-semibold rounded-lg transition">
-              <i class="fa-solid fa-trash"></i> ডিলিট
-            </button>
-          </div>
-        `;
-        container.appendChild(row);
-      });
-    }
-
-    // 13. ADMIN PANEL CONTROLS
-    function openAdminModal() {
-      if (!isAdmin()) {
-        alert("অননুমোদিত অ্যাক্সেস! শুধুমাত্র অ্যাডমিন প্রবেশ করতে পারবেন।");
-        return;
-      }
-      renderAdminAdsList();
-      renderAdminUsersTable();
-      renderAdminLocationsTable();
-      populateAdminAdInputs();
-      toggleAdminModal(true);
-    }
-
-    function toggleAdminModal(show) { 
-      const modal = document.getElementById('adminPanelModal');
-      if (modal) {
-        if (show) {
-          modal.classList.remove('hidden');
-          modal.classList.add('flex');
-        } else {
-          modal.classList.add('hidden');
-          modal.classList.remove('flex');
-        }
-      }
-    }
-
-    function toggleAdminEditUserModal(show) { 
-      const modal = document.getElementById('adminEditUserModal');
-      if (modal) modal.classList.toggle('hidden', !show); 
-    }
-
-    function switchAdminTab(tab) {
-      document.getElementById('adminAdsSection').classList.toggle('hidden', tab !== 'ads');
-      document.getElementById('adminUsersSection').classList.toggle('hidden', tab !== 'users');
-      document.getElementById('adminLocationsSection').classList.toggle('hidden', tab !== 'locations');
-      document.getElementById('adminBannersSection').classList.toggle('hidden', tab !== 'banners');
-
-      const activeStyle = "px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-bold shadow-sm";
-      const inactiveStyle = "px-3 py-1.5 bg-white text-slate-700 border border-slate-300 rounded-lg text-xs font-bold hover:bg-slate-50";
-
-      document.getElementById('adminTabAds').className = (tab === 'ads') ? activeStyle : inactiveStyle;
-      document.getElementById('adminTabUsers').className = (tab === 'users') ? activeStyle : inactiveStyle;
-      document.getElementById('adminTabLocations').className = (tab === 'locations') ? activeStyle : inactiveStyle;
-      document.getElementById('adminTabBanners').className = (tab === 'banners') ? activeStyle : inactiveStyle;
-
-      if (tab === 'banners') populateAdminAdInputs();
-    }
-
-    function renderAdminAdsList() {
-      const container = document.getElementById('adminAdsListContainer');
-      container.innerHTML = '';
-      if (listings.length === 0) {
-        container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">কোনো বিজ্ঞাপন নেই।</p>`;
-        return;
-      }
-      listings.forEach(item => {
-        const row = document.createElement('div');
-        row.className = "flex items-center justify-between p-3.5 bg-white rounded-xl border border-slate-200 shadow-sm gap-3";
-        row.innerHTML = `
-          <div class="flex items-center gap-3 overflow-hidden">
-            <img src="${(item.images && item.images[0]) || 'https://via.placeholder.com/80'}" onclick='openImageLightbox(${JSON.stringify(item.images)})' class="w-12 h-12 rounded-lg object-cover bg-slate-100 flex-shrink-0 cursor-pointer">
-            <div class="truncate text-xs">
-              <h4 class="font-bold text-slate-800 text-sm truncate">${item.title}</h4>
-              <p class="text-slate-500">${item.area} • মালিক: ${item.postedBy} (${item.phone}) • <span class="text-emerald-600 font-bold">৳${Number(item.rent).toLocaleString('bn-BD')}</span></p>
-            </div>
-          </div>
-          <div class="flex items-center gap-2 flex-shrink-0">
-            <button onclick="editListing('${item.id}'); toggleAdminModal(false);" class="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold rounded-lg transition">
-              <i class="fa-solid fa-pen"></i> এডিট
-            </button>
-            <button onclick="removeListing('${item.id}');" class="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-semibold rounded-lg transition">
-              <i class="fa-solid fa-trash"></i> ডিলিট
-            </button>
-          </div>
-        `;
-        container.appendChild(row);
-      });
-    }
-
-    function editListing(id) {
-      const item = listings.find(l => l.id == id);
-      if (!item) return;
-
-      document.getElementById('editListingId').value = item.id;
-      document.getElementById('adModalTitle').textContent = 'বিজ্ঞাপন এডিট করুন';
-      document.getElementById('formTitle').value = item.title;
-      document.getElementById('formType').value = item.type;
-      refreshLocationDropdowns();
-      document.getElementById('formArea').value = item.area;
-      document.getElementById('formRent').value = item.rent;
-      document.getElementById('formAvailable').value = item.available;
-      document.getElementById('formPhone').value = item.phone;
-      document.getElementById('formSpecs').value = item.specs || '';
-      document.getElementById('formDesc').value = item.desc || '';
-      document.getElementById('formVideoUrl').value = item.video || '';
-
-      const container = document.getElementById('imagePreviewContainer');
-      container.innerHTML = '';
-      if (item.images && item.images.length > 0) {
-        container.classList.remove('hidden');
-        item.images.forEach((imgSrc, i) => {
-          const thumb = document.createElement('div');
-          thumb.className = "relative w-14 h-14 rounded-lg overflow-hidden border border-slate-200 shadow-xs cursor-pointer";
-          thumb.onclick = () => openImageLightbox(item.images, i);
-          thumb.innerHTML = `<img src="${imgSrc}" class="w-full h-full object-cover"><span class="absolute bottom-0 right-0 bg-black/60 text-white text-[9px] px-1 font-bold">#${i+1}</span>`;
-          container.appendChild(thumb);
-        });
-      }
-
-      toggleAdModal(true);
-    }
-
-    async function removeListing(id) {
-      if (!confirm("আপনি কি নিশ্চিত এই বিজ্ঞাপনটি মুছে ফেলতে চান?")) return;
-      if (isFirebaseReady && firebaseDb) {
-        try {
-          await firebaseDb.collection("listings").doc(String(id)).delete();
-        } catch (e) {
-          console.error("Firestore delete error:", e);
-        }
-      }
-    }
-
-    function renderAdminUsersTable() {
-      const tbody = document.getElementById('adminUsersTableBody');
-      if (!tbody) return;
-      tbody.innerHTML = '';
-      users.forEach(u => {
-        const isMainAdmin = u.role === 'admin' || u.phone === '01700000000';
-        const tr = document.createElement('tr');
-        tr.className = "hover:bg-slate-50 transition";
-        tr.innerHTML = `
-          <td class="p-3 font-semibold text-slate-800">
-            ${u.name} ${isMainAdmin ? '<span class="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded font-bold ml-1">ADMIN</span>' : ''}
-          </td>
-          <td class="p-3 text-slate-600">${u.phone}</td>
-          <td class="p-3 text-slate-600">${u.email || 'N/A'}</td>
-          <td class="p-3"><span class="font-mono bg-slate-100 px-2 py-1 rounded text-emerald-800 font-bold">${u.password}</span></td>
-          <td class="p-3 text-center">
-            ${!isMainAdmin ? `
-              <button onclick="adminDeleteUser('${u.phone}')" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded text-xs font-bold transition">
-                <i class="fa-solid fa-trash"></i> ডিলিট
-              </button>
-            ` : '<span class="text-[11px] text-slate-400 font-medium px-2 py-1 bg-slate-100 rounded">সুরক্ষিত</span>'}
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    async function adminAddNewUser() {
-      const name = document.getElementById('adminNewUserName').value.trim();
-      const phone = document.getElementById('adminNewUserPhone').value.trim();
-      const email = document.getElementById('adminNewUserEmail').value.trim().toLowerCase();
-      const password = document.getElementById('adminNewUserPass').value.trim();
-
-      if (!name || !phone || !password) { alert("সব তথ্য পূরণ করুন!"); return; }
-      if (users.find(u => u.phone === phone)) { alert("মোবাইল নম্বরটি আগেই ব্যবহৃত হয়েছে!"); return; }
-
-      const newUser = { name, phone, email, password, role: 'user' };
-
-      if (isFirebaseReady && firebaseDb) {
-        try {
-          await firebaseDb.collection("users").doc(`user_${phone}`).set(newUser);
-        } catch(err) {
-          console.warn("Firestore user add notice:", err);
-        }
-      }
-
-      document.getElementById('adminNewUserName').value = '';
-      document.getElementById('adminNewUserPhone').value = '';
-      document.getElementById('adminNewUserEmail').value = '';
-      document.getElementById('adminNewUserPass').value = '';
-
-      alert("ব্যবহারকারী সফলভাবে সকল ডিভাইসের জন্য যুক্ত হয়েছে!");
-    }
-
-    async function adminDeleteUser(phone) {
-      if (!confirm(`অ্যাকাউন্টটি স্থায়ীভাবে মুছে ফেলতে চান?`)) return;
-      if (isFirebaseReady && firebaseDb) {
-        try {
-          await firebaseDb.collection("users").doc(`user_${phone}`).delete();
-        } catch(err) {
-          console.warn("Firestore user delete notice:", err);
-        }
-      }
-      alert("অ্যাকাউন্ট মুছে ফেলা হয়েছে!");
-    }
-
-    function renderAdminLocationsTable() {
-      const tbody = document.getElementById('adminLocationsTableBody');
-      tbody.innerHTML = '';
-      locations.forEach((loc, index) => {
-        const tr = document.createElement('tr');
-        tr.className = "hover:bg-slate-50 transition";
-        tr.innerHTML = `
-          <td class="p-3 font-semibold text-slate-500 w-16">${index + 1}</td>
-          <td class="p-3 font-bold text-slate-800">${loc}</td>
-          <td class="p-3 text-center w-32 space-x-1">
-            <button onclick="editLocation(${index})" class="px-2 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded text-xs font-semibold">
-              <i class="fa-solid fa-pen"></i>
-            </button>
-            <button onclick="deleteLocation(${index})" class="px-2 py-1 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded text-xs font-semibold">
-              <i class="fa-solid fa-trash"></i>
-            </button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    function addNewLocation() {
-      const input = document.getElementById('newLocationInput');
-      const val = input.value.trim();
-      if (!val) { alert("এলাকার নাম লিখুন!"); return; }
-      if (locations.includes(val)) { alert("এই এলাকাটি আগেই তালিকায় আছে!"); return; }
-      locations.push(val);
-      localStorage.setItem('gopalganj_locations', JSON.stringify(locations));
-      input.value = '';
-      renderAdminLocationsTable();
-      refreshLocationDropdowns();
-      applyFilters();
-    }
-
-    function editLocation(index) {
-      const oldName = locations[index];
-      const newName = prompt("এলাকার নতুন নাম লিখুন:", oldName);
-      if (newName && newName.trim() && newName.trim() !== oldName) {
-        const formatted = newName.trim();
-        listings.forEach(l => { if (l.area === oldName) l.area = formatted; });
-        localStorage.setItem('gopalganj_tolet', JSON.stringify(listings));
-        locations[index] = formatted;
-        localStorage.setItem('gopalganj_locations', JSON.stringify(locations));
-        renderAdminLocationsTable();
-        refreshLocationDropdowns();
-        applyFilters();
-      }
-    }
-
-    function deleteLocation(index) {
-      if (!confirm(`"${locations[index]}" এলাকাটি তালিকা থেকে মুছতে চান?`)) return;
-      locations.splice(index, 1);
-      localStorage.setItem('gopalganj_locations', JSON.stringify(locations));
-      renderAdminLocationsTable();
-      refreshLocationDropdowns();
-      applyFilters();
-    }
-
-    // 14. CHAT & VOICE MESSAGING
+    // 4. CHAT SYSTEM LOGIC
     function getChatRoomKey(listingId, userA, userB) {
       const sorted = [userA, userB].sort();
       return `chat_${listingId}_${sorted[0]}_${sorted[1]}`;
@@ -2125,7 +1059,7 @@
       if (!item) return;
 
       if (currentUser.phone === item.ownerPhone) {
-        alert("এটি আপনার নিজের বিজ্ঞাপন! মেসেজ দেখতে ইনবক্স চেক করুন।");
+        alert("এটি আপনার নিজের বিজ্ঞাপন! ভাড়াটিয়াদের মেসেজ দেখতে ইনবক্স চেক করুন।");
         openInboxModal();
         return;
       }
@@ -2155,8 +1089,37 @@
       toggleChatModal(true);
     }
 
+    function toggleChatModal(show) { 
+      const modal = document.getElementById('chatModal');
+      if (modal) {
+        if (show) {
+          modal.classList.remove('hidden');
+          modal.classList.add('flex');
+        } else {
+          modal.classList.add('hidden');
+          modal.classList.remove('flex');
+          cancelVoiceRecord();
+          currentChatKey = null;
+        }
+      }
+    }
+
+    function toggleInboxModal(show) { 
+      const modal = document.getElementById('inboxModal');
+      if (modal) {
+        if (show) {
+          modal.classList.remove('hidden');
+          modal.classList.add('flex');
+        } else {
+          modal.classList.add('hidden');
+          modal.classList.remove('flex');
+        }
+      }
+    }
+
     function renderChatMessages() {
       const container = document.getElementById('chatMessagesContainer');
+      if (!container || !currentChatKey) return;
       container.innerHTML = '';
       const roomMessages = chats.filter(m => m.roomKey === currentChatKey);
 
@@ -2164,7 +1127,8 @@
         container.innerHTML = `
           <div class="text-center py-10">
             <i class="fa-regular fa-comment-dots text-3xl text-slate-300 mb-2 block"></i>
-            <p class="text-xs text-slate-500 font-medium">কোনো মেসেজ নেই। নিচে লিখে বা ভয়েস পাঠিয়ে শুরু করুন।</p>
+            <p class="text-xs text-slate-500 font-medium">কোনো পূর্ববর্তী মেসেজ নেই।</p>
+            <span class="text-[10px] text-slate-400">নিচে লিখে বা ভয়েস পাঠিয়ে সরাসরি যোগাযোগ শুরু করুন।</span>
           </div>
         `;
         return;
@@ -2178,24 +1142,24 @@
         let contentHtml = '';
         if (msg.type === 'voice') {
           contentHtml = `
-            <div class="flex items-center gap-2.5 px-3 py-2.5 rounded-2xl ${
-              isMe ? 'bg-gradient-to-r from-emerald-600 to-teal-700 text-white rounded-tr-none' : 'bg-white text-slate-800 rounded-tl-none border border-slate-200'
-            } min-w-[210px]">
-              <button onclick="playCustomVoice('audio_${idx}', this)" class="w-9 h-9 rounded-full ${isMe ? 'bg-white/20 text-white' : 'bg-emerald-600 text-white'} flex items-center justify-center transition flex-shrink-0">
+            <div class="flex items-center gap-2.5 px-3 py-2 rounded-2xl ${
+              isMe ? 'bg-gradient-to-r from-emerald-600 to-teal-700 text-white rounded-tr-none' : 'bg-white text-slate-800 rounded-tl-none border border-slate-200 shadow-xs'
+            } min-w-[200px]">
+              <button onclick="playCustomVoice('audio_${idx}', this)" class="w-8 h-8 rounded-full ${isMe ? 'bg-white/20 text-white' : 'bg-emerald-600 text-white'} flex items-center justify-center transition flex-shrink-0 active:scale-95">
                 <i class="fa-solid fa-play text-xs ml-0.5"></i>
               </button>
               <div class="flex-1">
-                <div class="flex items-center gap-1 h-5 mb-1" id="wave_audio_${idx}">
+                <div class="flex items-center gap-1 h-4 mb-1" id="wave_audio_${idx}">
                   <span class="w-1 bg-current opacity-40 rounded-full h-2"></span>
                   <span class="w-1 bg-current opacity-60 rounded-full h-3"></span>
                   <span class="w-1 bg-current opacity-90 rounded-full h-4"></span>
                   <span class="w-1 bg-current opacity-60 rounded-full h-2.5"></span>
-                  <span class="w-1 bg-current opacity-80 rounded-full h-4"></span>
+                  <span class="w-1 bg-current opacity-80 rounded-full h-3.5"></span>
                 </div>
                 <div class="h-1 w-full ${isMe ? 'bg-emerald-900/40' : 'bg-slate-200'} rounded-full overflow-hidden">
                   <div id="prog_audio_${idx}" class="h-full ${isMe ? 'bg-white' : 'bg-emerald-600'} w-0 transition-all duration-100"></div>
                 </div>
-                <div class="flex justify-between items-center text-[10px] mt-1 ${isMe ? 'text-emerald-100' : 'text-slate-400'}">
+                <div class="flex justify-between items-center text-[9px] mt-1 ${isMe ? 'text-emerald-100' : 'text-slate-400'}">
                   <span>🎙️ ভয়েস</span>
                   <span class="font-mono">${msg.duration || '00:05'}</span>
                 </div>
@@ -2205,7 +1169,7 @@
           `;
         } else {
           contentHtml = `
-            <div class="p-3 text-xs sm:text-sm rounded-2xl shadow-xs max-w-[80%] ${
+            <div class="p-2.5 sm:p-3 text-xs sm:text-sm rounded-2xl shadow-xs max-w-[85%] ${
               isMe ? 'bg-emerald-600 text-white rounded-tr-none' : 'bg-white text-slate-800 rounded-tl-none border border-slate-200'
             }">
               <p class="leading-relaxed break-words">${msg.text}</p>
@@ -2223,7 +1187,7 @@
       container.scrollTop = container.scrollHeight;
     }
 
-    function sendTextMessage() {
+    async function sendTextMessage() {
       const input = document.getElementById('chatTextInput');
       const text = input.value.trim();
       if (!text || !currentChatKey || !currentUser) return;
@@ -2231,8 +1195,8 @@
       const newMsg = {
         id: Date.now(),
         roomKey: currentChatKey,
-        listingId: activeChatListing.id,
-        listingTitle: activeChatListing.title,
+        listingId: activeChatListing ? activeChatListing.id : '',
+        listingTitle: activeChatListing ? activeChatListing.title : '',
         senderPhone: currentUser.phone,
         senderName: currentUser.name,
         recipientPhone: activeChatRecipientPhone,
@@ -2241,10 +1205,19 @@
         time: new Date().toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit' })
       };
 
-      chats.push(newMsg);
-      localStorage.setItem('tolet_chats', JSON.stringify(chats));
       input.value = '';
-      renderChatMessages();
+
+      if (isFirebaseReady && firebaseDb) {
+        try {
+          await firebaseDb.collection("chats").doc(String(newMsg.id)).set(newMsg);
+        } catch (e) {
+          console.warn("Chat firestore sync notice:", e);
+        }
+      } else {
+        chats.push(newMsg);
+        localStorage.setItem('tolet_chats', JSON.stringify(chats));
+        renderChatMessages();
+      }
     }
 
     async function toggleVoiceRecord() {
@@ -2260,18 +1233,18 @@
         audioChunks = [];
 
         mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
-        mediaRecorder.onstop = () => {
+        mediaRecorder.onstop = async () => {
           if (audioChunks.length === 0) return;
           const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
           const reader = new FileReader();
           reader.readAsDataURL(audioBlob);
-          reader.onload = () => {
+          reader.onload = async () => {
             const base64Audio = reader.result;
             const newVoiceMsg = {
               id: Date.now(),
               roomKey: currentChatKey,
-              listingId: activeChatListing.id,
-              listingTitle: activeChatListing.title,
+              listingId: activeChatListing ? activeChatListing.id : '',
+              listingTitle: activeChatListing ? activeChatListing.title : '',
               senderPhone: currentUser.phone,
               senderName: currentUser.name,
               recipientPhone: activeChatRecipientPhone,
@@ -2280,9 +1253,18 @@
               duration: formatSeconds(recordingSeconds),
               time: new Date().toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit' })
             };
-            chats.push(newVoiceMsg);
-            localStorage.setItem('tolet_chats', JSON.stringify(chats));
-            renderChatMessages();
+
+            if (isFirebaseReady && firebaseDb) {
+              try {
+                await firebaseDb.collection("chats").doc(String(newVoiceMsg.id)).set(newVoiceMsg);
+              } catch(e) {
+                console.warn("Firestore voice sync error:", e);
+              }
+            } else {
+              chats.push(newVoiceMsg);
+              localStorage.setItem('tolet_chats', JSON.stringify(chats));
+              renderChatMessages();
+            }
             audioChunks = [];
           };
         };
@@ -2358,6 +1340,20 @@
       }
     }
 
+    function updateUnreadBadge() {
+      if (!currentUser) return;
+      const unreadCount = chats.filter(m => m.recipientPhone === currentUser.phone).length;
+      const bDesktop = document.getElementById('unreadBadge');
+      const bMobile = document.getElementById('unreadBadgeMobile');
+      if (unreadCount > 0) {
+        if (bDesktop) bDesktop.classList.remove('hidden');
+        if (bMobile) bMobile.classList.remove('hidden');
+      } else {
+        if (bDesktop) bDesktop.classList.add('hidden');
+        if (bMobile) bMobile.classList.add('hidden');
+      }
+    }
+
     function openInboxModal() {
       if (!currentUser) {
         alert("ইনবক্স দেখতে প্রথমে লগইন করুন!");
@@ -2380,16 +1376,16 @@
           const partnerName = partnerUser.name || partnerPhone;
 
           const row = document.createElement('div');
-          row.className = "p-3 bg-slate-50 hover:bg-emerald-50 rounded-xl border border-slate-200 cursor-pointer transition flex items-center justify-between gap-3";
+          row.className = "p-3 bg-slate-50 hover:bg-emerald-50 rounded-xl border border-slate-200 cursor-pointer transition flex items-center justify-between gap-3 active:scale-98";
           row.onclick = () => openDirectChat(m.roomKey, partnerName, m.listingTitle, partnerPhone, m.listingId);
           row.innerHTML = `
-            <div class="flex items-center gap-3 overflow-hidden">
-              <div class="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold flex-shrink-0">
+            <div class="flex items-center gap-2.5 overflow-hidden">
+              <div class="w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs flex-shrink-0">
                 <i class="fa-solid fa-user"></i>
               </div>
               <div class="truncate">
-                <h4 class="font-bold text-slate-800 text-sm truncate">${partnerName}</h4>
-                <p class="text-xs text-emerald-700 truncate">${m.listingTitle}</p>
+                <h4 class="font-bold text-slate-800 text-xs sm:text-sm truncate">${partnerName}</h4>
+                <p class="text-[11px] text-emerald-700 truncate">${m.listingTitle}</p>
                 <span class="text-[10px] text-slate-400">সর্বশেষ: ${m.type === 'voice' ? '🎙️ ভয়েস' : m.text}</span>
               </div>
             </div>
@@ -2401,7 +1397,7 @@
       toggleInboxModal(true);
     }
 
-    // 15. CARD RENDERING
+    // 5. CARD RENDERING
     function renderListings(items) {
       const container = document.getElementById('listingsContainer');
       const emptyState = document.getElementById('emptyState');
@@ -2436,50 +1432,50 @@
         card.className = "bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition overflow-hidden flex flex-col justify-between";
         card.innerHTML = `
           <div>
-            <div class="relative h-48 w-full bg-slate-900 overflow-hidden group">
+            <div class="relative h-44 sm:h-48 w-full bg-slate-900 overflow-hidden group">
               <img id="img-${item.id}" src="${imgs[0]}" onclick='openImageLightbox(${JSON.stringify(imgs)}, cardImageIndexes["${item.id}"])' alt="বাসার ছবি" class="w-full h-full object-cover cursor-pointer hover:scale-105 transition duration-300" title="বড় করে দেখতে ক্লিক করুন">
               
-              <div class="absolute top-3 left-3 z-10 flex gap-1.5 items-center">
-                <span class="text-xs font-semibold px-2.5 py-1 rounded-full border bg-white/95 backdrop-blur shadow-sm ${badgeColor}">
+              <div class="absolute top-2.5 left-2.5 z-10 flex gap-1.5 items-center">
+                <span class="text-[11px] sm:text-xs font-semibold px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full border bg-white/95 backdrop-blur shadow-sm ${badgeColor}">
                   ${item.type}
                 </span>
                 ${reviewCount > 0 ? `
-                  <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-amber-400 text-slate-900 flex items-center gap-1 shadow-sm">
-                    <i class="fa-solid fa-star text-[10px]"></i> ${avgRating}
+                  <span class="text-[11px] sm:text-xs font-bold px-2 py-0.5 rounded-full bg-amber-400 text-slate-900 flex items-center gap-1 shadow-sm">
+                    <i class="fa-solid fa-star text-[9px]"></i> ${avgRating}
                   </span>
                 ` : ''}
               </div>
 
               ${imgs.length > 1 ? `
-                <div class="absolute top-3 right-3 z-10 bg-black/60 text-white text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur">
+                <div class="absolute top-2.5 right-2.5 z-10 bg-black/60 text-white text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur">
                   <i class="fa-solid fa-camera mr-1"></i><span id="count-${item.id}">1/${imgs.length}</span>
                 </div>
-                <button onclick="event.stopPropagation(); slideImage('${item.id}', -1,${imgs.length})" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/80 text-white w-7 h-7 rounded-full flex items-center justify-center text-xs opacity-80 group-hover:opacity-100 transition z-10">
+                <button onclick="event.stopPropagation(); slideImage('${item.id}', -1, ${imgs.length})" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/80 text-white w-7 h-7 rounded-full flex items-center justify-center text-xs opacity-80 group-hover:opacity-100 transition z-10">
                   <i class="fa-solid fa-chevron-left"></i>
                 </button>
-                <button onclick="event.stopPropagation(); slideImage('${item.id}', 1,${imgs.length})" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/80 text-white w-7 h-7 rounded-full flex items-center justify-center text-xs opacity-80 group-hover:opacity-100 transition z-10">
+                <button onclick="event.stopPropagation(); slideImage('${item.id}', 1, ${imgs.length})" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/80 text-white w-7 h-7 rounded-full flex items-center justify-center text-xs opacity-80 group-hover:opacity-100 transition z-10">
                   <i class="fa-solid fa-chevron-right"></i>
                 </button>
               ` : ''}
 
               ${item.video ? `
-                <button onclick='event.stopPropagation(); playVideo("${item.video}")' class="absolute bottom-3 right-3 bg-rose-600/90 hover:bg-rose-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg backdrop-blur flex items-center gap-1.5 shadow transition z-10">
-                  <i class="fa-solid fa-play"></i> ভিডিও দেখুন
+                <button onclick='event.stopPropagation(); playVideo("${item.video}")' class="absolute bottom-2.5 right-2.5 bg-rose-600/90 hover:bg-rose-600 text-white text-[11px] font-semibold px-2.5 py-1 rounded-lg backdrop-blur flex items-center gap-1 shadow transition z-10">
+                  <i class="fa-solid fa-play text-[10px]"></i> ভিডিও দেখুন
                 </button>
               ` : ''}
             </div>
 
-            <div class="p-4 sm:p-5">
-              <div class="flex items-center justify-between gap-2 mb-2">
-                <span class="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+            <div class="p-3.5 sm:p-5">
+              <div class="flex items-center justify-between gap-2 mb-1.5">
+                <span class="text-[11px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
                   <i class="fa-regular fa-clock mr-1"></i>${item.available}
                 </span>
-                <span class="text-xs text-emerald-700 font-semibold flex items-center gap-1">
+                <span class="text-[11px] text-emerald-700 font-semibold flex items-center gap-1">
                   <i class="fa-solid fa-location-dot"></i> ${item.area}
                 </span>
               </div>
 
-              <h3 class="font-bold text-slate-900 text-base mb-1 line-clamp-1">${item.title}</h3>
+              <h3 class="font-bold text-slate-900 text-sm sm:text-base mb-1 line-clamp-1">${item.title}</h3>
               
               <div class="flex items-center justify-between text-[11px] text-slate-400 mb-2">
                 <span><i class="fa-solid fa-user text-[10px] mr-1"></i> ${item.postedBy || 'মালিক'}</span>
@@ -2493,20 +1489,20 @@
             </div>
           </div>
 
-          <div class="px-4 sm:px-5 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+          <div class="px-3.5 sm:px-5 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
             <div>
-              <span class="text-[10px] text-slate-400 uppercase tracking-wider block font-bold">ভাড়া</span>
-              <span class="text-base font-extrabold text-emerald-600">৳${Number(item.rent).toLocaleString('bn-BD')}</span>
-              <span class="text-[11px] text-slate-500">/মাস</span>
+              <span class="text-[9px] text-slate-400 uppercase tracking-wider block font-bold">ভাড়া</span>
+              <span class="text-sm sm:text-base font-extrabold text-emerald-600">৳${Number(item.rent).toLocaleString('bn-BD')}</span>
+              <span class="text-[10px] text-slate-500">/মাস</span>
             </div>
-            <div class="flex items-center gap-1.5">
-              <button onclick="openChatForListing('${item.id}')" class="bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-700 text-xs font-bold px-2.5 py-2 rounded-lg flex items-center gap-1 transition" title="মেসেজ বা ভয়েস চ্যাট">
+            <div class="flex items-center gap-1 sm:gap-1.5">
+              <button onclick="openChatForListing('${item.id}')" class="bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-700 text-xs font-bold px-2 sm:px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition active:scale-95" title="মেসেজ বা ভয়েস চ্যাট">
                 <i class="fa-solid fa-comment-dots"></i> <span class="hidden sm:inline">চ্যাট</span>
               </button>
-              <a href="https://wa.me/88${item.phone}" target="_blank" class="w-8 h-8 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-700 flex items-center justify-center text-sm transition" title="WhatsApp">
+              <a href="https://wa.me/88${item.phone}" target="_blank" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-700 flex items-center justify-center text-xs sm:text-sm transition active:scale-95" title="WhatsApp">
                 <i class="fa-brands fa-whatsapp"></i>
               </a>
-              <a href="tel:${item.phone}" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-2 rounded-lg flex items-center gap-1.5 transition shadow-sm">
+              <a href="tel:${item.phone}" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-2.5 sm:px-3 py-1.5 rounded-lg flex items-center gap-1 transition shadow-sm active:scale-95">
                 <i class="fa-solid fa-phone"></i> কল
               </a>
             </div>
@@ -2526,27 +1522,872 @@
       if (counterEl) counterEl.textContent = `${cardImageIndexes[id] + 1}/${total}`;
     }
 
-    // 16. UI & AUTHENTICATION
+    // 6. AD BANNER & SIDEBAR RENDERING
+    const adDimensionMap = {
+      "728x90": { label: "Leaderboard", w: 728, h: 90 },
+      "336x280": { label: "Large Rectangle", w: 336, h: 280 },
+      "300x250": { label: "Medium Rectangle", w: 300, h: 250 },
+      "160x600": { label: "Wide Skyscraper", w: 160, h: 600 },
+      "120x600": { label: "Skyscraper", w: 120, h: 600 },
+      "120x90": { label: "Button 1", w: 120, h: 90 },
+      "120x60": { label: "Button 2", w: 120, h: 60 },
+      "88x31": { label: "Microbar", w: 88, h: 31 }
+    };
+
+    function applyAdSettingsToUI() {
+      const topWrapper = document.getElementById('thirdPartyTopBanner');
+      const topImg = document.getElementById('topBannerImg');
+      const topLink = document.getElementById('topBannerLink');
+
+      if (adSettings.topBannerEnabled && adSettings.topBannerImageUrl) {
+        topImg.src = adSettings.topBannerImageUrl;
+        topLink.href = adSettings.topBannerTargetUrl || '#';
+        topWrapper.classList.remove('hidden');
+      } else {
+        topWrapper.classList.add('hidden');
+      }
+
+      renderSidebarAds();
+
+      // Footer Contacts
+      const phoneText = adSettings.footerPhone || '+880 1700-000000';
+      const waNumber = adSettings.footerWa || '+8801700000000';
+      const fbUrl = adSettings.footerFb || 'https://facebook.com';
+
+      const dispPhone = document.getElementById('footerDisplayPhone');
+      const dispWa = document.getElementById('footerDisplayWa');
+      const dispFb = document.getElementById('footerDisplayFb');
+
+      if (dispPhone) dispPhone.textContent = phoneText;
+      if (dispWa) dispWa.textContent = waNumber;
+      if (dispFb) dispFb.textContent = fbUrl.replace(/^https?:\/\/(www\.)?/, '');
+
+      const btnCall = document.getElementById('footerCallBtn');
+      const btnWa = document.getElementById('footerWaBtn');
+      const btnFb = document.getElementById('footerFbBtn');
+
+      if (btnCall) btnCall.href = `tel:${phoneText.replace(/\s+/g, '')}`;
+      if (btnWa) btnWa.href = `https://wa.me/${waNumber.replace(/[^0-9]/g, '')}`;
+      if (btnFb) btnFb.href = fbUrl;
+    }
+
+    function renderSidebarAds() {
+      const container = document.getElementById('sidebarAdListContainer');
+      const zone = document.getElementById('sidebarAdZone');
+      if (!container) return;
+
+      container.innerHTML = '';
+      if (!sidebarAds || sidebarAds.length === 0) {
+        zone.classList.add('hidden');
+        return;
+      }
+      zone.classList.remove('hidden');
+
+      sidebarAds.forEach(ad => {
+        const dimInfo = adDimensionMap[ad.dimension] || { w: 300, h: 250 };
+        const card = document.createElement('div');
+        card.className = "w-full max-w-full flex items-center justify-center bg-white p-2 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md transition overflow-hidden group";
+        card.innerHTML = `
+          <a href="${ad.targetUrl || '#'}" target="_blank" rel="noopener noreferrer" class="block w-full overflow-hidden rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center">
+            <img src="${ad.imageUrl}" alt="${ad.title || 'এড'}" style="max-height: ${dimInfo.h}px; max-width: ${dimInfo.w}px;" class="w-full h-auto object-contain transition duration-300 group-hover:scale-[1.02]">
+          </a>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // 7. USER & ADMIN PASSWORD CHANGE
+    function switchDashTab(tab) {
+      const adsTab = document.getElementById('dashTabAds');
+      const passTab = document.getElementById('dashTabPass');
+      const adsBtn = document.getElementById('dashTabAdsBtn');
+      const passBtn = document.getElementById('dashTabPassBtn');
+
+      if (tab === 'ads') {
+        adsTab.classList.remove('hidden');
+        passTab.classList.add('hidden');
+        adsBtn.className = "flex-1 py-3 text-emerald-700 border-b-2 border-emerald-600 bg-white flex items-center justify-center gap-1.5 font-bold";
+        passBtn.className = "flex-1 py-3 text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1.5 font-bold";
+      } else {
+        adsTab.classList.add('hidden');
+        passTab.classList.remove('hidden');
+        passBtn.className = "flex-1 py-3 text-emerald-700 border-b-2 border-emerald-600 bg-white flex items-center justify-center gap-1.5 font-bold";
+        adsBtn.className = "flex-1 py-3 text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1.5 font-bold";
+        document.getElementById('selfCurrentPass').value = '';
+        document.getElementById('selfNewPass').value = '';
+        document.getElementById('selfConfirmNewPass').value = '';
+      }
+    }
+
+    async function handleSelfPasswordChange(e) {
+      e.preventDefault();
+      if (!currentUser) return;
+
+      const currentPassInput = document.getElementById('selfCurrentPass').value.trim();
+      const newPass = document.getElementById('selfNewPass').value.trim();
+      const confirmPass = document.getElementById('selfConfirmNewPass').value.trim();
+
+      if (currentPassInput !== currentUser.password) {
+        alert("বর্তমান পাসওয়ার্ডটি সঠিক নয়!");
+        return;
+      }
+      if (newPass.length < 4) {
+        alert("নতুন পাসওয়ার্ডটি কমপক্ষে ৪ সংখ্যার হতে হবে!");
+        return;
+      }
+      if (newPass !== confirmPass) {
+        alert("নতুন পাসওয়ার্ড এবং কনফার্ম পাসওয়ার্ড মিলছে না!");
+        return;
+      }
+
+      if (isFirebaseReady && firebaseDb) {
+        try {
+          const docKey = currentUser.phone ? `user_${currentUser.phone}` : `user_${currentUser.email.replace(/[@.]/g, '_')}`;
+          await firebaseDb.collection("users").doc(docKey).update({ password: newPass });
+        } catch(err) {
+          console.warn("Firestore pass update notice:", err);
+        }
+      }
+
+      currentUser.password = newPass;
+      localStorage.setItem('tolet_current_user', JSON.stringify(currentUser));
+      alert("আপনার পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে!");
+      switchDashTab('ads');
+    }
+
+    // 8. REVIEW SYSTEM
+    function openReviewModal(listingId) {
+      activeReviewListingId = listingId;
+      const listing = listings.find(l => l.id == listingId);
+      if (!listing) return;
+
+      document.getElementById('reviewListingTitle').textContent = listing.title;
+      selectStarRating(5);
+      document.getElementById('reviewCommentInput').value = '';
+
+      const inputSec = document.getElementById('reviewInputSection');
+      const ownerNotice = document.getElementById('reviewOwnerNotice');
+
+      if (currentUser && currentUser.phone === listing.ownerPhone) {
+        inputSec.classList.add('hidden');
+        ownerNotice.classList.remove('hidden');
+      } else {
+        inputSec.classList.remove('hidden');
+        ownerNotice.classList.add('hidden');
+      }
+
+      renderReviewsList(listing.reviews || []);
+      toggleReviewModal(true);
+    }
+
+    function toggleReviewModal(show) {
+      const modal = document.getElementById('reviewModal');
+      if (modal) {
+        modal.classList.toggle('hidden', !show);
+        modal.classList.toggle('flex', show);
+      }
+    }
+
+    function selectStarRating(stars) {
+      selectedRatingStars = stars;
+      const starIcons = document.getElementById('starRatingSelector').querySelectorAll('i');
+      starIcons.forEach((icon, i) => {
+        if (i < stars) {
+          icon.className = "fa-solid fa-star text-amber-400 cursor-pointer";
+        } else {
+          icon.className = "fa-regular fa-star text-slate-300 cursor-pointer";
+        }
+      });
+      document.getElementById('selectedRatingText').textContent = `${stars} স্টার`;
+    }
+
+    async function submitListingReview() {
+      if (!currentUser) {
+        alert("রেটিং বা রিভিউ দিতে প্রথমে লগইন করুন!");
+        toggleReviewModal(false);
+        toggleAuthModal(true);
+        return;
+      }
+
+      const listing = listings.find(l => l.id == activeReviewListingId);
+      if (!listing) return;
+
+      if (currentUser.phone === listing.ownerPhone) {
+        alert("আপনি নিজের বিজ্ঞাপনে রেটিং বা রিভিউ দিতে পারবেন না!");
+        return;
+      }
+
+      const comment = document.getElementById('reviewCommentInput').value.trim();
+      const newReview = {
+        id: Date.now(),
+        userName: currentUser.name || "ব্যবহারকারী",
+        userPhone: currentUser.phone,
+        rating: selectedRatingStars,
+        comment: comment || "কোনো লিখিত মন্তব্য নেই।",
+        date: new Date().toLocaleDateString('bn-BD')
+      };
+
+      if (!listing.reviews) listing.reviews = [];
+      listing.reviews.unshift(newReview);
+
+      if (isFirebaseReady && firebaseDb) {
+        try {
+          await firebaseDb.collection("listings").doc(String(listing.id)).update({
+            reviews: listing.reviews
+          });
+        } catch(e) {
+          console.warn("Firestore review notice:", e);
+        }
+      }
+      localStorage.setItem('gopalganj_tolet', JSON.stringify(listings));
+
+      document.getElementById('reviewCommentInput').value = '';
+      renderReviewsList(listing.reviews);
+      applyFilters();
+      alert("আপনার রেটিং ও রিভিউ সফলভাবে যুক্ত হয়েছে!");
+    }
+
+    function renderReviewsList(reviews) {
+      const container = document.getElementById('reviewsListContainer');
+      container.innerHTML = '';
+
+      if (!reviews || reviews.length === 0) {
+        container.innerHTML = `<div class="text-center py-6 text-slate-400 text-xs"><i class="fa-regular fa-comment-dots text-2xl mb-1.5 block"></i>এখনো কোনো রিভিউ দেওয়া হয়নি। প্রথম রিভিউটি আপনি দিন!</div>`;
+        return;
+      }
+
+      reviews.forEach(r => {
+        let starsHtml = '';
+        for (let i = 1; i <= 5; i++) {
+          starsHtml += i <= r.rating 
+            ? '<i class="fa-solid fa-star text-amber-400 text-[10px]"></i>' 
+            : '<i class="fa-regular fa-star text-slate-300 text-[10px]"></i>';
+        }
+
+        const div = document.createElement('div');
+        div.className = "p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1";
+        div.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-slate-800">${r.userName}</span>
+            <span class="text-[10px] text-slate-400">${r.date || ''}</span>
+          </div>
+          <div class="flex items-center gap-1">${starsHtml} <span class="text-[10px] font-bold text-amber-700 ml-1">${r.rating}.0</span></div>
+          <p class="text-slate-600 text-[11px] leading-relaxed pt-0.5">${r.comment}</p>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    // 9. FORGET PASSWORD OTP
+    function openForgotPasswordModal() {
+      toggleAuthModal(false);
+      toggleAdminLoginModal(false);
+      document.getElementById('fpEmail').value = '';
+      document.getElementById('fpInputOtp').value = '';
+      document.getElementById('fpNewPassword').value = '';
+      document.getElementById('otpStep1').classList.remove('hidden');
+      document.getElementById('otpStep2').classList.add('hidden');
+      toggleForgotPasswordModal(true);
+    }
+
+    function toggleForgotPasswordModal(show) {
+      const modal = document.getElementById('forgotPasswordModal');
+      if (modal) {
+        modal.classList.toggle('hidden', !show);
+        modal.classList.toggle('flex', show);
+      }
+    }
+
+    function sendOtpViaEmail() {
+      const email = document.getElementById('fpEmail').value.trim().toLowerCase();
+      if (!email) { alert("দয়া করে আপনার নিবন্ধিত ইমেইল ঠিকানা লিখুন!"); return; }
+
+      const user = users.find(u => (u.email && u.email.toLowerCase() === email));
+      if (!user) { alert("এই ইমেইল দিয়ে কোনো অ্যাকাউন্ট পাওয়া যায়নি! সঠিক ইমেইল দিন।"); return; }
+
+      generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+      otpTargetEmail = email;
+
+      const btn = document.getElementById('btnSendOtp');
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ওটিপি পাঠানো হচ্ছে...`;
+
+      const templateParams = {
+        to_email: email,
+        to_name: user.name || "ব্যবহারকারী",
+        otp_code: generatedOtp,
+        message: `আপনার টু-লেট গোপালগঞ্জ অ্যাকাউন্টের পাসওয়ার্ড পুনরুদ্ধারের ৬ সংখ্যার ওটিপি কোড হলো: ${generatedOtp}`
+      };
+
+      if (typeof emailjs !== "undefined" && EMAILJS_PUBLIC_KEY !== "YOUR_PUBLIC_KEY") {
+        emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
+          .then(() => handleOtpSentSuccess())
+          .catch(() => {
+            alert(`[ওটিপি কোড]: ${generatedOtp}`);
+            handleOtpSentSuccess();
+          });
+      } else {
+        setTimeout(() => {
+          alert(`[ওটিপি কোড]: ${generatedOtp}`);
+          handleOtpSentSuccess();
+        }, 500);
+      }
+    }
+
+    function handleOtpSentSuccess() {
+      const btn = document.getElementById('btnSendOtp');
+      btn.disabled = false;
+      btn.innerHTML = `<i class="fa-solid fa-paper-plane text-xs"></i> ইমেইলে OTP পাঠান`;
+      document.getElementById('otpStep1').classList.add('hidden');
+      document.getElementById('otpStep2').classList.remove('hidden');
+    }
+
+    async function verifyOtpAndResetPassword() {
+      const inputOtp = document.getElementById('fpInputOtp').value.trim();
+      const newPassword = document.getElementById('fpNewPassword').value.trim();
+
+      if (!inputOtp || inputOtp !== generatedOtp) { alert("ভুল OTP কোড! সঠিক কোড দিন।"); return; }
+      if (!newPassword || newPassword.length < 3) { alert("কমপক্ষে ৩ অক্ষরের নতুন পাসওয়ার্ড দিন!"); return; }
+
+      const targetUser = users.find(u => (u.email && u.email.toLowerCase() === otpTargetEmail));
+      if (targetUser) {
+        targetUser.password = newPassword;
+        if (isFirebaseReady && firebaseDb) {
+          try {
+            const docKey = targetUser.phone ? `user_${targetUser.phone}` : `user_${targetUser.email.replace(/[@.]/g, '_')}`;
+            await firebaseDb.collection("users").doc(docKey).set(targetUser);
+          } catch(err) {
+            console.warn("Firestore pass reset notice:", err);
+          }
+        }
+        alert("পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে! এখন লগইন করুন।");
+        toggleForgotPasswordModal(false);
+        toggleAuthModal(true);
+      } else {
+        alert("ব্যবহারকারী খুঁজে পাওয়া যায়নি!");
+      }
+    }
+
+    // 10. IMGBB IMAGE UPLOAD
+    async function uploadToImgBB(file) {
+      const apiKey = "4ac5668ba66709b8e8c1c641a57dcca9";
+      const formData = new FormData();
+      formData.append("image", file);
+
+      const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+        method: "POST",
+        body: formData
+      });
+      const data = await response.json();
+      if (data.success) return data.data.url;
+      throw new Error("ছবি আপলোড ব্যর্থ হয়েছে");
+    }
+
+    // 11. UNIVERSAL VIDEO LINK EMBEDDER
+    function playVideo(videoSrc) {
+      const modal = document.getElementById('videoModal');
+      const container = document.getElementById('videoContainer');
+      container.innerHTML = '';
+      if (!videoSrc) return;
+      const trimmed = videoSrc.trim();
+
+      const ytMatch = trimmed.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+      if (ytMatch) {
+        container.innerHTML = `<iframe class="w-full h-full aspect-video" src="https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        return;
+      }
+
+      if (trimmed.includes("drive.google.com")) {
+        const fileId = trimmed.match(/\/d\/([a-zA-Z0-9_-]+)/);
+        if (fileId) {
+          container.innerHTML = `<iframe class="w-full h-full aspect-video" src="https://drive.google.com/file/d/${fileId[1]}/preview" allow="autoplay"></iframe>`;
+          modal.classList.remove('hidden');
+          modal.classList.add('flex');
+          return;
+        }
+      }
+
+      if (trimmed.includes("facebook.com") || trimmed.includes("fb.watch")) {
+        container.innerHTML = `<iframe src="https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(trimmed)}&show_text=0&width=560" class="w-full h-full aspect-video" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>`;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        return;
+      }
+
+      container.innerHTML = `
+        <video controls autoplay controlsList="nodownload noplaybackrate" oncontextmenu="return false;" class="w-full h-full max-h-[75vh] object-contain">
+          <source src="${trimmed}">
+          আপনার ব্রাউজার ভিডিও সাপোর্ট করছে না।
+        </video>
+      `;
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeVideoModal() {
+      const modal = document.getElementById('videoModal');
+      document.getElementById('videoContainer').innerHTML = '';
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    // 12. IMAGE LIGHTBOX
+    function openImageLightbox(images, startIndex = 0) {
+      if (!images || images.length === 0) return;
+      currentLightboxImages = images;
+      currentLightboxIndex = startIndex;
+      updateLightboxDisplay();
+      const modal = document.getElementById('imageLightboxModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeImageLightbox() {
+      const modal = document.getElementById('imageLightboxModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function stepLightboxImage(step) {
+      currentLightboxIndex = (currentLightboxIndex + step + currentLightboxImages.length) % currentLightboxImages.length;
+      updateLightboxDisplay();
+    }
+
+    function updateLightboxDisplay() {
+      const imgEl = document.getElementById('lightboxImage');
+      const counterEl = document.getElementById('lightboxCounter');
+      imgEl.src = currentLightboxImages[currentLightboxIndex];
+      counterEl.textContent = `${currentLightboxIndex + 1} / ${currentLightboxImages.length}`;
+
+      const showArrows = currentLightboxImages.length > 1;
+      document.getElementById('lbPrevBtn').style.display = showArrows ? 'flex' : 'none';
+      document.getElementById('lbNextBtn').style.display = showArrows ? 'flex' : 'none';
+    }
+
+    // 13. FORM SUBMISSION
+    async function handleFormSubmit(e) {
+      e.preventDefault();
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `সংরক্ষণ হচ্ছে...`;
+
+      const editId = document.getElementById('editListingId').value;
+      let existingListing = editId ? listings.find(l => l.id == editId) : null;
+      let uploadedImages = existingListing ? [...(existingListing.images || [])] : [];
+      const imgInput = document.getElementById('formImageFiles');
+
+      if (imgInput.files && imgInput.files.length > 0) {
+        uploadedImages = [];
+        for (let i = 0; i < imgInput.files.length; i++) {
+          try {
+            const url = await uploadToImgBB(imgInput.files[i]);
+            uploadedImages.push(url);
+          } catch (err) {
+            console.error("ImgBB error:", err);
+          }
+        }
+      }
+
+      if (uploadedImages.length === 0) {
+        uploadedImages = ["https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600&auto=format&fit=crop&q=80"];
+      }
+
+      const videoUrl = document.getElementById('formVideoUrl').value.trim() || (existingListing ? existingListing.video : "");
+
+      const listingData = {
+        title: document.getElementById('formTitle').value.trim(),
+        type: document.getElementById('formType').value,
+        area: document.getElementById('formArea').value,
+        rent: Number(document.getElementById('formRent').value),
+        available: document.getElementById('formAvailable').value.trim(),
+        phone: document.getElementById('formPhone').value.trim(),
+        specs: document.getElementById('formSpecs').value.trim(),
+        desc: document.getElementById('formDesc').value.trim(),
+        images: uploadedImages,
+        video: videoUrl,
+        reviews: existingListing ? (existingListing.reviews || []) : [],
+        postedBy: currentUser ? currentUser.name : "বিজ্ঞাপনদাতা",
+        ownerPhone: currentUser ? currentUser.phone : document.getElementById('formPhone').value.trim(),
+        createdAt: existingListing ? (existingListing.createdAt || Date.now()) : Date.now()
+      };
+
+      const docId = editId ? String(editId) : String(Date.now());
+
+      if (isFirebaseReady && firebaseDb) {
+        try {
+          await firebaseDb.collection("listings").doc(docId).set(listingData);
+        } catch (err) {
+          console.error("Firestore Save Error:", err);
+        }
+      }
+
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = `বিজ্ঞাপন সংরক্ষণ করুন`;
+      e.target.reset();
+      toggleAdModal(false);
+      alert("বিজ্ঞাপন সফলভাবে সংরক্ষণ করা হয়েছে!");
+    }
+
+    // 14. USER DASHBOARD
+    function openUserDashboard() {
+      if (!currentUser) {
+        alert("প্রথমে লগইন করুন!");
+        toggleAuthModal(true);
+        return;
+      }
+      document.getElementById('dashUserPhone').textContent = `নাম: ${currentUser.name} | মোবাইল: ${currentUser.phone}`;
+      switchDashTab('ads');
+      renderUserAdsList();
+      toggleDashboardModal(true);
+    }
+
+    function toggleDashboardModal(show) {
+      const modal = document.getElementById('userDashboardModal');
+      if (modal) {
+        modal.classList.toggle('hidden', !show);
+        modal.classList.toggle('flex', show);
+      }
+    }
+
+    function renderUserAdsList() {
+      const container = document.getElementById('userAdsListContainer');
+      container.innerHTML = '';
+      const myAds = isAdmin() ? listings : listings.filter(l => l.ownerPhone === currentUser.phone);
+
+      if (myAds.length === 0) {
+        container.innerHTML = `<div class="text-center py-8 text-slate-400"><i class="fa-solid fa-rectangle-ad text-3xl mb-2"></i><p class="text-xs">আপনার কোনো সক্রিয় বিজ্ঞাপন নেই।</p></div>`;
+        return;
+      }
+
+      myAds.forEach(item => {
+        const row = document.createElement('div');
+        row.className = "flex items-center justify-between p-3.5 bg-slate-50 hover:bg-emerald-50/50 rounded-xl border border-slate-200 transition gap-3";
+        row.innerHTML = `
+          <div class="flex items-center gap-2.5 overflow-hidden">
+            <img src="${(item.images && item.images[0]) || 'https://via.placeholder.com/80'}" onclick='openImageLightbox(${JSON.stringify(item.images)})' class="w-11 h-11 rounded-lg object-cover bg-slate-200 flex-shrink-0 cursor-pointer hover:opacity-80">
+            <div class="truncate text-xs">
+              <h4 class="font-bold text-slate-800 text-xs sm:text-sm truncate">${item.title}</h4>
+              <p class="text-slate-500">${item.area} • <span class="text-emerald-600 font-bold">৳${Number(item.rent).toLocaleString('bn-BD')}</span></p>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5 flex-shrink-0">
+            <button onclick="editListing('${item.id}'); toggleDashboardModal(false);" class="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold rounded-lg transition active:scale-95">
+              <i class="fa-solid fa-pen"></i>
+            </button>
+            <button onclick="removeListing('${item.id}')" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-semibold rounded-lg transition active:scale-95">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    // 15. ADMIN PANEL CONTROLS
+    function openAdminModal() {
+      if (!isAdmin()) { alert("অননুমোদিত অ্যাক্সেস! শুধুমাত্র অ্যাডমিন প্রবেশ করতে পারবেন।"); return; }
+      renderAdminAdsList();
+      renderAdminUsersTable();
+      renderAdminLocationsTable();
+      populateAdminAdInputs();
+      toggleAdminModal(true);
+    }
+
+    function toggleAdminModal(show) { 
+      const modal = document.getElementById('adminPanelModal');
+      if (modal) {
+        modal.classList.toggle('hidden', !show);
+        modal.classList.toggle('flex', show);
+      }
+    }
+
+    function toggleAdminEditUserModal(show) { 
+      const modal = document.getElementById('adminEditUserModal');
+      if (modal) {
+        modal.classList.toggle('hidden', !show);
+        modal.classList.toggle('flex', show);
+      }
+    }
+
+    function switchAdminTab(tab) {
+      document.getElementById('adminAdsSection').classList.toggle('hidden', tab !== 'ads');
+      document.getElementById('adminUsersSection').classList.toggle('hidden', tab !== 'users');
+      document.getElementById('adminLocationsSection').classList.toggle('hidden', tab !== 'locations');
+      document.getElementById('adminBannersSection').classList.toggle('hidden', tab !== 'banners');
+
+      const activeStyle = "px-2.5 sm:px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-[11px] sm:text-xs font-bold shadow-sm";
+      const inactiveStyle = "px-2.5 sm:px-3 py-1.5 bg-white text-slate-700 border border-slate-300 rounded-lg text-[11px] sm:text-xs font-bold hover:bg-slate-50";
+
+      document.getElementById('adminTabAds').className = (tab === 'ads') ? activeStyle : inactiveStyle;
+      document.getElementById('adminTabUsers').className = (tab === 'users') ? activeStyle : inactiveStyle;
+      document.getElementById('adminTabLocations').className = (tab === 'locations') ? activeStyle : inactiveStyle;
+      document.getElementById('adminTabBanners').className = (tab === 'banners') ? activeStyle : inactiveStyle;
+
+      if (tab === 'banners') populateAdminAdInputs();
+    }
+
+    function renderAdminAdsList() {
+      const container = document.getElementById('adminAdsListContainer');
+      container.innerHTML = '';
+      if (listings.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">কোনো বিজ্ঞাপন নেই।</p>`;
+        return;
+      }
+      listings.forEach(item => {
+        const row = document.createElement('div');
+        row.className = "flex items-center justify-between p-3 bg-white rounded-xl border border-slate-200 shadow-sm gap-2";
+        row.innerHTML = `
+          <div class="flex items-center gap-2.5 overflow-hidden">
+            <img src="${(item.images && item.images[0]) || 'https://via.placeholder.com/80'}" onclick='openImageLightbox(${JSON.stringify(item.images)})' class="w-10 h-10 rounded-lg object-cover bg-slate-100 flex-shrink-0 cursor-pointer">
+            <div class="truncate text-xs">
+              <h4 class="font-bold text-slate-800 text-xs sm:text-sm truncate">${item.title}</h4>
+              <p class="text-slate-500">${item.area} • <span class="text-emerald-600 font-bold">৳${Number(item.rent).toLocaleString('bn-BD')}</span></p>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5 flex-shrink-0">
+            <button onclick="editListing('${item.id}'); toggleAdminModal(false);" class="px-2 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold rounded-lg transition active:scale-95">
+              <i class="fa-solid fa-pen"></i>
+            </button>
+            <button onclick="removeListing('${item.id}');" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-semibold rounded-lg transition active:scale-95">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function editListing(id) {
+      const item = listings.find(l => l.id == id);
+      if (!item) return;
+
+      document.getElementById('editListingId').value = item.id;
+      document.getElementById('adModalTitle').textContent = 'বিজ্ঞাপন এডিট করুন';
+      document.getElementById('formTitle').value = item.title;
+      document.getElementById('formType').value = item.type;
+      refreshLocationDropdowns();
+      document.getElementById('formArea').value = item.area;
+      document.getElementById('formRent').value = item.rent;
+      document.getElementById('formAvailable').value = item.available;
+      document.getElementById('formPhone').value = item.phone;
+      document.getElementById('formSpecs').value = item.specs || '';
+      document.getElementById('formDesc').value = item.desc || '';
+      document.getElementById('formVideoUrl').value = item.video || '';
+
+      const container = document.getElementById('imagePreviewContainer');
+      container.innerHTML = '';
+      if (item.images && item.images.length > 0) {
+        container.classList.remove('hidden');
+        item.images.forEach((imgSrc, i) => {
+          const thumb = document.createElement('div');
+          thumb.className = "relative w-12 h-12 rounded-lg overflow-hidden border border-slate-200 shadow-xs cursor-pointer";
+          thumb.onclick = () => openImageLightbox(item.images, i);
+          thumb.innerHTML = `<img src="${imgSrc}" class="w-full h-full object-cover"><span class="absolute bottom-0 right-0 bg-black/60 text-white text-[8px] px-1 font-bold">#${i+1}</span>`;
+          container.appendChild(thumb);
+        });
+      }
+      toggleAdModal(true);
+    }
+
+    async function removeListing(id) {
+      if (!confirm("আপনি কি নিশ্চিত এই বিজ্ঞাপনটি মুছে ফেলতে চান?")) return;
+      if (isFirebaseReady && firebaseDb) {
+        try {
+          await firebaseDb.collection("listings").doc(String(id)).delete();
+        } catch (e) {
+          console.error("Firestore delete error:", e);
+        }
+      }
+    }
+
+    function renderAdminUsersTable() {
+      const tbody = document.getElementById('adminUsersTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+      users.forEach(u => {
+        const isMainAdmin = u.role === 'admin' || u.phone === '01700000000';
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50 transition";
+        tr.innerHTML = `
+          <td class="p-2 sm:p-2.5 font-semibold text-slate-800">
+            ${u.name} ${isMainAdmin ? '<span class="bg-amber-100 text-amber-800 text-[9px] px-1 py-0.5 rounded font-bold ml-1">ADMIN</span>' : ''}
+          </td>
+          <td class="p-2 sm:p-2.5 text-slate-600">${u.phone}</td>
+          <td class="p-2 sm:p-2.5"><span class="font-mono bg-slate-100 px-1.5 py-0.5 rounded text-emerald-800 font-bold">${u.password}</span></td>
+          <td class="p-2 sm:p-2.5 text-center">
+            <div class="flex items-center justify-center gap-1">
+              <button onclick="adminEditUser('${u.phone}')" class="px-2 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded text-xs font-bold active:scale-95">
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              ${!isMainAdmin ? `
+                <button onclick="adminDeleteUser('${u.phone}')" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded text-xs font-bold active:scale-95">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              ` : ''}
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function adminAddNewUser() {
+      const name = document.getElementById('adminNewUserName').value.trim();
+      const phone = document.getElementById('adminNewUserPhone').value.trim();
+      const email = document.getElementById('adminNewUserEmail').value.trim().toLowerCase();
+      const password = document.getElementById('adminNewUserPass').value.trim();
+
+      if (!name || !phone || !password) { alert("সব তথ্য পূরণ করুন!"); return; }
+      if (users.find(u => u.phone === phone)) { alert("মোবাইল নম্বরটি আগেই ব্যবহৃত হয়েছে!"); return; }
+
+      const newUser = { name, phone, email, password, role: 'user' };
+
+      if (isFirebaseReady && firebaseDb) {
+        try {
+          await firebaseDb.collection("users").doc(`user_${phone}`).set(newUser);
+        } catch(err) {
+          console.warn("Firestore user add error:", err);
+        }
+      }
+
+      document.getElementById('adminNewUserName').value = '';
+      document.getElementById('adminNewUserPhone').value = '';
+      document.getElementById('adminNewUserEmail').value = '';
+      document.getElementById('adminNewUserPass').value = '';
+      alert("ব্যবহারকারী সফলভাবে যুক্ত হয়েছে!");
+    }
+
+    function adminEditUser(phone) {
+      const user = users.find(u => u.phone === phone);
+      if (!user) return;
+      document.getElementById('editUserOldPhone').value = user.phone;
+      document.getElementById('editUserName').value = user.name;
+      document.getElementById('editUserEmail').value = user.email || '';
+      document.getElementById('editUserPhone').value = user.phone;
+      document.getElementById('editUserPassword').value = user.password;
+      toggleAdminEditUserModal(true);
+    }
+
+    async function saveAdminUserEdit(e) {
+      e.preventDefault();
+      const oldPhone = document.getElementById('editUserOldPhone').value;
+      const updatedUser = {
+        name: document.getElementById('editUserName').value.trim(),
+        email: document.getElementById('editUserEmail').value.trim().toLowerCase(),
+        phone: document.getElementById('editUserPhone').value.trim(),
+        password: document.getElementById('editUserPassword').value.trim(),
+        role: (oldPhone === '01700000000') ? 'admin' : 'user'
+      };
+
+      if (isFirebaseReady && firebaseDb) {
+        try {
+          if (oldPhone !== updatedUser.phone) {
+            await firebaseDb.collection("users").doc(`user_${oldPhone}`).delete();
+          }
+          await firebaseDb.collection("users").doc(`user_${updatedUser.phone}`).set(updatedUser);
+        } catch(err) {
+          console.warn("Firestore update error:", err);
+        }
+      }
+
+      toggleAdminEditUserModal(false);
+      alert("ব্যবহারকারীর তথ্য সফলভাবে আপডেট হয়েছে!");
+    }
+
+    async function adminDeleteUser(phone) {
+      if (!confirm(`অ্যাকাউন্টটি মুছে ফেলতে চান?`)) return;
+      if (isFirebaseReady && firebaseDb) {
+        try {
+          await firebaseDb.collection("users").doc(`user_${phone}`).delete();
+        } catch(err) {
+          console.warn("Firestore delete error:", err);
+        }
+      }
+      alert("অ্যাকাউন্ট মুছে ফেলা হয়েছে!");
+    }
+
+    function renderAdminLocationsTable() {
+      const tbody = document.getElementById('adminLocationsTableBody');
+      tbody.innerHTML = '';
+      locations.forEach((loc, index) => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50 transition";
+        tr.innerHTML = `
+          <td class="p-2 font-semibold text-slate-500 w-10">${index + 1}</td>
+          <td class="p-2 font-bold text-slate-800">${loc}</td>
+          <td class="p-2 text-center w-24 space-x-1">
+            <button onclick="editLocation(${index})" class="px-2 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded text-xs font-semibold">
+              <i class="fa-solid fa-pen"></i>
+            </button>
+            <button onclick="deleteLocation(${index})" class="px-2 py-1 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded text-xs font-semibold">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function addNewLocation() {
+      const input = document.getElementById('newLocationInput');
+      const val = input.value.trim();
+      if (!val) { alert("এলাকার নাম লিখুন!"); return; }
+      if (locations.includes(val)) { alert("এই এলাকাটি আগেই তালিকায় আছে!"); return; }
+      locations.push(val);
+      localStorage.setItem('gopalganj_locations', JSON.stringify(locations));
+      input.value = '';
+      renderAdminLocationsTable();
+      refreshLocationDropdowns();
+      applyFilters();
+    }
+
+    function editLocation(index) {
+      const oldName = locations[index];
+      const newName = prompt("এলাকার নতুন নাম লিখুন:", oldName);
+      if (newName && newName.trim() && newName.trim() !== oldName) {
+        const formatted = newName.trim();
+        listings.forEach(l => { if (l.area === oldName) l.area = formatted; });
+        localStorage.setItem('gopalganj_tolet', JSON.stringify(listings));
+        locations[index] = formatted;
+        localStorage.setItem('gopalganj_locations', JSON.stringify(locations));
+        renderAdminLocationsTable();
+        refreshLocationDropdowns();
+        applyFilters();
+      }
+    }
+
+    function deleteLocation(index) {
+      if (!confirm(`"${locations[index]}" এলাকাটি তালিকা থেকে মুছতে চান?`)) return;
+      locations.splice(index, 1);
+      localStorage.setItem('gopalganj_locations', JSON.stringify(locations));
+      renderAdminLocationsTable();
+      refreshLocationDropdowns();
+      applyFilters();
+    }
+
+    // 16. UI & AUTH
     function updateAuthUI() {
       const authSection = document.getElementById('authSection');
       if (currentUser) {
         authSection.innerHTML = `
-          <div class="flex items-center gap-1.5 bg-slate-100 py-1.5 px-2.5 sm:px-3 rounded-lg border border-slate-200">
+          <div class="flex items-center gap-1 sm:gap-1.5 bg-slate-100 py-1 sm:py-1.5 px-2 sm:px-3 rounded-lg border border-slate-200">
             ${isAdmin() ? `
-              <button type="button" onclick="openAdminModal()" class="text-xs font-bold text-amber-700 bg-amber-50 px-2 py-1 rounded border border-amber-200 shadow-xs cursor-pointer hover:bg-amber-100 active:scale-95 transition" title="অ্যাডমিন প্যানেল">
+              <button type="button" onclick="openAdminModal()" class="text-xs font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 shadow-xs cursor-pointer hover:bg-amber-100 active:scale-95 transition" title="অ্যাডমিন প্যানেল">
                 🛡️ অ্যাডমিন
               </button>
             ` : ''}
-            <button onclick="openUserDashboard()" class="text-xs font-bold text-slate-800 hover:text-emerald-700 flex items-center gap-1 transition max-w-[90px] sm:max-w-[130px] truncate" title="আমার ড্যাশবোর্ড ও প্রোফাইল">
+            <button onclick="openUserDashboard()" class="text-xs font-bold text-slate-800 hover:text-emerald-700 flex items-center gap-1 transition max-w-[80px] sm:max-w-[130px] truncate" title="আমার ড্যাশবোর্ড">
               <i class="fa-solid fa-circle-user text-emerald-600"></i> <span class="truncate">${currentUser.name}</span>
             </button>
             <span class="text-slate-300">|</span>
-            <button onclick="logout()" class="text-[11px] text-red-500 font-semibold hover:text-red-700">লগআউট</button>
+            <button onclick="logout()" class="text-[10px] sm:text-[11px] text-red-500 font-semibold hover:text-red-700">লগআউট</button>
           </div>
         `;
       } else {
         authSection.innerHTML = `
-          <button onclick="toggleAuthModal(true)" class="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 sm:px-3.5 py-2 rounded-lg hover:bg-emerald-100 transition active:scale-95">
+          <button onclick="toggleAuthModal(true)" class="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg hover:bg-emerald-100 transition active:scale-95">
             লগইন / সাইন-আপ
           </button>
         `;
@@ -2554,7 +2395,11 @@
     }
 
     function toggleAuthModal(show) { 
-      document.getElementById('authModal').classList.toggle('hidden', !show); 
+      const modal = document.getElementById('authModal');
+      if (modal) {
+        modal.classList.toggle('hidden', !show);
+        modal.classList.toggle('flex', show);
+      }
       if (show) {
         const savedPhone = localStorage.getItem('tolet_remember_phone') || '';
         document.getElementById('loginPhone').value = savedPhone;
@@ -2564,19 +2409,25 @@
     }
 
     function toggleAdminLoginModal(show) { 
-      document.getElementById('adminLoginModal').classList.toggle('hidden', !show); 
+      const modal = document.getElementById('adminLoginModal');
+      if (modal) {
+        modal.classList.toggle('hidden', !show);
+        modal.classList.toggle('flex', show);
+      }
       if (show) {
         document.getElementById('adminEmailInput').value = '';
         document.getElementById('adminPasswordInput').value = '';
       }
     }
 
-    function toggleAdModal(show) { document.getElementById('adModal').classList.toggle('hidden', !show); }
-    function toggleInboxModal(show) { document.getElementById('inboxModal').classList.toggle('hidden', !show); }
-    function toggleChatModal(show) { 
-      document.getElementById('chatModal').classList.toggle('hidden', !show); 
-      if (!show) cancelVoiceRecord();
+    function toggleAdModal(show) { 
+      const modal = document.getElementById('adModal');
+      if (modal) {
+        modal.classList.toggle('hidden', !show);
+        modal.classList.toggle('flex', show);
+      }
     }
+    
     function openAdminLoginModal() { toggleAuthModal(false); toggleAdminLoginModal(true); }
 
     function switchAuthTab(tab) {
@@ -2598,7 +2449,7 @@
       }
     }
 
-    // USER LOGIN (Synced across all devices)
+    // USER LOGIN
     function handleUserLogin(e) {
       e.preventDefault();
       const inputVal = document.getElementById('loginPhone').value.trim().toLowerCase();
@@ -2610,16 +2461,10 @@
         u.password === password
       );
 
-      if (!user) {
-        alert("ভুল মোবাইল নম্বর/ইমেইল অথবা পাসওয়ার্ড! সঠিক তথ্য দিন।");
-        return;
-      }
+      if (!user) { alert("ভুল মোবাইল নম্বর/ইমেইল অথবা পাসওয়ার্ড! সঠিক তথ্য দিন।"); return; }
 
-      if (rememberMe) {
-        localStorage.setItem('tolet_remember_phone', inputVal);
-      } else {
-        localStorage.removeItem('tolet_remember_phone');
-      }
+      if (rememberMe) localStorage.setItem('tolet_remember_phone', inputVal);
+      else localStorage.removeItem('tolet_remember_phone');
 
       currentUser = user;
       localStorage.setItem('tolet_current_user', JSON.stringify(currentUser));
@@ -2644,10 +2489,7 @@
         adminUser = { name: "প্রধান অ্যাডমিন", phone: "01700000000", email: "admin@gmail.com", password: "admin", role: "admin" };
       }
 
-      if (!adminUser) { 
-        alert("অ্যাডমিন ইউজারনেম অথবা পাসওয়ার্ড সঠিক নয়! পুনরায় চেষ্টা করুন।"); 
-        return; 
-      }
+      if (!adminUser) { alert("অ্যাডমিন ইউজারনেম অথবা পাসওয়ার্ড সঠিক নয়! পুনরায় চেষ্টা করুন।"); return; }
 
       currentUser = adminUser;
       localStorage.setItem('tolet_current_user', JSON.stringify(currentUser));
@@ -2681,7 +2523,7 @@
       localStorage.setItem('tolet_current_user', JSON.stringify(currentUser));
       toggleAuthModal(false);
       updateAuthUI();
-      alert("অ্যাকাউন্ট তৈরি সম্পন্ন হয়েছে এবং সব ডিভাইসের জন্য ক্লাউডে সংরক্ষণ করা হয়েছে!");
+      alert("অ্যাকাউন্ট তৈরি সম্পন্ন হয়েছে!");
     }
 
     function logout() {
@@ -2695,11 +2537,7 @@
     }
 
     function openAdModalForCreate() {
-      if (!currentUser) {
-        alert("বিজ্ঞাপন দিতে হলে আগে লগইন করুন।");
-        toggleAuthModal(true);
-        return;
-      }
+      if (!currentUser) { alert("বিজ্ঞাপন দিতে হলে আগে লগইন করুন।"); toggleAuthModal(true); return; }
       document.getElementById('listingForm').reset();
       document.getElementById('editListingId').value = '';
       document.getElementById('adModalTitle').textContent = 'নতুন বাসার বিজ্ঞাপন প্রকাশ করুন';
@@ -2722,8 +2560,8 @@
         const reader = new FileReader();
         reader.onload = e => {
           const thumb = document.createElement('div');
-          thumb.className = "relative w-14 h-14 rounded-lg overflow-hidden border border-slate-200 shadow-sm";
-          thumb.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover"><span class="absolute bottom-0 right-0 bg-black/60 text-white text-[9px] px-1 font-bold">#${index+1}</span>`;
+          thumb.className = "relative w-12 h-12 rounded-lg overflow-hidden border border-slate-200 shadow-sm";
+          thumb.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover"><span class="absolute bottom-0 right-0 bg-black/60 text-white text-[8px] px-1 font-bold">#${index+1}</span>`;
           container.appendChild(thumb);
         };
         reader.readAsDataURL(file);
@@ -2746,7 +2584,7 @@
       if (areaFilter) {
         areaFilter.value = areaName;
         applyFilters();
-        window.scrollTo({ top: 400, behavior: 'smooth' });
+        window.scrollTo({ top: 380, behavior: 'smooth' });
       }
     }
 
@@ -2772,10 +2610,10 @@
       renderListings(listings);
     }
 
-    // Initialize Application
+    // App Initialize
     refreshLocationDropdowns();
     updateAuthUI();
-    listenToListings();
+    listenToDatabase();
     applyAdSettingsToUI();
   </script>
 </body>
