@@ -534,8 +534,14 @@
           <input type="file" id="formImageFiles" accept="image/*" multiple onchange="handleImagePreview(this)" class="w-full p-1.5 text-xs border border-slate-200 rounded-lg">
           <div id="imagePreviewContainer" class="flex flex-wrap gap-1.5 mt-2 hidden"></div></div>
         <div class="border border-slate-200 p-2.5 rounded-xl bg-slate-50 space-y-1.5">
-          <label class="block font-semibold text-slate-700 text-xs"><i class="fa-solid fa-video text-rose-500 mr-1"></i> অনলাইন ভিডিও লিঙ্ক (সব ডিভাইসে দেখার জন্য):</label>
-          <input type="url" id="formVideoUrl" placeholder="YouTube, Facebook বা Google Drive লিঙ্ক দিন: https://..." class="w-full p-2 text-xs rounded-lg border border-slate-200 bg-white">
+          <label class="block font-semibold text-slate-700 text-xs"><i class="fa-solid fa-video text-rose-500 mr-1"></i> রুমের ভিডিও (সরাসরি আপলোড অথবা অনলাইন লিঙ্ক):</label>
+          <input type="file" id="formVideoFile" accept="video/*" class="w-full p-1.5 text-xs border border-slate-200 rounded-lg bg-white">
+          <p class="text-[10px] text-slate-400">ভিডিও ফাইল সরাসরি আপলোড করুন (১০০ MB-এর বেশি হলে অটো কমপ্রেস হবে, ডাউনলোড বন্ধ থাকবে)। অথবা নিচে লিঙ্ক দিন।</p>
+          <div id="videoUploadStatus" class="hidden text-[11px] text-slate-600 space-y-1">
+            <div id="videoUploadText"></div>
+            <div class="h-1.5 bg-slate-200 rounded-full overflow-hidden"><div id="videoUploadBar" class="h-full bg-emerald-600 w-0 transition-all"></div></div>
+          </div>
+          <input type="url" id="formVideoUrl" placeholder="অথবা YouTube, Facebook বা Google Drive লিঙ্ক দিন: https://..." class="w-full p-2 text-xs rounded-lg border border-slate-200 bg-white">
         </div>
         <div class="flex justify-end gap-2 pt-2 border-t">
           <button type="button" onclick="toggleAdModal(false)" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-semibold">বাতিল</button>
@@ -762,6 +768,10 @@
     const EMAILJS_PUBLIC_KEY = "kKeUrs7wO9jJCFePf";
     const EMAILJS_SERVICE_ID = "service_l9cc301";
     const EMAILJS_TEMPLATE_ID = "template_6bq6spz";
+
+    // ---- Cloudinary (ভিডিও আপলোড) : নিচের দুইটি মান আপনার নিজের দিয়ে বদলান ----
+    const CLOUDINARY_CLOUD_NAME = "dvwso8es";
+    const CLOUDINARY_UPLOAD_PRESET = "tolet_video_upload";
 
     try {
       if (typeof emailjs !== "undefined") emailjs.init(EMAILJS_PUBLIC_KEY);
@@ -1196,7 +1206,7 @@
         return showVideoModal();
       }
       container.innerHTML = `
-        <video controls autoplay controlsList="nodownload noplaybackrate" oncontextmenu="return false;" class="w-full h-full max-h-[75vh] object-contain">
+        <video controls autoplay playsinline disablePictureInPicture controlsList="nodownload noplaybackrate" oncontextmenu="return false;" class="w-full h-full max-h-[75vh] object-contain">
           <source src="${trimmed}">
           আপনার ব্রাউজার ভিডিও সাপোর্ট করছে না।
         </video>`;
@@ -1301,6 +1311,7 @@
       document.getElementById('formSpecs').value = item.specs || '';
       document.getElementById('formDesc').value = item.desc || '';
       document.getElementById('formVideoUrl').value = item.video || '';
+      document.getElementById('formVideoFile').value = '';
       document.getElementById('formImageFiles').value = '';
 
       const container = document.getElementById('imagePreviewContainer');
@@ -1434,6 +1445,7 @@
       document.getElementById('formPhone').value = currentUser.phone || '';
       document.getElementById('imagePreviewContainer').innerHTML = '';
       document.getElementById('imagePreviewContainer').classList.add('hidden');
+      setVidStatus(null);
       refreshLocationDropdowns();
       toggleAdModal(true);
     }
@@ -1542,6 +1554,127 @@ function fbErrMsg(err,fallback){
   return fallback+(err&&err.message?' ('+err.message+')':'');
 }
 
+/* ================= CLOUDINARY VIDEO UPLOAD (+ auto compress if >100MB) ================= */
+const MAX_VIDEO_BYTES = 100 * 1024 * 1024;
+const TARGET_VIDEO_BYTES = 90 * 1024 * 1024;
+
+function setVidStatus(text, pct) {
+  const box = document.getElementById('videoUploadStatus');
+  if (!box) return;
+  if (text === null) { box.classList.add('hidden'); return; }
+  box.classList.remove('hidden');
+  document.getElementById('videoUploadText').textContent = text;
+  document.getElementById('videoUploadBar').style.width = (pct || 0) + '%';
+}
+
+function loadVideoMeta(file) {
+  return new Promise((res, rej) => {
+    const v = document.createElement('video');
+    v.preload = 'metadata';
+    v.onloadedmetadata = () => { const d = v.duration; URL.revokeObjectURL(v.src); res(d); };
+    v.onerror = () => rej(new Error('ভিডিও ফাইলটি পড়া যাচ্ছে না'));
+    v.src = URL.createObjectURL(file);
+  });
+}
+
+async function compressVideo(file) {
+  if (!window.MediaRecorder) throw new Error('এই ব্রাউজারে ভিডিও কমপ্রেস সাপোর্ট নেই (Chrome ব্যবহার করুন)');
+  const duration = await loadVideoMeta(file);
+  if (!isFinite(duration) || duration <= 0) throw new Error('ভিডিওর সময়কাল জানা যায়নি');
+  const audioBps = 96000;
+  const videoBps = Math.floor((TARGET_VIDEO_BYTES * 8) / duration - audioBps);
+  if (videoBps < 250000) throw new Error('ভিডিওটি অনেক লম্বা, ১০০ MB-এর মধ্যে আনা সম্ভব নয়');
+
+  const v = document.createElement('video');
+  v.src = URL.createObjectURL(file);
+  v.playsInline = true;
+  v.preload = 'auto';
+  await new Promise((res, rej) => { v.onloadeddata = res; v.onerror = () => rej(new Error('ভিডিও লোড হয়নি')); });
+
+  const capture = v.captureStream || v.mozCaptureStream;
+  if (!capture) throw new Error('এই ব্রাউজারে ভিডিও কমপ্রেস সাপোর্ট নেই (Chrome ব্যবহার করুন)');
+  const stream = capture.call(v);
+
+  // অডিও ট্র্যাক (রেকর্ডের সময় শব্দ বাজবে না)
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    const actx = new AC();
+    const src = actx.createMediaElementSource(v);
+    const dest = actx.createMediaStreamDestination();
+    src.connect(dest);
+    stream.getAudioTracks().forEach(t => stream.removeTrack(t));
+    dest.stream.getAudioTracks().forEach(t => stream.addTrack(t));
+  } catch (_) {}
+
+  const types = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm', 'video/mp4'];
+  const mime = types.find(t => MediaRecorder.isTypeSupported(t)) || '';
+  const rec = new MediaRecorder(stream, mime ? { mimeType: mime, videoBitsPerSecond: videoBps, audioBitsPerSecond: audioBps } : { videoBitsPerSecond: videoBps });
+  const chunks = [];
+  rec.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+  const done = new Promise((res, rej) => {
+    rec.onstop = () => res(new Blob(chunks, { type: rec.mimeType || 'video/webm' }));
+    rec.onerror = () => rej(new Error('কমপ্রেস ব্যর্থ হয়েছে'));
+  });
+
+  const timer = setInterval(() => {
+    const p = Math.min(99, Math.round((v.currentTime / duration) * 100));
+    setVidStatus('ভিডিও কমপ্রেস হচ্ছে... ' + p + '% (ট্যাব খোলা রাখুন)', p);
+  }, 500);
+
+  try {
+    rec.start(1000);
+    await v.play();
+    await new Promise(r => { v.onended = r; });
+  } finally { clearInterval(timer); }
+  if (rec.state !== 'inactive') rec.stop();
+  const blob = await done;
+  URL.revokeObjectURL(v.src);
+  if (blob.size > MAX_VIDEO_BYTES) throw new Error('কমপ্রেসের পরেও ফাইল ১০০ MB-এর বেশি');
+  const ext = blob.type.includes('mp4') ? 'mp4' : 'webm';
+  return new File([blob], 'compressed.' + ext, { type: blob.type });
+}
+
+function uploadVideoToCloudinary(file) {
+  return new Promise((resolve, reject) => {
+    if (!CLOUDINARY_CLOUD_NAME || CLOUDINARY_CLOUD_NAME.startsWith('YOUR_')) return reject(new Error('Cloudinary Cloud Name সেট করা হয়নি'));
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/video/upload`);
+    xhr.upload.onprogress = e => {
+      if (e.lengthComputable) {
+        const p = Math.round((e.loaded / e.total) * 100);
+        setVidStatus('ভিডিও আপলোড হচ্ছে... ' + p + '%', p);
+      }
+    };
+    xhr.onload = () => {
+      try {
+        const data = JSON.parse(xhr.responseText);
+        if (xhr.status >= 200 && xhr.status < 300 && data.secure_url) {
+          // f_auto,q_auto: প্রতিটি ডিভাইসের উপযোগী ফরম্যাট ও অপ্টিমাইজড কোয়ালিটি
+          resolve(data.secure_url.replace('/upload/', '/upload/f_auto,q_auto/'));
+        } else reject(new Error((data.error && data.error.message) || 'ভিডিও আপলোড ব্যর্থ'));
+      } catch (e) { reject(new Error('আপলোড রেসপন্স পড়া যায়নি')); }
+    };
+    xhr.onerror = () => reject(new Error('ইন্টারনেট সংযোগ সমস্যা'));
+    xhr.send(fd);
+  });
+}
+
+async function processAndUploadVideo(file) {
+  if (!file.type.startsWith('video/')) throw new Error('শুধু ভিডিও ফাইল দিন');
+  let f = file;
+  if (file.size > MAX_VIDEO_BYTES) {
+    setVidStatus('ভিডিও বড় (' + (file.size / 1048576).toFixed(0) + ' MB), কমপ্রেস শুরু হচ্ছে...', 0);
+    f = await compressVideo(file);
+  }
+  setVidStatus('ভিডিও আপলোড হচ্ছে... 0%', 0);
+  const url = await uploadVideoToCloudinary(f);
+  setVidStatus(null);
+  return url;
+}
+
 async function handleFormSubmit(e){
   e.preventDefault();
   if(!currentUser)return alert('আগে লগইন করুন।');
@@ -1565,6 +1698,9 @@ async function handleFormSubmit(e){
       if(fail)alert(fail+'টি ছবি আপলোড হয়নি।');
     }
     if(!imgs.length)imgs=[DEFAULT_IMG];
+    let videoFinal=vidRaw?safeUrl(vidRaw):'';
+    const vfile=document.getElementById('formVideoFile').files[0];
+    if(vfile){videoFinal=await processAndUploadVideo(vfile);}
     const data={
       title:document.getElementById('formTitle').value.trim(),
       type:document.getElementById('formType').value,
@@ -1572,7 +1708,7 @@ async function handleFormSubmit(e){
       rent,available:document.getElementById('formAvailable').value.trim(),phone,
       specs:document.getElementById('formSpecs').value.trim(),
       desc:document.getElementById('formDesc').value.trim(),
-      images:imgs,video:vidRaw?safeUrl(vidRaw):'',
+      images:imgs,video:videoFinal,
       reviews:old?(old.reviews||[]):[],
       postedBy:old?old.postedBy:currentUser.name,
       ownerPhone:old?old.ownerPhone:currentUser.phone,
@@ -1587,7 +1723,7 @@ async function handleFormSubmit(e){
     toggleAdModal(false);
     alert('বিজ্ঞাপন সফলভাবে সংরক্ষণ করা হয়েছে!');
   }catch(err){console.error(err);alert(fbErrMsg(err,'সংরক্ষণ ব্যর্থ হয়েছে।'));}
-  finally{btn.disabled=false;btn.textContent='বিজ্ঞাপন সংরক্ষণ করুন';}
+  finally{setVidStatus(null);btn.disabled=false;btn.textContent='বিজ্ঞাপন সংরক্ষণ করুন';}
 }
 
 /* ---------- reviews ---------- */
@@ -1952,7 +2088,7 @@ if(isFirebaseReady)firebaseDb.collection('site_settings').doc('locations').onSna
   }
 });
 
-/* ---------- admin: banners / footer / popup (these functions were MISSING -> admin panel crashed) ---------- */
+/* ---------- admin: banners / footer / popup ---------- */
 async function persistAdSettings(patch){
   adSettings=Object.assign({},adSettings,patch);
   localStorage.setItem('tolet_ad_settings',JSON.stringify(adSettings));
@@ -2038,7 +2174,7 @@ function savePopupAdSettingsDirect(){
   });
 }
 
-/* popup ad was never shown anywhere -> show once per session */
+/* popup ad: show once per session */
 function showPopupAdIfEnabled(){
   const s=adSettings;
   if(!s.popupEnabled||sessionStorage.getItem('tolet_popup_seen'))return;
