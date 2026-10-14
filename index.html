@@ -2422,6 +2422,8 @@ const _lg=logout;logout=function(){_lg();if(isAdminRoute())toggleAdminLoginModal
 
 /* ---------- 2. Site content (editable texts, footer areas, rental types) ---------- */
 const DEF={
+  brand1:'টু-লেট',brand2:'গোপালগঞ্জ',tagline:'শহরের বাসা ও মেস পোর্টাল',ftTag:'স্মার্ট ডিজিটাল বাসা ও মেস পোর্টাল',
+  rpTitle:'কোনো সমস্যা বা অভিযোগ আছে?',rpDesc:'ভুয়া বিজ্ঞাপন, প্রতারণা বা ওয়েবসাইটের কোনো সমস্যা হলে আমাদের জানান।',
   heroBadge:'গোপালগঞ্জ জেলা সদর ও আশপাশ',
   heroTitle:'গোপালগঞ্জে বাসা ভাড়া, মেস ও হোস্টেল\nছবি ও ভিডিও দেখে পছন্দ করুন',
   heroSub:'ফ্যামিলি ফ্ল্যাট, ব্যাচেলর রুম কিংবা স্টুডেন্ট মেস — সরাসরি মালিকের সাথে কথা ও চ্যাট করুন।',
@@ -2441,6 +2443,14 @@ function applyTypes(){
   applyFilters();
 }
 function apply(){
+  const hb=Q('header .leading-tight.block');
+  hb.innerHTML=esc(C.brand1)+' <span class="text-emerald-600">'+esc(C.brand2)+'</span>';
+  hb.nextElementSibling.textContent=C.tagline;
+  const fb=Q('footer span.text-lg');
+  fb.innerHTML=esc(C.brand1)+' <span class="text-emerald-400">'+esc(C.brand2)+'</span>';
+  fb.nextElementSibling.textContent=C.ftTag;
+  const rs=Q('button[onclick="openReportModal()"]').parentElement;
+  rs.querySelector('h4').textContent=C.rpTitle;rs.querySelector('p').textContent=C.rpDesc;
   const h=Q('section.bg-gradient-to-br');
   h.querySelector('span').textContent=C.heroBadge;
   h.querySelector('h1').innerHTML=String(C.heroTitle).split('\n').map(esc).join(' <br> ');
@@ -2459,6 +2469,7 @@ function apply(){
   applyTypes();
 }
 function fillInputs(){
+  ['brand1','brand2','tagline','ftTag','rpTitle','rpDesc'].forEach(k=>$('c_'+k).value=C[k]);
   $('c_heroBadge').value=C.heroBadge;$('c_heroTitle').value=C.heroTitle;$('c_heroSub').value=C.heroSub;
   $('c_footerDesc').value=C.footerDesc;$('c_copy').value=C.copy;$('c_areas').value=(C.areas||[]).join('\n');
 }
@@ -2476,7 +2487,7 @@ const fail=e=>alert(fbErrMsg(e,'সংরক্ষণ ব্যর্থ হয�
 window.saveContent=()=>{
   if(!isAdmin())return;
   const g=id=>$(id).value.trim();
-  save({heroBadge:g('c_heroBadge'),heroTitle:g('c_heroTitle'),heroSub:g('c_heroSub'),footerDesc:g('c_footerDesc'),copy:g('c_copy'),areas:g('c_areas').split('\n').map(s=>s.trim()).filter(Boolean)})
+  save({brand1:g('c_brand1')||DEF.brand1,brand2:g('c_brand2')||DEF.brand2,tagline:g('c_tagline'),ftTag:g('c_ftTag'),rpTitle:g('c_rpTitle'),rpDesc:g('c_rpDesc'),heroBadge:g('c_heroBadge'),heroTitle:g('c_heroTitle'),heroSub:g('c_heroSub'),footerDesc:g('c_footerDesc'),copy:g('c_copy'),areas:g('c_areas').split('\n').map(s=>s.trim()).filter(Boolean)})
     .then(()=>alert('সাইট কনটেন্ট সংরক্ষিত হয়েছে!')).catch(fail);
 };
 window.resetContent=()=>{if(isAdmin()&&confirm('সব লেখা ডিফল্টে ফিরিয়ে নিতে চান?'))save(Object.assign({},DEF,{types:C.types})).then(fillInputs).catch(fail);};
@@ -2505,7 +2516,7 @@ window.delType=ix=>{
 if(isFirebaseReady)firebaseDb.collection('site_settings').doc('site_content').onSnapshot(d=>{
   if(!d.exists)return;
   C=Object.assign({},DEF,d.data());localStorage.setItem('tolet_site_content',JSON.stringify(C));apply();fillTypes();
-});
+},err=>console.warn('Site content sync notice:',err));
 
 // edit korar somoy type talika theke muche gele-o jeno thik thake
 const _el=editListing;
@@ -2524,6 +2535,11 @@ $('adminAdsSection').parentElement.insertAdjacentHTML('beforeend',`
 <div id="adminContentSection" class="hidden space-y-4">
   <div class="bg-slate-50 border border-slate-200 p-3 sm:p-4 rounded-xl space-y-2.5">
     <h4 class="text-xs font-bold text-slate-800"><i class="fa-solid fa-pen-to-square text-emerald-600 mr-1"></i> হোমপেজ ও ফুটারের লেখা</h4>
+    <div class="grid grid-cols-2 gap-2"><div><label class="block text-xs font-semibold text-slate-700">সাইটের নাম (১ম অংশ)</label><input id="c_brand1" class="${IN}"></div><div><label class="block text-xs font-semibold text-slate-700">সাইটের নাম (২য় অংশ, সবুজ)</label><input id="c_brand2" class="${IN}"></div></div>
+    <label class="block text-xs font-semibold text-slate-700">হেডারের ছোট লেখা</label><input id="c_tagline" class="${IN}">
+    <label class="block text-xs font-semibold text-slate-700">ফুটারের ছোট লেখা</label><input id="c_ftTag" class="${IN}">
+    <label class="block text-xs font-semibold text-slate-700">রিপোর্ট বক্সের শিরোনাম</label><input id="c_rpTitle" class="${IN}">
+    <label class="block text-xs font-semibold text-slate-700">রিপোর্ট বক্সের লেখা</label><input id="c_rpDesc" class="${IN}">
     <label class="block text-xs font-semibold text-slate-700">উপরের ছোট ব্যাজ</label><input id="c_heroBadge" class="${IN}">
     <label class="block text-xs font-semibold text-slate-700">মূল শিরোনাম (নতুন লাইনে Enter দিন)</label><textarea id="c_heroTitle" rows="2" class="${IN}"></textarea>
     <label class="block text-xs font-semibold text-slate-700">শিরোনামের নিচের লেখা</label><textarea id="c_heroSub" rows="2" class="${IN}"></textarea>
@@ -2602,11 +2618,43 @@ async function delReview(rid){
   }catch(e){fail(e);}
 }
 
+/* ---------- 4b. Ad edit: remove individual old images ---------- */
+let _keep=null;
+function keepThumbs(){
+  const c=$('imagePreviewContainer');c.innerHTML='';
+  c.classList.toggle('hidden',!_keep.length);
+  _keep.forEach((u,i)=>{
+    const t=document.createElement('div');t.className='relative w-12 h-12 rounded-lg overflow-hidden border border-slate-200 shadow-sm';
+    t.innerHTML=`<img src="${safeUrl(u)}" class="w-full h-full object-cover"><button type="button" class="absolute top-0 right-0 bg-rose-600 text-white text-[10px] w-4 h-4 leading-none rounded-bl">&times;</button>`;
+    t.querySelector('button').onclick=()=>{_keep.splice(i,1);keepThumbs();};
+    c.appendChild(t);
+  });
+}
+const _el2=editListing;
+editListing=function(id){
+  _el2(id);
+  const it=listings.find(l=>l.id==id);
+  if(it&&canManage(it)){_keep=(it.images||[]).filter(u=>u!==DEFAULT_IMG);keepThumbs();}
+};
+const _oc=openAdModalForCreate;
+openAdModalForCreate=function(){_keep=null;_oc();};
+const _hf=handleFormSubmit;
+handleFormSubmit=function(e){
+  const id=$('editListingId').value;
+  if(id&&_keep&&!$('formImageFiles').files.length){const o=listings.find(l=>l.id==id);if(o)o.images=_keep.slice();}
+  return _hf(e);
+};
+
+/* ---------- 4c. Remove top banner / popup completely ---------- */
+$('saveTopBannerBtn').insertAdjacentHTML('afterend','<button onclick="rmTopBanner()" class="ml-2 px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold rounded-lg">ব্যানার মুছুন</button>');
+$('savePopupBtn').insertAdjacentHTML('afterend','<button onclick="rmPopup()" class="ml-2 px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold rounded-lg">পপ-আপ মুছুন</button>');
+window.rmTopBanner=()=>{if(isAdmin()&&confirm('টপ ব্যানার সম্পূর্ণ মুছবেন?'))persistAdSettings({topBannerEnabled:false,topBannerImageUrl:'',topBannerTargetUrl:'#'}).then(populateAdminAdInputs).catch(fail);};
+window.rmPopup=()=>{if(isAdmin()&&confirm('পপ-আপ সম্পূর্ণ মুছবেন?'))persistAdSettings({popupEnabled:false,popupImage:'',popupTitle:'',popupBody:'',popupActionUrl:'#'}).then(populateAdminAdInputs).catch(fail);};
+
 /* ---------- 5. Start ---------- */
 apply();
 if(isAdminRoute()){isAdmin()?openAdminModal():toggleAdminLoginModal(true);}
 })();
 </script>
-
-</body>
+ </body>
 </html>
