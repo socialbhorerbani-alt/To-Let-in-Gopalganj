@@ -2512,16 +2512,22 @@ window.resetContent=()=>{if(isAdmin()&&confirm('সব লেখা ডিফল
 window.addType=()=>{
   if(!isAdmin())return;
   const i=$('c_newType'),v=i.value.trim();if(!v)return alert('ধরনের নাম লিখুন!');
+  if(v.includes(','))return alert('নামে কমা (,) দেওয়া যাবে না!');
   if(C.types.includes(v))return alert('এই ধরন আগেই আছে!');
   i.value='';save({types:[...C.types,v]}).catch(fail);
 };
 window.editType=async ix=>{
   if(!isAdmin())return;
   const o=C.types[ix],n=(prompt('নতুন নাম লিখুন:',o)||'').trim();
-  if(!n||n===o)return;if(C.types.includes(n))return alert('এই নামে আগেই আছে!');
+  if(!n||n===o)return;
+  if(n.includes(','))return alert('নামে কমা (,) দেওয়া যাবে না!');
+  if(C.types.includes(n))return alert('এই নামে আগেই আছে!');
+  const sp=v=>String(v||'').split(/\s*,\s*/).filter(Boolean);
+  const ren=l=>sp(l.type).map(x=>x===o?n:x).join(', ');
+  const hit=listings.filter(l=>sp(l.type).includes(o));
   try{
-    if(isFirebaseReady){const b=firebaseDb.batch();listings.filter(l=>l.type===o).forEach(l=>b.update(firebaseDb.collection('listings').doc(String(l.id)),{type:n}));await b.commit();}
-    else{listings.forEach(l=>{if(l.type===o)l.type=n;});localStorage.setItem('gopalganj_tolet',JSON.stringify(listings));}
+    if(isFirebaseReady){const b=firebaseDb.batch();hit.forEach(l=>b.update(firebaseDb.collection('listings').doc(String(l.id)),{type:ren(l)}));await b.commit();}
+    else{hit.forEach(l=>{l.type=ren(l);});localStorage.setItem('gopalganj_tolet',JSON.stringify(listings));}
     const t=C.types.slice();t[ix]=n;await save({types:t});
   }catch(e){fail(e);}
 };
@@ -2672,6 +2678,84 @@ window.rmPopup=()=>{if(isAdmin()&&confirm('পপ-আপ সম্পূর্�
 /* ---------- 5. Start ---------- */
 apply();
 if(isAdminRoute()){isAdmin()?openAdminModal():toggleAdminLoginModal(true);}
+})();
+</script>
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const splitT=v=>String(v||'').split(/\s*,\s*/).filter(Boolean);
+let sel=[];
+const select=$('formType');
+select.required=false;
+select.classList.add('hidden');
+const lab=select.previousElementSibling;
+if(lab)lab.innerHTML='ভাড়ার ধরন * <span class="text-slate-400">(একাধিক বেছে নিতে পারবেন)</span>';
+const box=document.createElement('div');
+box.id='formTypeBox';
+box.className='flex flex-wrap gap-1.5';
+select.after(box);
+
+function render(){
+  const opts=[...select.options].map(o=>o.value).filter(v=>v&&!v.includes(','));
+  const all=[...opts,...sel.filter(v=>!opts.includes(v))];
+  box.innerHTML='';
+  all.forEach(v=>{
+    const l=document.createElement('label');
+    l.className='flex items-center gap-1.5 px-2.5 py-1.5 border border-slate-200 rounded-lg bg-white text-xs cursor-pointer select-none';
+    const c=document.createElement('input');
+    c.type='checkbox';
+    c.className='w-3.5 h-3.5 text-emerald-600 rounded border-slate-300';
+    c.checked=sel.includes(v);
+    c.onchange=()=>{sel=c.checked?[...sel,v]:sel.filter(x=>x!==v);};
+    l.appendChild(c);
+    l.append(v);
+    box.appendChild(l);
+  });
+}
+new MutationObserver(render).observe(select,{childList:true});
+render();
+
+/* নতুন বিজ্ঞাপন: প্রথম ধরন ডিফল্ট টিক */
+const _oc2=openAdModalForCreate;
+openAdModalForCreate=function(){
+  _oc2();
+  sel=select.options[0]?[select.options[0].value]:[];
+  render();
+};
+
+/* এডিট: আগের সব ধরন টিক করা থাকবে */
+const _el3=editListing;
+editListing=function(id){
+  _el3(id);
+  const it=listings.find(l=>l.id==id);
+  if(it&&canManage(it)){sel=splitT(it.type);render();}
+};
+
+/* সাবমিট: একাধিক ধরন "ফ্যামিলি, ব্যাচেলর" আকারে সেভ হবে */
+const _hf2=handleFormSubmit;
+handleFormSubmit=function(e){
+  if(!sel.length){
+    e.preventDefault();
+    return alert('কমপক্ষে একটি ভাড়ার ধরন বেছে নিন!');
+  }
+  const val=sel.join(', ');
+  if(![...select.options].some(o=>o.value===val))select.add(new Option(val,val));
+  select.value=val;
+  return _hf2(e);
+};
+
+/* ফিল্টার: যেকোনো একটি ধরন মিললেই বিজ্ঞাপন দেখাবে */
+applyFilters=function(){
+  const s=$('searchInput').value.toLowerCase().trim();
+  const a=$('areaFilter').value,t=$('typeFilter').value;
+  const f=listings.filter(i=>
+    (!s||[i.title,i.desc,i.area,i.address,i.type].some(x=>(x||'').toLowerCase().includes(s)))&&
+    (a==='all'||i.area===a)&&
+    (t==='all'||splitT(i.type).includes(t))
+  ).sort((x,y)=>(y.createdAt||0)-(x.createdAt||0));
+  renderListings(f.map(sanitizeListing));
+};
+applyFilters();
 })();
 </script>
  </body>
