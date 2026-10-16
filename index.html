@@ -2758,5 +2758,182 @@ applyFilters=function(){
 applyFilters();
 })();
 </script>
+<!-- ===== USED-GOODS MARKET ADD-ON: paste just before </body> ===== -->
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const CATS=['ফার্নিচার','ইলেকট্রনিক্স','মোবাইল/ল্যাপটপ','বই/স্টেশনারি','রান্নাঘরের জিনিস','সাইকেল/বাইক','অন্যান্য'];
+const CONDS=['নতুনের মতো','ভালো','মোটামুটি'];
+const LSK='tolet_market';
+let items=[],fc='all',fq='';
+const lsSave=()=>localStorage.setItem(LSK,JSON.stringify(items));
+const opt=a=>a.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('');
+const IN='w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white';
+
+document.body.insertAdjacentHTML('beforeend',`
+<div id="mkModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[45] hidden items-center justify-center p-0 sm:p-4">
+ <div class="bg-white sm:rounded-2xl w-full max-w-4xl overflow-hidden shadow-2xl flex flex-col h-full sm:h-auto sm:max-h-[92vh]">
+  <div class="px-4 py-3 bg-amber-600 text-white flex justify-between items-center flex-shrink-0">
+   <h3 class="text-sm sm:text-base font-bold"><i class="fa-solid fa-recycle mr-1.5"></i> পুরনো জিনিস কেনা-বেচা (<span id="mkCount">0</span>টি)</h3>
+   <button id="mkClose" class="text-2xl font-bold px-1">&times;</button>
+  </div>
+  <div id="mkListView" class="flex flex-col flex-1 min-h-0">
+   <div class="p-3 bg-slate-50 border-b border-slate-200 grid grid-cols-1 sm:grid-cols-4 gap-2 flex-shrink-0">
+    <input id="mkSearch" placeholder="পণ্য বা এলাকা খুঁজুন..." class="${IN} sm:col-span-2">
+    <select id="mkCat" class="${IN}"></select>
+    <button id="mkSellBtn" class="px-3 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-lg active:scale-95"><i class="fa-solid fa-plus mr-1"></i> বিক্রির বিজ্ঞাপন দিন</button>
+   </div>
+   <div id="mkGrid" class="p-3 sm:p-4 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 flex-1"></div>
+  </div>
+  <form id="mkForm" class="hidden p-4 space-y-3 overflow-y-auto text-xs flex-1">
+   <div><label class="block font-medium text-slate-700 mb-1">পণ্যের নাম *</label><input id="mk_title" required maxlength="100" placeholder="উদা: ব্যবহৃত স্টাডি টেবিল" class="${IN}"></div>
+   <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+    <div><label class="block font-medium text-slate-700 mb-1">ক্যাটাগরি *</label><select id="mk_cat" required class="${IN}"></select></div>
+    <div><label class="block font-medium text-slate-700 mb-1">অবস্থা *</label><select id="mk_cond" required class="${IN}"></select></div>
+    <div><label class="block font-medium text-slate-700 mb-1">এলাকা *</label><select id="mk_area" required class="${IN}"></select></div>
+   </div>
+   <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+    <div><label class="block font-medium text-slate-700 mb-1">দাম (টাকা) *</label><input type="number" id="mk_price" min="1" placeholder="২৫০০" class="${IN}">
+     <label class="flex items-center gap-1.5 mt-1.5 cursor-pointer text-[11px] text-slate-600"><input type="checkbox" id="mk_neg" class="w-3.5 h-3.5"><span>দাম আলোচনা সাপেক্ষে</span></label></div>
+    <div><label class="block font-medium text-slate-700 mb-1">যোগাযোগের মোবাইল *</label><input type="tel" id="mk_phone" required placeholder="017XXXXXXXX" class="${IN}"></div>
+   </div>
+   <div><label class="block font-medium text-slate-700 mb-1">বিবরণ</label><textarea id="mk_desc" rows="3" maxlength="1000" placeholder="কতদিন ব্যবহার করা, কোনো সমস্যা আছে কিনা..." class="${IN}"></textarea></div>
+   <div><label class="block font-medium text-slate-700 mb-1">ছবি (সর্বোচ্চ ৪টি)</label><input type="file" id="mk_imgs" accept="image/*" multiple class="w-full p-1.5 border border-slate-300 rounded-lg"></div>
+   <div class="flex justify-end gap-2 pt-2 border-t">
+    <button type="button" id="mkBack" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 font-semibold">বাতিল</button>
+    <button type="submit" id="mk_submit" class="px-5 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold active:scale-95">বিজ্ঞাপন প্রকাশ করুন</button>
+   </div>
+  </form>
+ </div>
+</div>`);
+
+$('mkCat').innerHTML='<option value="all">সব ক্যাটাগরি</option>'+opt(CATS);
+$('mk_cat').innerHTML=opt(CATS);
+$('mk_cond').innerHTML=opt(CONDS);
+
+/* ---- open / close ---- */
+function view(v){
+  $('mkListView').classList.toggle('hidden',v!=='list');
+  $('mkForm').classList.toggle('hidden',v!=='form');
+}
+function openMk(){
+  const m=$('mkModal');m.classList.remove('hidden');m.classList.add('flex');view('list');render();
+}
+function closeMk(){const m=$('mkModal');m.classList.add('hidden');m.classList.remove('flex');}
+$('mkClose').onclick=closeMk;
+$('mkBack').onclick=()=>view('list');
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMk();});
+
+/* ---- entry buttons (header + hero) ---- */
+$('authSection').insertAdjacentHTML('beforebegin','<button id="mkOpenHdr" class="flex items-center gap-1.5 text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1.5 sm:py-2 rounded-lg hover:bg-amber-100 active:scale-95" title="পুরনো জিনিস কেনা-বেচা"><i class="fa-solid fa-recycle"></i><span class="hidden sm:inline">পুরনো জিনিস</span></button>');
+const heroBox=document.querySelector('section.bg-gradient-to-br .max-w-4xl');
+if(heroBox)heroBox.insertAdjacentHTML('beforeend','<button id="mkOpenHero" class="mt-1 bg-amber-500 hover:bg-amber-600 text-white text-xs sm:text-sm font-bold px-4 py-2 rounded-xl shadow active:scale-95"><i class="fa-solid fa-recycle mr-1.5"></i> পুরনো জিনিস কেনা-বেচা করুন</button>');
+$('mkOpenHdr').onclick=openMk;
+const hb=$('mkOpenHero');if(hb)hb.onclick=openMk;
+
+/* ---- sell form ---- */
+$('mk_neg').onchange=()=>{
+  const p=$('mk_price'),n=$('mk_neg').checked;
+  if(n)p.value='';p.disabled=n;p.classList.toggle('bg-slate-100',n);
+};
+$('mkSellBtn').onclick=()=>{
+  if(!currentUser){alert('বিজ্ঞাপন দিতে হলে আগে লগইন করুন।');toggleAuthModal(true);return;}
+  $('mkForm').reset();$('mk_neg').onchange();
+  $('mk_area').innerHTML=opt(locations);
+  $('mk_phone').value=currentUser.phone||'';
+  view('form');
+};
+$('mkForm').onsubmit=async e=>{
+  e.preventDefault();
+  if(!currentUser)return alert('আগে লগইন করুন।');
+  const phone=normPhone($('mk_phone').value);
+  if(!validPhone(phone))return alert('সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন (017XXXXXXXX)');
+  const neg=$('mk_neg').checked,price=neg?0:Number($('mk_price').value);
+  if(!neg&&!(price>0))return alert('সঠিক দাম লিখুন অথবা "আলোচনা সাপেক্ষে" টিক দিন।');
+  const files=[...$('mk_imgs').files].slice(0,4);
+  const b=$('mk_submit');b.disabled=true;b.textContent='সংরক্ষণ হচ্ছে...';
+  try{
+    const images=[];
+    for(const f of files){try{images.push(await uploadToImgBB(f));}catch(_){}}
+    if(files.length&&!images.length)alert('ছবি আপলোড হয়নি, ছবি ছাড়াই প্রকাশ হচ্ছে।');
+    await save({
+      id:String(Date.now()),title:$('mk_title').value.trim(),category:$('mk_cat').value,condition:$('mk_cond').value,
+      area:$('mk_area').value,price,negotiable:neg,phone,desc:$('mk_desc').value.trim(),images,
+      owner:currentUser.name,ownerPhone:currentUser.phone,status:'available',createdAt:Date.now()
+    });
+    view('list');alert('বিজ্ঞাপন সফলভাবে প্রকাশ হয়েছে!');
+  }catch(err){console.error(err);alert(fbErrMsg(err,'সংরক্ষণ ব্যর্থ হয়েছে।'));}
+  finally{b.disabled=false;b.textContent='বিজ্ঞাপন প্রকাশ করুন';}
+};
+
+/* ---- data ---- */
+async function save(it){
+  if(isFirebaseReady)await firebaseDb.collection('market_items').doc(String(it.id)).set(it);
+  else{items=items.filter(x=>x.id!=it.id);items.push(it);lsSave();render();}
+}
+async function setSold(it){
+  const s=it.status==='sold'?'available':'sold';
+  if(isFirebaseReady)await firebaseDb.collection('market_items').doc(String(it.id)).update({status:s});
+  else{it.status=s;lsSave();render();}
+}
+async function del(it){
+  if(isFirebaseReady)await firebaseDb.collection('market_items').doc(String(it.id)).delete();
+  else{items=items.filter(x=>x.id!=it.id);lsSave();render();}
+}
+if(isFirebaseReady){
+  firebaseDb.collection('market_items').onSnapshot(s=>{
+    items=[];s.forEach(d=>items.push(d.data()));render();
+  },err=>console.warn('Market sync notice:',err));
+}else{
+  try{items=JSON.parse(localStorage.getItem(LSK))||[];}catch(_){items=[];}
+}
+
+/* ---- render ---- */
+function render(){
+  const g=$('mkGrid');
+  const l=items.filter(i=>(fc==='all'||i.category===fc)&&(!fq||[i.title,i.desc,i.area,i.category].some(x=>(x||'').toLowerCase().includes(fq))))
+    .sort((a,b)=>((a.status==='sold')-(b.status==='sold'))||((b.createdAt||0)-(a.createdAt||0)));
+  $('mkCount').textContent=l.length;
+  if(!l.length){g.innerHTML='<p class="col-span-full text-center text-xs text-slate-400 py-10">কোনো পণ্য পাওয়া যায়নি।</p>';return;}
+  g.innerHTML=l.map(i=>{
+    const im=safeUrl((i.images||[])[0]);
+    const ph=normPhone(i.phone),sold=i.status==='sold';
+    const own=!!currentUser&&(isAdmin()||currentUser.phone===i.ownerPhone);
+    const price=i.negotiable?'আলোচনা সাপেক্ষে':'৳'+Number(i.price).toLocaleString('bn-BD');
+    return `<div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+<div class="relative h-36 bg-slate-100 flex items-center justify-center">
+${im?`<img src="${im}" data-a="img" data-id="${esc(i.id)}" class="w-full h-full object-cover cursor-pointer ${sold?'opacity-50':''}">`:'<i class="fa-solid fa-box-open text-3xl text-slate-300"></i>'}
+${sold?'<span class="absolute top-2 left-2 bg-rose-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">বিক্রি হয়ে গেছে</span>':''}
+<span class="absolute top-2 right-2 bg-white/95 text-[10px] font-semibold px-2 py-0.5 rounded-full border border-slate-200">${esc(i.condition)}</span>
+</div>
+<div class="p-3 space-y-1 flex-1">
+<h4 class="font-bold text-sm text-slate-900 line-clamp-1">${esc(i.title)}</h4>
+<p class="text-[11px] text-slate-500">${esc(i.category)} • <i class="fa-solid fa-location-dot text-emerald-600"></i> ${esc(i.area)}</p>
+<p class="text-[11px] text-slate-600 line-clamp-2">${esc(i.desc)}</p>
+<p class="text-[10px] text-slate-400">বিক্রেতা: ${esc(i.owner)}</p>
+</div>
+<div class="px-3 py-2 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-1.5 flex-wrap">
+<span class="font-extrabold text-sm ${i.negotiable?'text-amber-600':'text-emerald-600'}">${price}</span>
+<div class="flex gap-1">
+${ph&&!sold?`<a href="https://wa.me/88${ph}" target="_blank" rel="noopener noreferrer" class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm"><i class="fa-brands fa-whatsapp"></i></a><a href="tel:${ph}" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg"><i class="fa-solid fa-phone"></i> কল</a>`:''}
+${own?`<button data-a="sold" data-id="${esc(i.id)}" class="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 text-[11px] font-bold rounded-lg">${sold?'আবার খালি':'বিক্রি হয়েছে'}</button><button data-a="del" data-id="${esc(i.id)}" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs rounded-lg"><i class="fa-solid fa-trash"></i></button>`:''}
+</div></div></div>`;
+  }).join('');
+}
+$('mkGrid').addEventListener('click',async e=>{
+  const t=e.target.closest('[data-a]');if(!t)return;
+  const it=items.find(x=>x.id==t.dataset.id);if(!it)return;
+  const a=t.dataset.a;
+  try{
+    if(a==='img'){openImageLightbox((it.images||[]).map(safeUrl).filter(Boolean),0);}
+    else if(a==='sold'){await setSold(it);}
+    else if(a==='del'){if(confirm('এই বিজ্ঞাপনটি মুছে ফেলতে চান?'))await del(it);}
+  }catch(err){console.error(err);alert(fbErrMsg(err,'কাজটি করা যায়নি।'));}
+});
+$('mkSearch').oninput=e=>{fq=e.target.value.toLowerCase().trim();render();};
+$('mkCat').onchange=e=>{fc=e.target.value;render();};
+render();
+})();
+</script>
  </body>
 </html>
