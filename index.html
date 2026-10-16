@@ -2758,182 +2758,642 @@ applyFilters=function(){
 applyFilters();
 })();
 </script>
-<!-- ===== USED-GOODS MARKET ADD-ON: paste just before </body> ===== -->
+<!-- ===== MARKET + BASA-CHAI v3: FULL PAGE, HOME-STYLE DESIGN, MULTI-LOCATION, EASY FORMS ===== -->
+<style>
+  .um-chip{display:inline-flex;align-items:center;gap:.3rem;padding:.45rem .8rem;border-radius:9999px;border:1px solid #cbd5e1;background:#fff;color:#334155;font-size:12px;font-weight:600;cursor:pointer;user-select:none;transition:.15s;font-family:inherit}
+  .um-chip:hover{border-color:#10b981;color:#047857}
+  .um-chip.on{background:#059669;border-color:#059669;color:#fff}
+  .um-chip:active{transform:scale(.95)}
+  .um-chip.q{background:#f1f5f9;font-weight:500;padding:.3rem .65rem}
+  .um-in{width:100%;padding:.65rem .8rem;font-size:14px;border-radius:.75rem;border:1px solid #cbd5e1;background:#fff;outline:none;font-family:inherit}
+  .um-in:focus{box-shadow:0 0 0 2px #10b981;border-color:#10b981}
+  .um-in:disabled{background:#f1f5f9}
+</style>
 <script>
 (function(){
 const $=id=>document.getElementById(id);
+const DAY=86400000,WEEK=7*DAY;
 const CATS=['ফার্নিচার','ইলেকট্রনিক্স','মোবাইল/ল্যাপটপ','বই/স্টেশনারি','রান্নাঘরের জিনিস','সাইকেল/বাইক','অন্যান্য'];
 const CONDS=['নতুনের মতো','ভালো','মোটামুটি'];
-const LSK='tolet_market';
-let items=[],fc='all',fq='';
-const lsSave=()=>localStorage.setItem(LSK,JSON.stringify(items));
+const COL={mk:'market_items',rq:'rent_requests'},LSK={mk:'tolet_market',rq:'tolet_rent_requests'};
+['mkModal','mkOpenHdr','mkOpenHero','um_mk','um_rq'].forEach(id=>{const e=$(id);if(e)e.remove();});
+
+/* ---------- helpers ---------- */
 const opt=a=>a.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('');
-const IN='w-full p-2 text-xs rounded-lg border border-slate-300 outline-none bg-white';
-
-document.body.insertAdjacentHTML('beforeend',`
-<div id="mkModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[45] hidden items-center justify-center p-0 sm:p-4">
- <div class="bg-white sm:rounded-2xl w-full max-w-4xl overflow-hidden shadow-2xl flex flex-col h-full sm:h-auto sm:max-h-[92vh]">
-  <div class="px-4 py-3 bg-amber-600 text-white flex justify-between items-center flex-shrink-0">
-   <h3 class="text-sm sm:text-base font-bold"><i class="fa-solid fa-recycle mr-1.5"></i> পুরনো জিনিস কেনা-বেচা (<span id="mkCount">0</span>টি)</h3>
-   <button id="mkClose" class="text-2xl font-bold px-1">&times;</button>
-  </div>
-  <div id="mkListView" class="flex flex-col flex-1 min-h-0">
-   <div class="p-3 bg-slate-50 border-b border-slate-200 grid grid-cols-1 sm:grid-cols-4 gap-2 flex-shrink-0">
-    <input id="mkSearch" placeholder="পণ্য বা এলাকা খুঁজুন..." class="${IN} sm:col-span-2">
-    <select id="mkCat" class="${IN}"></select>
-    <button id="mkSellBtn" class="px-3 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-lg active:scale-95"><i class="fa-solid fa-plus mr-1"></i> বিক্রির বিজ্ঞাপন দিন</button>
-   </div>
-   <div id="mkGrid" class="p-3 sm:p-4 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 flex-1"></div>
-  </div>
-  <form id="mkForm" class="hidden p-4 space-y-3 overflow-y-auto text-xs flex-1">
-   <div><label class="block font-medium text-slate-700 mb-1">পণ্যের নাম *</label><input id="mk_title" required maxlength="100" placeholder="উদা: ব্যবহৃত স্টাডি টেবিল" class="${IN}"></div>
-   <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-    <div><label class="block font-medium text-slate-700 mb-1">ক্যাটাগরি *</label><select id="mk_cat" required class="${IN}"></select></div>
-    <div><label class="block font-medium text-slate-700 mb-1">অবস্থা *</label><select id="mk_cond" required class="${IN}"></select></div>
-    <div><label class="block font-medium text-slate-700 mb-1">এলাকা *</label><select id="mk_area" required class="${IN}"></select></div>
-   </div>
-   <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-    <div><label class="block font-medium text-slate-700 mb-1">দাম (টাকা) *</label><input type="number" id="mk_price" min="1" placeholder="২৫০০" class="${IN}">
-     <label class="flex items-center gap-1.5 mt-1.5 cursor-pointer text-[11px] text-slate-600"><input type="checkbox" id="mk_neg" class="w-3.5 h-3.5"><span>দাম আলোচনা সাপেক্ষে</span></label></div>
-    <div><label class="block font-medium text-slate-700 mb-1">যোগাযোগের মোবাইল *</label><input type="tel" id="mk_phone" required placeholder="017XXXXXXXX" class="${IN}"></div>
-   </div>
-   <div><label class="block font-medium text-slate-700 mb-1">বিবরণ</label><textarea id="mk_desc" rows="3" maxlength="1000" placeholder="কতদিন ব্যবহার করা, কোনো সমস্যা আছে কিনা..." class="${IN}"></textarea></div>
-   <div><label class="block font-medium text-slate-700 mb-1">ছবি (সর্বোচ্চ ৪টি)</label><input type="file" id="mk_imgs" accept="image/*" multiple class="w-full p-1.5 border border-slate-300 rounded-lg"></div>
-   <div class="flex justify-end gap-2 pt-2 border-t">
-    <button type="button" id="mkBack" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 font-semibold">বাতিল</button>
-    <button type="submit" id="mk_submit" class="px-5 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold active:scale-95">বিজ্ঞাপন প্রকাশ করুন</button>
-   </div>
-  </form>
- </div>
-</div>`);
-
-$('mkCat').innerHTML='<option value="all">সব ক্যাটাগরি</option>'+opt(CATS);
-$('mk_cat').innerHTML=opt(CATS);
-$('mk_cond').innerHTML=opt(CONDS);
-
-/* ---- open / close ---- */
-function view(v){
-  $('mkListView').classList.toggle('hidden',v!=='list');
-  $('mkForm').classList.toggle('hidden',v!=='form');
+const bn=n=>Number(n).toLocaleString('bn-BD');
+const daysLeft=ts=>Math.max(1,Math.ceil((ts+WEEK-Date.now())/DAY));
+const splitT=v=>String(v||'').split(/\s*,\s*/).filter(Boolean);
+const areasOf=r=>Array.isArray(r.areas)?r.areas.filter(Boolean):splitT(r.area);
+const typeList=()=>[...$('typeFilter').options].map(o=>o.value).filter(v=>v&&v!=='all');
+const lsGet=k=>{try{return JSON.parse(localStorage.getItem(LSK[k]))||[];}catch(_){return[];}};
+function lock(){document.body.style.overflow=(!$('um_mk').classList.contains('hidden')||!$('um_rq').classList.contains('hidden'))?'hidden':'';}
+const show=id=>{const m=$(id);m.classList.remove('hidden');m.classList.add('flex');m.scrollTop=0;lock();};
+const hide=id=>{const m=$(id);m.classList.add('hidden');m.classList.remove('flex');lock();};
+function closeAll(){hide('um_mk');hide('um_rq');}
+function needLogin(m){alert(m);closeAll();toggleAuthModal(true);}
+function view(k,v){
+  $('um_'+k+'List').classList.toggle('hidden',v!=='list');
+  $('um_'+k+'FormWrap').classList.toggle('hidden',v!=='form');
+  $('um_'+k+'Fab').classList.toggle('hidden',v!=='list');
+  $('um_'+k).scrollTop=0;
 }
-function openMk(){
-  const m=$('mkModal');m.classList.remove('hidden');m.classList.add('flex');view('list');render();
+$('imageLightboxModal').style.zIndex=70;
+
+/* chips (single / multi) */
+function chips(boxId,opts,sel,multi,cb){
+  const box=$(boxId);box.innerHTML='';
+  opts.forEach(o=>{
+    const b=document.createElement('button');b.type='button';
+    const on=sel.includes(o);
+    b.className='um-chip'+(on?' on':'');b.textContent=(on?'✓ ':'')+o;
+    b.onclick=()=>{
+      const i=sel.indexOf(o);
+      if(multi){i>=0?sel.splice(i,1):sel.push(o);}else{sel.length=0;sel.push(o);}
+      chips(boxId,opts,sel,multi,cb);if(cb)cb();
+    };
+    box.appendChild(b);
+  });
 }
-function closeMk(){const m=$('mkModal');m.classList.add('hidden');m.classList.remove('flex');}
-$('mkClose').onclick=closeMk;
-$('mkBack').onclick=()=>view('list');
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMk();});
+/* quick-fill chips */
+function quick(boxId,vals,inp,fmt,before){
+  const b=$(boxId);b.innerHTML='';
+  vals.forEach(v=>{
+    const x=document.createElement('button');x.type='button';x.className='um-chip q';x.textContent=fmt?fmt(v):v;
+    x.onclick=()=>{if(before)before();inp.value=v;inp.focus();};b.appendChild(x);
+  });
+}
 
-/* ---- entry buttons (header + hero) ---- */
-$('authSection').insertAdjacentHTML('beforebegin','<button id="mkOpenHdr" class="flex items-center gap-1.5 text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1.5 sm:py-2 rounded-lg hover:bg-amber-100 active:scale-95" title="পুরনো জিনিস কেনা-বেচা"><i class="fa-solid fa-recycle"></i><span class="hidden sm:inline">পুরনো জিনিস</span></button>');
-const heroBox=document.querySelector('section.bg-gradient-to-br .max-w-4xl');
-if(heroBox)heroBox.insertAdjacentHTML('beforeend','<button id="mkOpenHero" class="mt-1 bg-amber-500 hover:bg-amber-600 text-white text-xs sm:text-sm font-bold px-4 py-2 rounded-xl shadow active:scale-95"><i class="fa-solid fa-recycle mr-1.5"></i> পুরনো জিনিস কেনা-বেচা করুন</button>');
-$('mkOpenHdr').onclick=openMk;
-const hb=$('mkOpenHero');if(hb)hb.onclick=openMk;
+/* ================= DATA ================= */
+let mk=[],rq=[],fromAdm=false;
+const get=k=>k==='mk'?mk:rq;
+const setArr=(k,a)=>{if(k==='mk')mk=a;else rq=a;};
+const lsSave=k=>localStorage.setItem(LSK[k],JSON.stringify(get(k)));
+async function dbSet(k,o){
+  if(isFirebaseReady)await firebaseDb.collection(COL[k]).doc(String(o.id)).set(o);
+  else{const a=get(k).filter(x=>x.id!=o.id);a.push(o);setArr(k,a);lsSave(k);refresh();}
+}
+async function dbPatch(k,id,p){
+  if(isFirebaseReady)await firebaseDb.collection(COL[k]).doc(String(id)).update(p);
+  else{Object.assign(get(k).find(x=>x.id==id)||{},p);lsSave(k);refresh();}
+}
+async function dbDel(k,id){
+  if(isFirebaseReady)await firebaseDb.collection(COL[k]).doc(String(id)).delete();
+  else{setArr(k,get(k).filter(x=>x.id!=id));lsSave(k);refresh();}
+}
 
-/* ---- sell form ---- */
-$('mk_neg').onchange=()=>{
-  const p=$('mk_price'),n=$('mk_neg').checked;
-  if(n)p.value='';p.disabled=n;p.classList.toggle('bg-slate-100',n);
-};
-$('mkSellBtn').onclick=()=>{
-  if(!currentUser){alert('বিজ্ঞাপন দিতে হলে আগে লগইন করুন।');toggleAuthModal(true);return;}
-  $('mkForm').reset();$('mk_neg').onchange();
-  $('mk_area').innerHTML=opt(locations);
-  $('mk_phone').value=currentUser.phone||'';
-  view('form');
-};
-$('mkForm').onsubmit=async e=>{
-  e.preventDefault();
-  if(!currentUser)return alert('আগে লগইন করুন।');
-  const phone=normPhone($('mk_phone').value);
-  if(!validPhone(phone))return alert('সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন (017XXXXXXXX)');
-  const neg=$('mk_neg').checked,price=neg?0:Number($('mk_price').value);
-  if(!neg&&!(price>0))return alert('সঠিক দাম লিখুন অথবা "আলোচনা সাপেক্ষে" টিক দিন।');
-  const files=[...$('mk_imgs').files].slice(0,4);
-  const b=$('mk_submit');b.disabled=true;b.textContent='সংরক্ষণ হচ্ছে...';
+/* ================= 7 DIN PORE AUTO DELETE ================= */
+const expLs=x=>!!(x&&x.rented&&x.rentedAt&&Date.now()-x.rentedAt>=WEEK);
+const expMk=x=>!!(x&&x.status==='sold'&&x.soldAt&&Date.now()-x.soldAt>=WEEK);
+const expRq=x=>!!(x&&x.status==='done'&&x.doneAt&&Date.now()-x.doneAt>=WEEK);
+let _ct=null;
+function schedule(){clearTimeout(_ct);_ct=setTimeout(cleanup,2500);}
+async function cleanup(){
+  const jobs=[['listings',listings.filter(expLs)],[COL.mk,mk.filter(expMk)],[COL.rq,rq.filter(expRq)]];
+  if(!jobs.some(j=>j[1].length))return;
   try{
-    const images=[];
-    for(const f of files){try{images.push(await uploadToImgBB(f));}catch(_){}}
-    if(files.length&&!images.length)alert('ছবি আপলোড হয়নি, ছবি ছাড়াই প্রকাশ হচ্ছে।');
-    await save({
-      id:String(Date.now()),title:$('mk_title').value.trim(),category:$('mk_cat').value,condition:$('mk_cond').value,
-      area:$('mk_area').value,price,negotiable:neg,phone,desc:$('mk_desc').value.trim(),images,
-      owner:currentUser.name,ownerPhone:currentUser.phone,status:'available',createdAt:Date.now()
-    });
-    view('list');alert('বিজ্ঞাপন সফলভাবে প্রকাশ হয়েছে!');
-  }catch(err){console.error(err);alert(fbErrMsg(err,'সংরক্ষণ ব্যর্থ হয়েছে।'));}
-  finally{b.disabled=false;b.textContent='বিজ্ঞাপন প্রকাশ করুন';}
+    if(isFirebaseReady){
+      const refs=[];
+      jobs.forEach(([c,a])=>a.forEach(x=>refs.push(firebaseDb.collection(c).doc(String(x.id)))));
+      for(let i=0;i<refs.length;i+=400){const b=firebaseDb.batch();refs.slice(i,i+400).forEach(r=>b.delete(r));await b.commit();}
+    }else{
+      listings=listings.filter(x=>!expLs(x));localStorage.setItem('gopalganj_tolet',JSON.stringify(listings));
+      mk=mk.filter(x=>!expMk(x));lsSave('mk');
+      rq=rq.filter(x=>!expRq(x));lsSave('rq');
+      applyFilters();refresh();
+    }
+  }catch(e){console.warn('Auto-delete notice:',e);}
+}
+setInterval(cleanup,3600000);
+const _af=applyFilters;
+applyFilters=function(){_af();schedule();};
+
+/* ================= BASA: "ভাড়া হয়ে গেছে" MARK ================= */
+async function toggleRented(id){
+  const it=listings.find(l=>l.id==id);
+  if(!it||!canManage(it))return alert('আপনার অনুমতি নেই!');
+  const on=!it.rented;
+  if(on&&!confirm('বাসাটি "ভাড়া হয়ে গেছে" হিসেবে মার্ক করবেন?\nমার্ক করার ৭ দিন পরে বিজ্ঞাপনটি নিজে থেকেই মুছে যাবে।'))return;
+  const patch=on?{rented:true,rentedAt:Date.now()}:{rented:false,rentedAt:0};
+  try{
+    if(isFirebaseReady)await firebaseDb.collection('listings').doc(String(id)).update(patch);
+    else{Object.assign(it,patch);localStorage.setItem('gopalganj_tolet',JSON.stringify(listings));applyFilters();renderAdminAdsList();renderUserAdsList();}
+  }catch(e){console.error(e);alert(fbErrMsg(e,'আপডেট করা যায়নি।'));}
+}
+const _bar=buildAdRows;
+buildAdRows=function(c,items,closeFn){
+  _bar(c,items,closeFn);
+  [...c.children].forEach((row,i)=>{
+    const it=items[i];if(!it||!canManage(it))return;
+    const box=row.lastElementChild;
+    const b=document.createElement('button');
+    b.className='px-2 py-1 text-[11px] font-bold rounded-lg '+(it.rented?'bg-slate-100 hover:bg-slate-200 text-slate-700':'bg-amber-50 hover:bg-amber-100 text-amber-700');
+    b.textContent=it.rented?'আবার খালি':'ভাড়া হয়েছে';
+    b.onclick=()=>toggleRented(it.id);
+    box.prepend(b);
+    if(it.rented){
+      const h=row.querySelector('h4');
+      if(h)h.insertAdjacentHTML('beforeend',' <span class="text-[9px] bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded font-bold">ভাড়া হয়ে গেছে'+(it.rentedAt?' • '+bn(daysLeft(it.rentedAt))+' দিন বাকি':'')+'</span>');
+    }
+  });
+};
+const _rl=renderListings;
+renderListings=function(items){
+  const vis=items.filter(x=>!expLs(x)).sort((a,b)=>(!!a.rented)-(!!b.rented));
+  _rl(vis);
+  const kids=$('listingsContainer').children;
+  vis.forEach((it,i)=>{
+    if(!it.rented)return;
+    const card=kids[i];if(!card)return;
+    card.classList.add('opacity-75');
+    const top=card.querySelector('.relative');
+    if(top)top.insertAdjacentHTML('beforeend','<div class="absolute inset-x-0 bottom-0 bg-rose-600/90 text-white text-center text-xs font-bold py-1.5 z-10 pointer-events-none">ভাড়া হয়ে গেছে'+(it.rentedAt?' • '+bn(daysLeft(it.rentedAt))+' দিন পরে মুছে যাবে':'')+'</div>');
+  });
+};
+const _hf=handleFormSubmit;
+handleFormSubmit=function(e){
+  const eid=$('editListingId').value,old=eid?listings.find(l=>l.id==eid):null;
+  const keep=old&&old.rented?{rented:true,rentedAt:old.rentedAt||Date.now()}:null;
+  const p=_hf(e);
+  if(!keep)return p;
+  return Promise.resolve(p).then(async()=>{
+    try{
+      if(isFirebaseReady)await firebaseDb.collection('listings').doc(String(eid)).update(keep);
+      else{const n=listings.find(l=>l.id==eid);if(n){Object.assign(n,keep);localStorage.setItem('gopalganj_tolet',JSON.stringify(listings));applyFilters();}}
+    }catch(_){}
+  });
 };
 
-/* ---- data ---- */
-async function save(it){
-  if(isFirebaseReady)await firebaseDb.collection('market_items').doc(String(it.id)).set(it);
-  else{items=items.filter(x=>x.id!=it.id);items.push(it);lsSave();render();}
-}
-async function setSold(it){
-  const s=it.status==='sold'?'available':'sold';
-  if(isFirebaseReady)await firebaseDb.collection('market_items').doc(String(it.id)).update({status:s});
-  else{it.status=s;lsSave();render();}
-}
-async function del(it){
-  if(isFirebaseReady)await firebaseDb.collection('market_items').doc(String(it.id)).delete();
-  else{items=items.filter(x=>x.id!=it.id);lsSave();render();}
-}
-if(isFirebaseReady){
-  firebaseDb.collection('market_items').onSnapshot(s=>{
-    items=[];s.forEach(d=>items.push(d.data()));render();
-  },err=>console.warn('Market sync notice:',err));
-}else{
-  try{items=JSON.parse(localStorage.getItem(LSK))||[];}catch(_){items=[];}
+/* ================= PAGE BUILDER (home-er moto design) ================= */
+const sec=(n,t,b)=>`<div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 sm:p-5 space-y-3"><h4 class="text-sm font-bold text-slate-800 flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-emerald-600 text-white text-xs flex items-center justify-center flex-shrink-0">${n}</span>${t}</h4>${b}</div>`;
+const lb=(t,req)=>`<label class="block text-xs font-semibold text-slate-600 mb-1">${t}${req?' <span class="text-rose-500">*</span>':''}</label>`;
+const actionBar=k=>`<div class="fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur border-t border-slate-200 px-3 pt-3" style="padding-bottom:calc(.75rem + env(safe-area-inset-bottom,0px))"><div class="max-w-3xl mx-auto flex gap-2"><button type="button" onclick="umCancel('${k}')" class="flex-1 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold active:scale-95">বাতিল</button><button type="submit" id="um_${k==='mk'?'m':'r'}_submit" class="flex-[2] py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold active:scale-95 shadow-md shadow-emerald-200"><i class="fa-solid fa-check mr-1"></i> সংরক্ষণ করুন</button></div></div>`;
+
+function shell(k,o){
+return `<div id="um_${k}" class="fixed inset-0 z-[60] hidden flex-col bg-slate-50 overflow-y-auto" style="-webkit-overflow-scrolling:touch">
+<header class="sticky top-0 z-20 bg-white/95 backdrop-blur shadow-sm border-b border-slate-100" style="padding-top:env(safe-area-inset-top,0px)">
+ <div class="max-w-7xl mx-auto px-3 sm:px-4 h-16 flex items-center justify-between">
+  <div class="flex items-center gap-2 select-none">
+   <div class="w-9 h-9 sm:w-10 sm:h-10 bg-emerald-600 text-white rounded-xl flex items-center justify-center text-lg sm:text-xl shadow-md shadow-emerald-200"><i class="fa-solid ${o.icon}"></i></div>
+   <div><span class="text-base sm:text-xl font-bold text-slate-900 leading-tight block">টু-লেট <span class="text-emerald-600">গোপালগঞ্জ</span></span><span class="text-[9px] sm:text-[11px] text-slate-500 font-medium">${o.sub}</span></div>
+  </div>
+  <div class="flex items-center gap-2">
+   <button onclick="${o.addFn}" class="hidden sm:flex bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-lg text-sm font-semibold items-center gap-1.5 shadow-sm active:scale-95"><i class="fa-solid fa-plus text-xs"></i> ${o.addLabel}</button>
+   <button onclick="umClose()" title="বন্ধ করুন" class="w-10 h-10 rounded-full bg-slate-100 hover:bg-rose-100 hover:text-rose-600 text-slate-600 text-2xl leading-none flex items-center justify-center transition active:scale-90">&times;</button>
+  </div>
+ </div>
+</header>
+
+<div id="um_${k}List">
+ <section class="bg-gradient-to-br from-emerald-800 to-teal-900 text-white py-7 sm:py-12 px-3 sm:px-4">
+  <div class="max-w-4xl mx-auto text-center space-y-2.5 sm:space-y-3">
+   <span class="bg-emerald-700/60 text-emerald-200 px-3 py-1 rounded-full text-[10px] sm:text-xs font-medium uppercase tracking-wider inline-block">${o.badge}</span>
+   <h1 class="text-xl sm:text-3xl md:text-4xl font-extrabold tracking-tight">${o.h1}</h1>
+   <p class="text-emerald-100 text-xs sm:text-sm md:text-base max-w-xl mx-auto">${o.p}</p>
+  </div>
+ </section>
+ <section class="max-w-7xl mx-auto px-3 sm:px-4 -mt-5 sm:-mt-6 relative z-10">
+  <div class="bg-white rounded-2xl shadow-xl border border-slate-100 p-3 sm:p-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">${o.filters}</div>
+ </section>
+ <main class="max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-10 w-full">
+  <h2 class="text-base sm:text-xl font-bold text-slate-900 flex items-center gap-2 mb-4 sm:mb-6"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> ${o.listTitle} (<span id="um_${k}Count">0</span>টি)</h2>
+  <div id="um_${k}Grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3.5 sm:gap-6"></div>
+  <div class="text-center pt-8 pb-16 sm:pb-4"><button onclick="umClose()" class="px-5 py-2.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 text-sm font-bold active:scale-95"><i class="fa-solid fa-arrow-left mr-1.5"></i> মূল পেজে ফিরে যান</button></div>
+ </main>
+</div>
+
+<div id="um_${k}FormWrap" class="hidden">
+ <div class="max-w-3xl mx-auto px-3 sm:px-4 pt-4 flex items-center gap-2.5">
+  <button type="button" onclick="umCancel('${k}')" class="w-10 h-10 rounded-full bg-white border border-slate-200 hover:bg-slate-100 text-slate-600 flex items-center justify-center active:scale-90"><i class="fa-solid fa-arrow-left"></i></button>
+  <h3 id="um_${k}FormTitle" class="text-base sm:text-lg font-bold text-slate-900"></h3>
+ </div>
+ ${o.form}
+</div>
+
+<button id="um_${k}Fab" onclick="${o.addFn}" class="sm:hidden fixed right-4 z-30 w-14 h-14 rounded-full bg-emerald-600 text-white shadow-lg shadow-emerald-500/40 text-xl active:scale-90" style="bottom:calc(1rem + env(safe-area-inset-bottom,0px))"><i class="fa-solid fa-plus"></i></button>
+</div>`;
 }
 
-/* ---- render ---- */
-function render(){
-  const g=$('mkGrid');
-  const l=items.filter(i=>(fc==='all'||i.category===fc)&&(!fq||[i.title,i.desc,i.area,i.category].some(x=>(x||'').toLowerCase().includes(fq))))
+const mkFilters=`
+<div><label class="text-[11px] sm:text-xs font-semibold text-slate-500 mb-1 block">কী-ওয়ার্ড দিয়ে খুঁজুন</label><div class="relative"><i class="fa-solid fa-magnifying-glass absolute left-3 top-3.5 text-slate-400 text-sm"></i><input id="um_mkSearch" placeholder="পণ্য বা এলাকা..." class="um-in" style="padding-left:2.25rem"></div></div>
+<div><label class="text-[11px] sm:text-xs font-semibold text-slate-500 mb-1 block">ক্যাটাগরি</label><select id="um_mkCat" class="um-in"></select></div>
+<div><label class="text-[11px] sm:text-xs font-semibold text-slate-500 mb-1 block">এলাকা</label><select id="um_mkAreaF" class="um-in"></select></div>
+<div class="flex items-end"><button onclick="umResetMk()" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 active:scale-95"><i class="fa-solid fa-arrows-rotate text-xs"></i> ফিল্টার রিসেট</button></div>`;
+
+const rqFilters=`
+<div><label class="text-[11px] sm:text-xs font-semibold text-slate-500 mb-1 block">কী-ওয়ার্ড দিয়ে খুঁজুন</label><div class="relative"><i class="fa-solid fa-magnifying-glass absolute left-3 top-3.5 text-slate-400 text-sm"></i><input id="um_rqSearch" placeholder="নাম বা এলাকা..." class="um-in" style="padding-left:2.25rem"></div></div>
+<div><label class="text-[11px] sm:text-xs font-semibold text-slate-500 mb-1 block">এলাকা</label><select id="um_rqAreaF" class="um-in"></select></div>
+<div><label class="text-[11px] sm:text-xs font-semibold text-slate-500 mb-1 block">ভাড়ার ধরন</label><select id="um_rqTypeF" class="um-in"></select></div>
+<div class="flex items-end"><button onclick="umResetRq()" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 active:scale-95"><i class="fa-solid fa-arrows-rotate text-xs"></i> ফিল্টার রিসেট</button></div>`;
+
+const mkForm=`<form id="um_mkForm" class="max-w-3xl mx-auto px-3 sm:px-4 py-4 space-y-4 pb-32">
+${sec(1,'কী বিক্রি করবেন?',`
+ <div>${lb('পণ্যের নাম',1)}<input id="um_m_title" required maxlength="100" placeholder="উদা: ব্যবহৃত স্টাডি টেবিল" class="um-in"></div>
+ <div>${lb('ক্যাটাগরি (একটি বেছে নিন)',1)}<div id="um_m_catBox" class="flex flex-wrap gap-1.5"></div></div>
+ <div>${lb('জিনিসের অবস্থা',1)}<div id="um_m_condBox" class="flex flex-wrap gap-1.5"></div></div>`)}
+${sec(2,'দাম',`
+ <div class="relative">${lb('দাম (টাকা)',1)}<span class="absolute left-3 bottom-2.5 text-slate-500 font-bold">৳</span><input type="number" id="um_m_price" min="1" placeholder="২৫০০" class="um-in" style="padding-left:1.75rem"></div>
+ <div id="um_m_priceQuick" class="flex flex-wrap gap-1.5"></div>
+ <label class="flex items-center gap-2 cursor-pointer select-none text-xs text-slate-600"><input type="checkbox" id="um_m_neg" class="w-4 h-4 rounded"><span>দাম আলোচনা সাপেক্ষে (টাকা লিখতে হবে না)</span></label>`)}
+${sec(3,'এলাকা ও যোগাযোগ',`
+ <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+  <div>${lb('এলাকা',1)}<select id="um_m_area" required class="um-in"></select></div>
+  <div>${lb('যোগাযোগের মোবাইল',1)}<input type="tel" id="um_m_phone" required placeholder="017XXXXXXXX" class="um-in"></div>
+ </div>
+ <div>${lb('<i class="fa-solid fa-map-pin text-rose-500 mr-1"></i> বিস্তারিত ঠিকানা (ঐচ্ছিক)')}<input id="um_m_addr" maxlength="200" placeholder="উদা: নবীনবাগ, মসজিদের পাশে" class="um-in"></div>`)}
+${sec(4,'বিবরণ ও ছবি',`
+ <div>${lb('কতদিন ব্যবহার করা হয়েছে')}<input id="um_m_usage" maxlength="60" placeholder="উদা: ২ বছর" class="um-in"><div id="um_m_usageQuick" class="flex flex-wrap gap-1.5 mt-2"></div></div>
+ <div>${lb('বিবরণ (ঐচ্ছিক)')}<textarea id="um_m_desc" rows="3" maxlength="1000" placeholder="কোনো সমস্যা আছে কিনা, কেন বিক্রি করছেন..." class="um-in"></textarea></div>
+ <div>${lb('ছবি (মোট সর্বোচ্চ ৪টি)')}
+  <div id="um_m_thumbs" class="flex flex-wrap gap-2 mb-2"></div>
+  <label class="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 hover:border-emerald-500 hover:bg-emerald-50/40 rounded-xl p-4 text-xs text-slate-500 cursor-pointer transition"><i class="fa-solid fa-camera text-2xl text-emerald-600 mb-1"></i><span class="font-semibold">ছবি বেছে নিন</span><input type="file" id="um_m_imgs" accept="image/*" multiple class="hidden"></label>
+ </div>`)}
+${actionBar('mk')}
+</form>`;
+
+const rqForm=`<form id="um_rqForm" class="max-w-3xl mx-auto px-3 sm:px-4 py-4 space-y-4 pb-32">
+${sec(1,'আপনার পরিচয়',`
+ <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+  <div>${lb('আপনার নাম',1)}<input id="um_r_name" required maxlength="40" class="um-in"></div>
+  <div>${lb('মোবাইল নম্বর',1)}<input type="tel" id="um_r_phone" required placeholder="017XXXXXXXX" class="um-in"></div>
+ </div>`)}
+${sec(2,'কোন কোন এলাকায় চান?',`
+ <p class="text-[11px] text-slate-500">একাধিক এলাকা বেছে নিতে পারবেন। কিছু না বাছলে "যেকোনো এলাকা" ধরা হবে।</p>
+  <div class="relative">
+  <i class="fa-solid fa-magnifying-glass absolute left-3 top-3.5 text-slate-400 text-sm"></i>
+  <input type="text" id="um_r_areaSearch" placeholder="এলাকা খুঁজুন..." autocomplete="off" onkeydown="if(event.key==='Enter')event.preventDefault()" class="um-in" style="padding-left:2.25rem">
+ </div>
+ <div id="um_r_areaBox" class="flex flex-wrap gap-1.5"></div>
+ <div class="flex items-center gap-3 text-[11px]"><span id="um_r_areaInfo" class="font-bold text-emerald-700"></span><button type="button" id="um_r_areaAll" class="text-sky-700 font-bold underline">সব বাছুন</button><button type="button" id="um_r_areaNone" class="text-rose-600 font-bold underline">মুছুন</button></div>`)}
+${sec(3,'কেমন বাসা চান?',`
+ <div>${lb('ভাড়ার ধরন (একাধিক বাছতে পারেন)')}<div id="um_r_typeBox" class="flex flex-wrap gap-1.5"></div></div>
+ <div>${lb('কতজন থাকবেন')}<input id="um_r_members" maxlength="60" placeholder="উদা: ২ জন ব্যাচেলর" class="um-in"><div id="um_r_membersQuick" class="flex flex-wrap gap-1.5 mt-2"></div></div>`)}
+${sec(4,'বাজেট ও সময়',`
+ <div class="relative">${lb('সর্বোচ্চ বাজেট (টাকা)')}<span class="absolute left-3 bottom-2.5 text-slate-500 font-bold">৳</span><input type="number" id="um_r_budget" min="1" placeholder="ফাঁকা = আলোচনা সাপেক্ষে" class="um-in" style="padding-left:1.75rem"></div>
+ <div id="um_r_budgetQuick" class="flex flex-wrap gap-1.5"></div>
+ <div>${lb('কবে থেকে লাগবে')}<input id="um_r_from" maxlength="60" placeholder="উদা: আগামী মাসের ১ তারিখ" class="um-in"><div id="um_r_fromQuick" class="flex flex-wrap gap-1.5 mt-2"></div></div>`)}
+${sec(5,'অন্যান্য চাহিদা',`<textarea id="um_r_desc" rows="3" maxlength="1000" placeholder="কেমন বাসা চান, বিশেষ কোনো চাহিদা..." class="um-in"></textarea>`)}
+${actionBar('rq')}
+</form>`;
+
+document.body.insertAdjacentHTML('beforeend',
+  shell('mk',{icon:'fa-recycle',sub:'পুরনো জিনিস কেনা-বেচা',addLabel:'বিক্রির বিজ্ঞাপন দিন',addFn:'openMarketSell()',badge:'গোপালগঞ্জ জেলা সদর ও আশপাশ',h1:'পুরনো জিনিস কেনা-বেচা <br> ছবি দেখে পছন্দ করুন',p:'ফার্নিচার, ইলেকট্রনিক্স, বই — কম দামে কিনুন কিংবা আপনার অব্যবহৃত জিনিস বিক্রি করুন।',filters:mkFilters,listTitle:'বর্তমান বিজ্ঞাপনসমূহ',form:mkForm})+
+  shell('rq',{icon:'fa-bullhorn',sub:'বাসা ভাড়ার অনুরোধ — বাসা চাই',addLabel:'অনুরোধ পাঠান',addFn:'openRequestForm()',badge:'গোপালগঞ্জ জেলা সদর ও আশপাশ',h1:'বাসা খুঁজছেন? <br> আপনার চাহিদা জানিয়ে দিন',p:'এক বা একাধিক এলাকা বেছে অনুরোধ পাঠান — বাড়িওয়ালারা সরাসরি আপনার সাথে যোগাযোগ করবেন।',filters:rqFilters,listTitle:'বাসা চাই অনুরোধসমূহ',form:rqForm}));
+
+/* ================= OPEN / CLOSE ================= */
+window.umClose=()=>{fromAdm=false;closeAll();};
+window.umCancel=k=>{if(fromAdm){fromAdm=false;closeAll();}else view(k,'list');};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&(!$('um_mk').classList.contains('hidden')||!$('um_rq').classList.contains('hidden')))umClose();});
+
+function fillFilters(){
+  const keep=(id,html)=>{const f=$(id),v=f.value||'all';f.innerHTML=html;f.value=[...f.options].some(o=>o.value===v)?v:'all';};
+  keep('um_mkCat','<option value="all">সব ক্যাটাগরি</option>'+opt(CATS));
+  keep('um_mkAreaF','<option value="all">সব এলাকা</option>'+opt(locations));
+  keep('um_rqAreaF','<option value="all">সব এলাকা</option>'+opt(locations));
+  keep('um_rqTypeF','<option value="all">সব ধরন</option>'+opt(typeList()));
+}
+window.umResetMk=()=>{$('um_mkSearch').value='';fillFilters();$('um_mkCat').value='all';$('um_mkAreaF').value='all';renderMk();};
+window.umResetRq=()=>{$('um_rqSearch').value='';fillFilters();$('um_rqAreaF').value='all';$('um_rqTypeF').value='all';renderRq();};
+window.openMarket=()=>{fromAdm=false;fillFilters();renderMk();show('um_mk');view('mk','list');};
+window.openRentRequests=()=>{fromAdm=false;fillFilters();renderRq();show('um_rq');view('rq','list');};
+window.openMarketSell=()=>{fromAdm=false;openMkForm();};
+window.openRequestForm=()=>{fromAdm=false;openRqForm();};
+
+/* ================= PURANO JINIS: FORM ================= */
+let mkEdit=null,mkKeep=[],mkNew=[];
+const stM={cat:[],cond:[]};
+function negToggle(){
+  const p=$('um_m_price'),n=$('um_m_neg').checked;
+  if(n)p.value='';p.disabled=n;
+}
+$('um_m_neg').onchange=negToggle;
+quick('um_m_priceQuick',[500,1000,2000,3000,5000,10000],$('um_m_price'),v=>'৳'+bn(v),()=>{$('um_m_neg').checked=false;negToggle();});
+quick('um_m_usageQuick',['নতুন','৬ মাস','১ বছর','২ বছর','৩ বছরের বেশি'],$('um_m_usage'));
+function mkThumbs(){
+  const c=$('um_m_thumbs');c.innerHTML='';
+  const mk1=(src,rm)=>{
+    const t=document.createElement('div');
+    t.className='relative w-16 h-16 rounded-xl overflow-hidden border border-slate-200 shadow-sm';
+    t.innerHTML='<img src="'+src+'" class="w-full h-full object-cover"><button type="button" class="absolute top-0 right-0 bg-rose-600 text-white text-xs w-5 h-5 leading-none rounded-bl-lg">&times;</button>';
+    t.querySelector('button').onclick=rm;c.appendChild(t);
+  };
+  mkKeep.forEach((u,i)=>mk1(safeUrl(u),()=>{mkKeep.splice(i,1);mkThumbs();}));
+  mkNew.forEach((f,i)=>mk1(URL.createObjectURL(f),()=>{mkNew.splice(i,1);mkThumbs();}));
+}
+$('um_m_imgs').onchange=e=>{
+  const room=4-mkKeep.length-mkNew.length;
+  const add=[...e.target.files].slice(0,Math.max(0,room));
+  if(e.target.files.length>room)alert('সর্বোচ্চ ৪টি ছবি দেওয়া যাবে।');
+  mkNew.push(...add);e.target.value='';mkThumbs();
+};
+function openMkForm(id){
+  if(!currentUser)return needLogin('বিজ্ঞাপন দিতে হলে আগে লগইন করুন।');
+  const it=id?mk.find(x=>x.id==id):null;
+  if(id&&(!it||!canManage(it)))return alert('আপনার অনুমতি নেই!');
+  $('um_mkForm').reset();
+  mkEdit=it?it.id:null;mkKeep=it?(it.images||[]).slice():[];mkNew=[];
+  $('um_mkFormTitle').textContent=it?'পুরনো জিনিসের বিজ্ঞাপন এডিট করুন':'পুরনো জিনিস বিক্রির বিজ্ঞাপন দিন';
+  const sel=$('um_m_area');sel.innerHTML=opt(locations);
+  stM.cat=it?[it.category]:[];stM.cond=[it?it.condition:'ভালো'];
+  if(it){
+    if(!locations.includes(it.area))sel.add(new Option(it.area,it.area));
+    $('um_m_title').value=it.title||'';sel.value=it.area;
+    $('um_m_addr').value=it.address||'';$('um_m_usage').value=it.usage||'';
+    $('um_m_neg').checked=!!it.negotiable;$('um_m_price').value=it.negotiable?'':it.price;
+    $('um_m_phone').value=it.phone||'';$('um_m_desc').value=it.desc||'';
+  }else $('um_m_phone').value=currentUser.phone||'';
+  chips('um_m_catBox',CATS,stM.cat,false);
+  chips('um_m_condBox',CONDS,stM.cond,false);
+  negToggle();mkThumbs();
+  show('um_mk');view('mk','form');
+}
+$('um_mkForm').onsubmit=async e=>{
+  e.preventDefault();
+  if(!currentUser)return needLogin('আগে লগইন করুন।');
+  const old=mkEdit?mk.find(x=>x.id==mkEdit):null;
+  if(mkEdit&&(!old||!canManage(old)))return alert('আপনার অনুমতি নেই!');
+  if(!stM.cat.length)return alert('একটি ক্যাটাগরি বেছে নিন!');
+  if(!stM.cond.length)return alert('জিনিসের অবস্থা বেছে নিন!');
+  const phone=normPhone($('um_m_phone').value);
+  if(!validPhone(phone))return alert('সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন (017XXXXXXXX)');
+  const neg=$('um_m_neg').checked,price=neg?0:Number($('um_m_price').value);
+  if(!neg&&!(price>0))return alert('সঠিক দাম লিখুন অথবা "আলোচনা সাপেক্ষে" টিক দিন।');
+  const b=$('um_m_submit');b.disabled=true;b.textContent='সংরক্ষণ হচ্ছে...';
+  try{
+    const images=mkKeep.slice();let fail=0;
+    for(const f of mkNew){try{images.push(await uploadToImgBB(f));}catch(_){fail++;}}
+    if(fail)alert(fail+'টি ছবি আপলোড হয়নি।');
+    await dbSet('mk',{
+      id:old?String(old.id):String(Date.now()),
+      title:$('um_m_title').value.trim(),category:stM.cat[0],condition:stM.cond[0],
+      area:$('um_m_area').value,address:$('um_m_addr').value.trim(),usage:$('um_m_usage').value.trim(),
+      price,negotiable:neg,phone,desc:$('um_m_desc').value.trim(),images,
+      status:old?(old.status||'available'):'available',soldAt:old?(old.soldAt||0):0,
+      owner:old?old.owner:currentUser.name,ownerPhone:old?old.ownerPhone:currentUser.phone,
+      createdAt:old?(old.createdAt||Date.now()):Date.now()
+    });
+    mkNew=[];umCancel('mk');alert('বিজ্ঞাপন সফলভাবে সংরক্ষণ হয়েছে!');
+  }catch(err){console.error(err);alert(fbErrMsg(err,'সংরক্ষণ ব্যর্থ হয়েছে।'));}
+  finally{b.disabled=false;b.innerHTML='<i class="fa-solid fa-check mr-1"></i> সংরক্ষণ করুন';}
+};
+async function toggleMkSold(it){
+  if(!canManage(it))return;
+  const sold=it.status!=='sold';
+  if(sold&&!confirm('জিনিসটি "বিক্রি হয়ে গেছে" হিসেবে মার্ক করবেন?\nমার্ক করার ৭ দিন পরে বিজ্ঞাপনটি নিজে থেকেই মুছে যাবে।'))return;
+  await dbPatch('mk',it.id,sold?{status:'sold',soldAt:Date.now()}:{status:'available',soldAt:0});
+}
+
+/* ================= PURANO JINIS: LIST ================= */
+function renderMk(){
+  const q=($('um_mkSearch').value||'').toLowerCase().trim(),c=$('um_mkCat').value,af=$('um_mkAreaF').value;
+  const l=mk.filter(i=>!expMk(i)&&(c==='all'||i.category===c)&&(af==='all'||i.area===af)&&(!q||[i.title,i.desc,i.area,i.category,i.address].some(x=>(x||'').toLowerCase().includes(q))))
     .sort((a,b)=>((a.status==='sold')-(b.status==='sold'))||((b.createdAt||0)-(a.createdAt||0)));
-  $('mkCount').textContent=l.length;
-  if(!l.length){g.innerHTML='<p class="col-span-full text-center text-xs text-slate-400 py-10">কোনো পণ্য পাওয়া যায়নি।</p>';return;}
+  $('um_mkCount').textContent=l.length;
+  const g=$('um_mkGrid');
+  if(!l.length){g.innerHTML='<div class="col-span-full text-center py-16 bg-white rounded-2xl border border-slate-100"><i class="fa-regular fa-face-frown text-4xl text-slate-400 mb-3 block"></i><h3 class="text-lg font-bold text-slate-800">কোনো পণ্য পাওয়া যায়নি</h3><p class="text-sm text-slate-500">অন্য ফিল্টার দিয়ে চেষ্টা করুন।</p></div>';return;}
   g.innerHTML=l.map(i=>{
-    const im=safeUrl((i.images||[])[0]);
-    const ph=normPhone(i.phone),sold=i.status==='sold';
-    const own=!!currentUser&&(isAdmin()||currentUser.phone===i.ownerPhone);
-    const price=i.negotiable?'আলোচনা সাপেক্ষে':'৳'+Number(i.price).toLocaleString('bn-BD');
-    return `<div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-<div class="relative h-36 bg-slate-100 flex items-center justify-center">
-${im?`<img src="${im}" data-a="img" data-id="${esc(i.id)}" class="w-full h-full object-cover cursor-pointer ${sold?'opacity-50':''}">`:'<i class="fa-solid fa-box-open text-3xl text-slate-300"></i>'}
-${sold?'<span class="absolute top-2 left-2 bg-rose-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">বিক্রি হয়ে গেছে</span>':''}
-<span class="absolute top-2 right-2 bg-white/95 text-[10px] font-semibold px-2 py-0.5 rounded-full border border-slate-200">${esc(i.condition)}</span>
+    const imgs=(i.images||[]).map(safeUrl).filter(Boolean),im=imgs[0],ph=normPhone(i.phone),sold=i.status==='sold',own=canManage(i);
+    return `<div class="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition overflow-hidden flex flex-col justify-between">
+<div>
+ <div class="relative h-44 sm:h-48 w-full bg-slate-900 overflow-hidden">
+  ${im?`<img src="${im}" data-a="img" data-id="${esc(i.id)}" class="w-full h-full object-cover cursor-pointer hover:scale-105 transition duration-300 ${sold?'opacity-50':''}">`:'<div class="w-full h-full flex items-center justify-center bg-slate-100"><i class="fa-solid fa-box-open text-4xl text-slate-300"></i></div>'}
+  <div class="absolute top-2.5 left-2.5 flex gap-1.5"><span class="text-[11px] font-semibold px-2.5 py-1 rounded-full border bg-white/95 shadow-sm text-amber-700 border-amber-200">${esc(i.category)}</span><span class="text-[11px] font-semibold px-2.5 py-1 rounded-full border bg-white/95 shadow-sm text-emerald-700 border-emerald-200">${esc(i.condition)}</span></div>
+  ${imgs.length>1?`<div class="absolute top-2.5 right-2.5 bg-black/60 text-white text-[10px] font-bold px-2 py-0.5 rounded-full"><i class="fa-solid fa-camera mr-1"></i>${imgs.length}</div>`:''}
+  ${sold?`<div class="absolute inset-x-0 bottom-0 bg-rose-600/90 text-white text-center text-xs font-bold py-1.5 pointer-events-none">বিক্রি হয়ে গেছে${i.soldAt?' • '+bn(daysLeft(i.soldAt))+' দিন পরে মুছে যাবে':''}</div>`:''}
+ </div>
+ <div class="p-3.5 sm:p-5">
+  <div class="flex items-center justify-between gap-2 mb-1.5"><span class="text-[11px] text-emerald-700 font-semibold flex items-center gap-1"><i class="fa-solid fa-location-dot"></i> ${esc(i.area)}</span>${i.usage?`<span class="text-[11px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded"><i class="fa-regular fa-clock mr-1"></i>${esc(i.usage)}</span>`:''}</div>
+  <h3 class="font-bold text-slate-900 text-sm sm:text-base mb-1 line-clamp-1">${esc(i.title)}</h3>
+  ${i.address?`<p class="text-[11px] text-slate-500 mb-1.5 flex items-start gap-1"><i class="fa-solid fa-map-pin text-rose-500 mt-0.5"></i><span class="line-clamp-2">${esc(i.address)}</span></p>`:''}
+  <p class="text-xs text-slate-500 line-clamp-2 leading-relaxed mb-2">${esc(i.desc)||'বিস্তারিত জানতে সরাসরি যোগাযোগ করুন।'}</p>
+  <span class="text-[11px] text-slate-400"><i class="fa-solid fa-user text-[10px] mr-1"></i> ${esc(i.owner||'বিক্রেতা')}</span>
+ </div>
 </div>
-<div class="p-3 space-y-1 flex-1">
-<h4 class="font-bold text-sm text-slate-900 line-clamp-1">${esc(i.title)}</h4>
-<p class="text-[11px] text-slate-500">${esc(i.category)} • <i class="fa-solid fa-location-dot text-emerald-600"></i> ${esc(i.area)}</p>
-<p class="text-[11px] text-slate-600 line-clamp-2">${esc(i.desc)}</p>
-<p class="text-[10px] text-slate-400">বিক্রেতা: ${esc(i.owner)}</p>
-</div>
-<div class="px-3 py-2 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-1.5 flex-wrap">
-<span class="font-extrabold text-sm ${i.negotiable?'text-amber-600':'text-emerald-600'}">${price}</span>
-<div class="flex gap-1">
-${ph&&!sold?`<a href="https://wa.me/88${ph}" target="_blank" rel="noopener noreferrer" class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm"><i class="fa-brands fa-whatsapp"></i></a><a href="tel:${ph}" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg"><i class="fa-solid fa-phone"></i> কল</a>`:''}
-${own?`<button data-a="sold" data-id="${esc(i.id)}" class="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 text-[11px] font-bold rounded-lg">${sold?'আবার খালি':'বিক্রি হয়েছে'}</button><button data-a="del" data-id="${esc(i.id)}" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs rounded-lg"><i class="fa-solid fa-trash"></i></button>`:''}
-</div></div></div>`;
+<div>
+ <div class="px-3.5 sm:px-5 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+  <div><span class="text-[9px] text-slate-400 uppercase tracking-wider block font-bold">দাম</span><span class="text-sm sm:text-base font-extrabold ${i.negotiable?'text-amber-600':'text-emerald-600'}">${i.negotiable?'আলোচনা সাপেক্ষে':'৳'+bn(i.price)}</span></div>
+  <div class="flex items-center gap-1.5">${ph&&!sold?`<a href="https://wa.me/88${ph}" target="_blank" rel="noopener noreferrer" class="w-8 h-8 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-700 flex items-center justify-center text-sm active:scale-95"><i class="fa-brands fa-whatsapp"></i></a><a href="tel:${ph}" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-sm active:scale-95"><i class="fa-solid fa-phone"></i> কল</a>`:''}</div>
+ </div>
+ ${own?`<div class="px-3.5 sm:px-5 py-2 border-t border-slate-100 flex gap-1.5 flex-wrap"><button data-a="sold" data-id="${esc(i.id)}" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 text-[11px] font-bold rounded-lg">${sold?'আবার খালি':'বিক্রি হয়েছে'}</button><button data-a="edit" data-id="${esc(i.id)}" class="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs rounded-lg"><i class="fa-solid fa-pen"></i></button><button data-a="del" data-id="${esc(i.id)}" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs rounded-lg"><i class="fa-solid fa-trash"></i></button></div>`:''}
+</div></div>`;
   }).join('');
 }
-$('mkGrid').addEventListener('click',async e=>{
+$('um_mkGrid').addEventListener('click',async e=>{
   const t=e.target.closest('[data-a]');if(!t)return;
-  const it=items.find(x=>x.id==t.dataset.id);if(!it)return;
+  const it=mk.find(x=>x.id==t.dataset.id);if(!it)return;
   const a=t.dataset.a;
   try{
-    if(a==='img'){openImageLightbox((it.images||[]).map(safeUrl).filter(Boolean),0);}
-    else if(a==='sold'){await setSold(it);}
-    else if(a==='del'){if(confirm('এই বিজ্ঞাপনটি মুছে ফেলতে চান?'))await del(it);}
+    if(a==='img')openImageLightbox((it.images||[]).map(safeUrl).filter(Boolean),0);
+    else if(a==='edit'){fromAdm=false;openMkForm(it.id);}
+    else if(a==='sold')await toggleMkSold(it);
+    else if(a==='del'){if(canManage(it)&&confirm('এই বিজ্ঞাপনটি মুছে ফেলতে চান?'))await dbDel('mk',it.id);}
   }catch(err){console.error(err);alert(fbErrMsg(err,'কাজটি করা যায়নি।'));}
 });
-$('mkSearch').oninput=e=>{fq=e.target.value.toLowerCase().trim();render();};
-$('mkCat').onchange=e=>{fc=e.target.value;render();};
-render();
+$('um_mkSearch').oninput=renderMk;
+$('um_mkCat').onchange=renderMk;
+$('um_mkAreaF').onchange=renderMk;
+
+/* ================= BASA CHAI: FORM (একাধিক এলাকা) ================= */
+let rqEdit=null;
+const stR={areas:[],types:[]};
+let _areaOpts=[];
+function areaInfo(){
+  $('um_r_areaInfo').textContent=stR.areas.length?stR.areas.length+'টি এলাকা বাছা হয়েছে':'যেকোনো এলাকা';
+}
+function filteredAreas(){
+  const q=($('um_r_areaSearch').value||'').trim().toLowerCase();
+  return q?_areaOpts.filter(a=>a.toLowerCase().includes(q)):_areaOpts;
+}
+function drawAreas(){
+  const list=filteredAreas();
+  if(!list.length){
+    $('um_r_areaBox').innerHTML='<p class="text-xs text-slate-400 py-1">কোনো এলাকা পাওয়া যায়নি।</p>';
+  }else{
+    chips('um_r_areaBox',list,stR.areas,true,areaInfo);
+  }
+  areaInfo();
+}
+$('um_r_areaSearch').oninput=drawAreas;
+$('um_r_areaAll').onclick=()=>{
+  filteredAreas().forEach(a=>{if(!stR.areas.includes(a))stR.areas.push(a);});
+  drawAreas();
+};
+$('um_r_areaNone').onclick=()=>{stR.areas.length=0;drawAreas();};
+quick('um_r_membersQuick',['একজন','২ জন ব্যাচেলর','৩-৪ জন মেস','ছোট ফ্যামিলি','বড় ফ্যামিলি','স্টুডেন্ট'],$('um_r_members'));
+quick('um_r_budgetQuick',[3000,5000,8000,10000,15000,20000],$('um_r_budget'),v=>'৳'+bn(v));
+quick('um_r_fromQuick',['এখনই','এই মাসেই','আগামী মাসের ১ তারিখ','২-৩ মাস পরে'],$('um_r_from'));
+function openRqForm(id){
+  if(!currentUser)return needLogin('অনুরোধ পাঠাতে আগে লগইন করুন।');
+  const it=id?rq.find(x=>x.id==id):null;
+  if(id&&(!it||!canManage(it)))return alert('আপনার অনুমতি নেই!');
+  $('um_rqForm').reset();rqEdit=it?it.id:null;
+  $('um_rqFormTitle').textContent=it?'অনুরোধ এডিট করুন':'বাসা ভাড়ার অনুরোধ পাঠান';
+  stR.areas=it?areasOf(it).slice():[];
+  stR.types=it?splitT(it.type):[];
+  _areaOpts=[...locations,...stR.areas.filter(a=>!locations.includes(a))];
+  const tOpts=[...typeList(),...stR.types.filter(a=>!typeList().includes(a))];
+  drawAreas();chips('um_r_typeBox',tOpts,stR.types,true);
+  if(it){
+    $('um_r_name').value=it.name||'';$('um_r_phone').value=it.phone||'';
+    $('um_r_budget').value=it.budget||'';$('um_r_from').value=it.needFrom||'';$('um_r_members').value=it.members||'';$('um_r_desc').value=it.desc||'';
+  }else{$('um_r_name').value=currentUser.name||'';$('um_r_phone').value=currentUser.phone||'';}
+  show('um_rq');view('rq','form');
+}
+$('um_rqForm').onsubmit=async e=>{
+  e.preventDefault();
+  if(!currentUser)return needLogin('আগে লগইন করুন।');
+  const old=rqEdit?rq.find(x=>x.id==rqEdit):null;
+  if(rqEdit&&(!old||!canManage(old)))return alert('আপনার অনুমতি নেই!');
+  const name=cleanName($('um_r_name').value),phone=normPhone($('um_r_phone').value);
+  if(!name)return alert('সঠিক নাম লিখুন!');
+  if(!validPhone(phone))return alert('সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন (017XXXXXXXX)');
+  const bud=Number($('um_r_budget').value)||0;
+  const b=$('um_r_submit');b.disabled=true;b.textContent='সংরক্ষণ হচ্ছে...';
+  try{
+    await dbSet('rq',{
+      id:old?String(old.id):String(Date.now()),name,phone,
+      areas:stR.areas.slice(),area:stR.areas.join(', '),type:stR.types.join(', '),budget:bud,
+      needFrom:$('um_r_from').value.trim(),members:$('um_r_members').value.trim(),desc:$('um_r_desc').value.trim(),
+      status:old?(old.status||'open'):'open',doneAt:old?(old.doneAt||0):0,
+      ownerPhone:old?old.ownerPhone:currentUser.phone,createdAt:old?(old.createdAt||Date.now()):Date.now()
+    });
+    umCancel('rq');alert('আপনার অনুরোধ সংরক্ষণ হয়েছে! বাড়িওয়ালারা আপনার সাথে যোগাযোগ করতে পারবেন।');
+  }catch(err){console.error(err);alert(fbErrMsg(err,'সংরক্ষণ ব্যর্থ হয়েছে।'));}
+  finally{b.disabled=false;b.innerHTML='<i class="fa-solid fa-check mr-1"></i> সংরক্ষণ করুন';}
+};
+async function toggleRqDone(r){
+  if(!canManage(r))return;
+  const done=r.status!=='done';
+  if(done&&!confirm('বাসা পেয়ে গেছেন হিসেবে মার্ক করবেন?\nমার্ক করার ৭ দিন পরে অনুরোধটি নিজে থেকেই মুছে যাবে।'))return;
+  await dbPatch('rq',r.id,done?{status:'done',doneAt:Date.now()}:{status:'open',doneAt:0});
+}
+
+/* ================= BASA CHAI: LIST ================= */
+function renderRq(){
+  const q=($('um_rqSearch').value||'').toLowerCase().trim(),af=$('um_rqAreaF').value||'all',tf=$('um_rqTypeF').value||'all';
+  const l=rq.filter(r=>!expRq(r)&&(af==='all'||!areasOf(r).length||areasOf(r).includes(af))&&(tf==='all'||!r.type||splitT(r.type).includes(tf))&&(!q||[r.name,areasOf(r).join(' '),r.type,r.desc].some(x=>(x||'').toLowerCase().includes(q))))
+    .sort((a,b)=>((a.status==='done')-(b.status==='done'))||((b.createdAt||0)-(a.createdAt||0)));
+  $('um_rqCount').textContent=l.length;
+  const g=$('um_rqGrid');
+  if(!l.length){g.innerHTML='<div class="col-span-full text-center py-16 bg-white rounded-2xl border border-slate-100"><i class="fa-regular fa-face-frown text-4xl text-slate-400 mb-3 block"></i><h3 class="text-lg font-bold text-slate-800">কোনো অনুরোধ নেই</h3><p class="text-sm text-slate-500">অন্য ফিল্টার দিয়ে চেষ্টা করুন।</p></div>';return;}
+  g.innerHTML=l.map(r=>{
+    const ph=normPhone(r.phone),done=r.status==='done',own=canManage(r),ar=areasOf(r),ty=splitT(r.type);
+    return `<div class="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition overflow-hidden flex flex-col justify-between ${done?'opacity-75':''}">
+<div>
+ <div class="px-3.5 sm:px-5 py-3 bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-emerald-100 flex items-center justify-between gap-2">
+  <div class="flex flex-wrap gap-1">${(ty.length?ty:['যেকোনো ধরন']).map(t=>`<span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full border bg-white text-emerald-700 border-emerald-200">${esc(t)}</span>`).join('')}</div>
+  ${done?'<span class="text-[10px] font-bold bg-emerald-600 text-white px-2 py-0.5 rounded-full whitespace-nowrap">বাসা পাওয়া গেছে</span>':'<span class="text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full whitespace-nowrap">বাসা খুঁজছেন</span>'}
+ </div>
+ <div class="p-3.5 sm:p-5 space-y-2">
+  <h3 class="font-bold text-slate-900 text-sm sm:text-base"><i class="fa-solid fa-user text-[11px] text-slate-400 mr-1.5"></i>${esc(r.name)}</h3>
+  <div class="flex flex-wrap gap-1">${ar.length?ar.map(a=>`<span class="text-[11px] text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded"><i class="fa-solid fa-location-dot mr-1"></i>${esc(a)}</span>`).join(''):'<span class="text-[11px] text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded"><i class="fa-solid fa-location-dot mr-1"></i>যেকোনো এলাকা</span>'}</div>
+  ${r.members?`<p class="text-xs text-slate-600 bg-slate-50 p-2 rounded-lg"><i class="fa-solid fa-user-group text-slate-400 mr-1.5"></i>${esc(r.members)}</p>`:''}
+  ${r.needFrom?`<p class="text-[11px] font-medium text-slate-500"><i class="fa-regular fa-clock mr-1"></i>${esc(r.needFrom)}</p>`:''}
+  ${r.desc?`<p class="text-xs text-slate-500 line-clamp-3 leading-relaxed">${esc(r.desc)}</p>`:''}
+  ${done&&r.doneAt?`<p class="text-[10px] text-rose-600 font-semibold">${bn(daysLeft(r.doneAt))} দিন পরে স্বয়ংক্রিয়ভাবে মুছে যাবে</p>`:''}
+ </div>
+</div>
+<div>
+ <div class="px-3.5 sm:px-5 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+  <div><span class="text-[9px] text-slate-400 uppercase tracking-wider block font-bold">বাজেট</span><span class="text-sm sm:text-base font-extrabold ${r.budget?'text-emerald-600':'text-amber-600'}">${r.budget?'৳'+bn(r.budget)+' পর্যন্ত':'আলোচনা সাপেক্ষে'}</span></div>
+  <div class="flex items-center gap-1.5">${ph&&!done?`<a href="https://wa.me/88${ph}" target="_blank" rel="noopener noreferrer" class="w-8 h-8 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-700 flex items-center justify-center text-sm active:scale-95"><i class="fa-brands fa-whatsapp"></i></a><a href="tel:${ph}" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-sm active:scale-95"><i class="fa-solid fa-phone"></i> কল</a>`:''}</div>
+ </div>
+ ${own?`<div class="px-3.5 sm:px-5 py-2 border-t border-slate-100 flex gap-1.5 flex-wrap"><button data-a="done" data-id="${esc(r.id)}" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 text-[11px] font-bold rounded-lg">${done?'আবার খুঁজছি':'বাসা পেয়েছি'}</button><button data-a="edit" data-id="${esc(r.id)}" class="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs rounded-lg"><i class="fa-solid fa-pen"></i></button><button data-a="del" data-id="${esc(r.id)}" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs rounded-lg"><i class="fa-solid fa-trash"></i></button></div>`:''}
+</div></div>`;
+  }).join('');
+}
+$('um_rqGrid').addEventListener('click',async e=>{
+  const t=e.target.closest('[data-a]');if(!t)return;
+  const r=rq.find(x=>x.id==t.dataset.id);if(!r)return;
+  const a=t.dataset.a;
+  try{
+    if(a==='edit'){fromAdm=false;openRqForm(r.id);}
+    else if(a==='done')await toggleRqDone(r);
+    else if(a==='del'){if(canManage(r)&&confirm('এই অনুরোধটি মুছে ফেলতে চান?'))await dbDel('rq',r.id);}
+  }catch(err){console.error(err);alert(fbErrMsg(err,'কাজটি করা যায়নি।'));}
+});
+$('um_rqSearch').oninput=renderRq;
+$('um_rqAreaF').onchange=renderRq;
+$('um_rqTypeF').onchange=renderRq;
+
+/* ================= ADMIN PANEL: ট্যাব ================= */
+const ON="px-2.5 sm:px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-[11px] sm:text-xs font-bold shadow-sm";
+const OFF="px-2.5 sm:px-3 py-1.5 bg-white text-slate-700 border border-slate-300 rounded-lg text-[11px] sm:text-xs font-bold hover:bg-slate-50";
+$('adminTabAds').parentElement.insertAdjacentHTML('beforeend',`<button id="adminTabMarket" onclick="switchAdminTab('market')" class="${OFF}"><i class="fa-solid fa-recycle mr-1 text-amber-600"></i> পুরনো জিনিস ও অনুরোধ</button>`);
+$('adminAdsSection').parentElement.insertAdjacentHTML('beforeend',`
+<div id="adminMarketSection" class="hidden space-y-5">
+ <div class="bg-amber-50 border border-amber-200 text-amber-800 text-[11px] p-2.5 rounded-xl">অ্যাডমিন হিসেবে আপনি সব বিজ্ঞাপন ও অনুরোধ যোগ, এডিট ও মুছতে পারবেন। "বিক্রি হয়েছে / বাসা পেয়েছে" মার্ক করার ৭ দিন পরে আইটেম নিজে থেকেই মুছে যায়।</div>
+ <div class="space-y-2">
+  <div class="flex justify-between items-center"><span class="text-xs font-bold text-slate-700"><i class="fa-solid fa-recycle text-amber-600 mr-1"></i> পুরনো জিনিসের বিজ্ঞাপন (<span id="um_aMkN">0</span>)</span><button onclick="umAdmAdd('mk')" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-semibold active:scale-95"><i class="fa-solid fa-plus mr-1"></i> নতুন যোগ করুন</button></div>
+  <div id="um_aMk" class="space-y-2"></div>
+ </div>
+ <div class="space-y-2">
+  <div class="flex justify-between items-center"><span class="text-xs font-bold text-slate-700"><i class="fa-solid fa-bullhorn text-sky-700 mr-1"></i> বাসা ভাড়ার অনুরোধ (<span id="um_aRqN">0</span>)</span><button onclick="umAdmAdd('rq')" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-semibold active:scale-95"><i class="fa-solid fa-plus mr-1"></i> নতুন যোগ করুন</button></div>
+  <div id="um_aRq" class="space-y-2"></div>
+ </div>
+</div>`);
+const _sw=switchAdminTab;
+switchAdminTab=function(t){
+  _sw(t);
+  $('adminMarketSection').classList.toggle('hidden',t!=='market');
+  $('adminTabMarket').className=t==='market'?ON:OFF;
+  if(t==='market')renderAdmin();
+};
+window.umAdmAdd=k=>{fromAdm=true;k==='mk'?openMkForm():openRqForm();};
+function admRow(k,x){
+  const isMk=k==='mk',st=isMk?x.status==='sold':x.status==='done';
+  const ar=isMk?[]:areasOf(x);
+  const title=isMk?x.title:(x.name+' — '+(ar.length?ar.join(', '):'যেকোনো এলাকা'));
+  const sub=isMk?(x.category+' • '+x.area+' • '+(x.negotiable?'আলোচনা':'৳'+bn(x.price))):((x.type||'যেকোনো ধরন')+' • '+(x.budget?'৳'+bn(x.budget):'আলোচনা')+' • '+x.phone);
+  const row=document.createElement('div');
+  row.className='flex items-center justify-between gap-2 p-2.5 bg-white border border-slate-200 rounded-xl text-xs';
+  row.innerHTML=`<div class="truncate"><div class="font-bold text-slate-800 truncate">${esc(title)} ${st?'<span class="text-[9px] bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded font-bold">'+(isMk?'বিক্রি হয়েছে':'বাসা পেয়েছে')+'</span>':''}</div><div class="text-slate-500 truncate">${esc(sub)}</div></div><div class="flex gap-1 flex-shrink-0"><button data-a="t" class="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg font-bold text-[11px]">${st?'আবার সক্রিয়':(isMk?'বিক্রি হয়েছে':'বাসা পেয়েছে')}</button><button data-a="e" class="px-2 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg"><i class="fa-solid fa-pen"></i></button><button data-a="d" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg"><i class="fa-solid fa-trash"></i></button></div>`;
+  row.querySelector('[data-a=t]').onclick=()=>(isMk?toggleMkSold(x):toggleRqDone(x)).catch(err=>alert(fbErrMsg(err,'কাজটি করা যায়নি।')));
+  row.querySelector('[data-a=e]').onclick=()=>{fromAdm=true;isMk?openMkForm(x.id):openRqForm(x.id);};
+  row.querySelector('[data-a=d]').onclick=async()=>{if(isAdmin()&&confirm('মুছে ফেলতে চান?')){try{await dbDel(k,x.id);}catch(err){alert(fbErrMsg(err,'মুছে ফেলা যায়নি।'));}}};
+  return row;
+}
+function renderAdmin(){
+  const a=$('um_aMk'),b=$('um_aRq');if(!a||!b||!isAdmin())return;
+  const f=(box,k,arr,cnt)=>{
+    box.innerHTML='';$(cnt).textContent=arr.length;
+    if(!arr.length){box.innerHTML='<p class="text-xs text-slate-400 text-center py-3">কিছু নেই।</p>';return;}
+    arr.slice().sort((x,y)=>(y.createdAt||0)-(x.createdAt||0)).forEach(x=>box.appendChild(admRow(k,x)));
+  };
+  f(a,'mk',mk,'um_aMkN');f(b,'rq',rq,'um_aRqN');
+}
+function refresh(){renderMk();renderRq();renderAdmin();}
+
+/* ================= HEADER / HERO / দ্রুত লিংক ================= */
+$('authSection').insertAdjacentHTML('beforebegin',`
+<button onclick="openMarket()" class="hidden sm:flex items-center gap-1.5 text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-2 rounded-lg hover:bg-amber-100 active:scale-95"><i class="fa-solid fa-recycle"></i> পুরনো জিনিস</button>
+<button onclick="openRentRequests()" class="hidden sm:flex items-center gap-1.5 text-xs font-bold text-sky-700 bg-sky-50 border border-sky-200 px-2.5 py-2 rounded-lg hover:bg-sky-100 active:scale-95"><i class="fa-solid fa-bullhorn"></i> বাসা চাই</button>`);
+const heroBox=document.querySelector('section.bg-gradient-to-br .max-w-4xl');
+if(heroBox)heroBox.insertAdjacentHTML('beforeend',`
+<div class="flex flex-wrap items-center justify-center gap-2 pt-1">
+<button onclick="openMarket()" class="bg-amber-500 hover:bg-amber-600 text-white text-xs sm:text-sm font-bold px-4 py-2 rounded-xl shadow active:scale-95"><i class="fa-solid fa-recycle mr-1.5"></i> পুরনো জিনিস কেনা-বেচা</button>
+<button onclick="openRentRequests()" class="bg-sky-600 hover:bg-sky-700 text-white text-xs sm:text-sm font-bold px-4 py-2 rounded-xl shadow active:scale-95"><i class="fa-solid fa-bullhorn mr-1.5"></i> বাসা চাই? অনুরোধ করুন</button>
+</div>`);
+const ql=document.querySelector('footer a[onclick="resetFilters()"]');
+if(ql){
+  const ul=ql.closest('ul');
+  [['পুরনো জিনিস কেনা-বেচা','openMarket()'],['পুরনো জিনিস বিক্রি করুন','openMarketSell()'],['বাসা ভাড়ার অনুরোধ (বাসা চাই)','openRentRequests()'],['বাসার অনুরোধ পাঠান','openRequestForm()']].forEach(([t,fn])=>{
+    const li=document.createElement('li');
+    li.innerHTML='<a href="javascript:void(0)" onclick="'+fn+'" class="hover:text-emerald-400 transition">'+t+'</a>';
+    ul.appendChild(li);
+  });
+}
+
+/* ================= START / LIVE SYNC ================= */
+['mk','rq'].forEach(k=>{
+  if(isFirebaseReady){
+    firebaseDb.collection(COL[k]).onSnapshot(s=>{
+      const a=[];s.forEach(d=>a.push(d.data()));setArr(k,a);refresh();schedule();
+    },err=>console.warn(COL[k]+' sync notice:',err));
+  }else setArr(k,lsGet(k));
+});
+fillFilters();refresh();schedule();
 })();
 </script>
+
  </body>
 </html>
