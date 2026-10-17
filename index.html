@@ -3516,5 +3516,255 @@ if(isFirebaseReady)firebaseDb.collection('users').onSnapshot(()=>{
 else updateSetupUI();
 })();
 </script>
+<!-- ===== SMART SEARCH: বাংলা / English / Banglish / উচ্চারণ মিল ===== -->
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const PH='বাংলা / English / Banglish লিখুন...';
+
+/* ---------- ধ্বনি-চাবি: বাংলা ও রোমান লেখাকে একই "উচ্চারণ কাঠামোতে" আনে ---------- */
+const BN={'ক':'k','খ':'k','গ':'g','ঘ':'g','ঙ':'ng','চ':'C','ছ':'C','জ':'j','ঝ':'j','ঞ':'n','ট':'t','ঠ':'t','ড':'d','ঢ':'d','ণ':'n','ত':'t','থ':'t','দ':'d','ধ':'d','ন':'n','প':'p','ফ':'p','ব':'b','ভ':'b','ম':'m','য':'j','র':'r','ল':'l','শ':'s','ষ':'s','স':'s','ৎ':'t','ং':'ng'};
+function key(s){
+  s=String(s==null?'':s).normalize('NFC').toLowerCase();
+  s=s.replace(/[০-৯]/g,d=>String(d.charCodeAt(0)-0x09E6));
+  s=s.replace(/[ডঢ]\u09BC/g,'র').replace(/য\u09BC/g,'').replace(/\u09CD\u09AF/g,'');
+  s=s.replace(/ch/g,'C').replace(/x/g,'ks').replace(/[qc]/g,'k').replace(/f/g,'p').replace(/v/g,'b').replace(/z/g,'j');
+  s=s.replace(/[\u0980-\u09FF]/g,c=>BN[c]||'');
+  s=s.replace(/[aeiouyhw]/g,'').replace(/[^a-zA-Z0-9]/g,'');
+  return s.replace(/(.)\1+/g,'$1');
+}
+
+/* ইংরেজি শব্দ -> বাংলা সমার্থক (যেগুলো উচ্চারণে মেলে না) */
+const SYN={rent:['ভাড়া'],house:['বাসা','বাড়ি'],home:['বাসা','বাড়ি'],price:['দাম','টাকা'],cost:['দাম','টাকা'],money:['টাকা'],sell:['বিক্রি'],sale:['বিক্রি'],sold:['বিক্রি'],buy:['কিনব','কেনা'],old:['পুরনো','পুরোনো'],used:['ব্যবহৃত','পুরনো'],book:['বই'],kitchen:['রান্নাঘর'],furniture:['ফার্নিচার','আসবাব']};
+
+function match(q,hay){
+  const toks=String(q||'').toLowerCase().trim().split(/\s+/).filter(Boolean);
+  if(!toks.length)return true;
+  const hl=String(hay||'').toLowerCase(),hk=key(hay);
+  return toks.every(t=>{
+    if(hl.includes(t))return true;
+    const k=key(t);
+    if(k.length>=2&&hk.includes(k))return true;
+    return (SYN[t]||[]).some(a=>hl.includes(a.toLowerCase()));
+  });
+}
+
+/* পুরনো সার্চ বক্সের জায়গায় নতুন বক্স বসায় (পুরনোটা লুকানো থাকে, যাতে বাকি কোড না ভাঙে) */
+function swap(id){
+  const o=$(id),n=o.cloneNode(false);
+  n.id=id+'2';n.removeAttribute('oninput');n.value='';n.placeholder=PH;
+  o.parentNode.insertBefore(n,o);o.style.display='none';o.value='';
+  return n;
+}
+
+/* ---------- ১. মূল পেজ: বাসার বিজ্ঞাপন ---------- */
+const s1=swap('searchInput');
+s1.addEventListener('input',()=>applyFilters());
+const _rl=renderListings;
+renderListings=function(items){
+  const q=s1.value.trim();
+  _rl(q?items.filter(i=>match(q,[i.title,i.desc,i.area,i.address,i.type,i.specs,i.postedBy,i.available].join(' '))):items);
+};
+const _rf=resetFilters;
+resetFilters=function(){s1.value='';_rf();};
+
+/* ---------- ২. পুরনো জিনিস ও বাসা চাই পেজ ---------- */
+function grid(inId,gridId,countId){
+  const n=swap(inId),g=$(gridId),c=$(countId);
+  const em=document.createElement('div');
+  em.className='hidden text-center py-16 bg-white rounded-2xl border border-slate-100';
+  em.innerHTML='<i class="fa-regular fa-face-frown text-4xl text-slate-400 mb-3 block"></i><h3 class="text-lg font-bold text-slate-800">কিছু পাওয়া যায়নি</h3><p class="text-sm text-slate-500">অন্য বানানে বা অন্য শব্দে চেষ্টা করুন।</p>';
+  g.after(em);
+  const hay=card=>{
+    const a=card.firstElementChild?card.firstElementChild.textContent:'';
+    const f=card.children[1],sp=f?f.querySelectorAll('span'):[];
+    return a+' '+(sp[1]?sp[1].textContent:'');
+  };
+  function run(){
+    const q=n.value.trim();let shown=0,real=0;
+    [...g.children].forEach(card=>{
+      if(card.classList.contains('col-span-full'))return;
+      real++;
+      const ok=!q||match(q,hay(card));
+      card.style.display=ok?'':'none';
+      if(ok)shown++;
+    });
+    if(real)c.textContent=shown;
+    em.classList.toggle('hidden',!(q&&real&&!shown));
+  }
+  new MutationObserver(run).observe(g,{childList:true});
+  n.addEventListener('input',run);
+  return {n,run};
+}
+const mkS=grid('um_mkSearch','um_mkGrid','um_mkCount');
+const rqS=grid('um_rqSearch','um_rqGrid','um_rqCount');
+const _um=window.umResetMk;window.umResetMk=function(){mkS.n.value='';_um();mkS.run();};
+const _ur=window.umResetRq;window.umResetRq=function(){rqS.n.value='';_ur();rqS.run();};
+
+applyFilters();
+})();
+</script>
+<!-- ===== AD FORM HELPER: এলাকা সার্চ + রুমের বিবরণ চিপ + খালির তারিখ চিপ ===== -->
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+
+/* ---------- ধ্বনি-মিল (বাংলা / English / Banglish) ---------- */
+const BN={'ক':'k','খ':'k','গ':'g','ঘ':'g','ঙ':'ng','চ':'C','ছ':'C','জ':'j','ঝ':'j','ঞ':'n','ট':'t','ঠ':'t','ড':'d','ঢ':'d','ণ':'n','ত':'t','থ':'t','দ':'d','ধ':'d','ন':'n','প':'p','ফ':'p','ব':'b','ভ':'b','ম':'m','য':'j','র':'r','ল':'l','শ':'s','ষ':'s','স':'s','ৎ':'t','ং':'ng'};
+function key(s){
+  s=String(s==null?'':s).normalize('NFC').toLowerCase();
+  s=s.replace(/[০-৯]/g,d=>String(d.charCodeAt(0)-0x09E6));
+  s=s.replace(/[ডঢ]\u09BC/g,'র').replace(/য\u09BC/g,'').replace(/\u09CD\u09AF/g,'');
+  s=s.replace(/ch/g,'C').replace(/x/g,'ks').replace(/[qc]/g,'k').replace(/f/g,'p').replace(/v/g,'b').replace(/z/g,'j');
+  s=s.replace(/[\u0980-\u09FF]/g,c=>BN[c]||'');
+  s=s.replace(/[aeiouyhw]/g,'').replace(/[^a-zA-Z0-9]/g,'');
+  return s.replace(/(.)\1+/g,'$1');
+}
+function match(q,hay){
+  const toks=String(q||'').toLowerCase().trim().split(/\s+/).filter(Boolean);
+  if(!toks.length)return true;
+  const hl=String(hay||'').toLowerCase(),hk=key(hay);
+  return toks.every(t=>{
+    if(hl.includes(t))return true;
+    const k=key(t);
+    return k.length>=2&&hk.includes(k);
+  });
+}
+const bd=n=>String(n).replace(/\d/g,d=>'০১২৩৪৫৬৭৮৯'[d]);
+const MN=['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
+const CH='display:inline-flex;align-items:center;padding:.3rem .65rem;font-weight:500';
+
+/* ================= ১. এলাকা: সার্চ বক্স ================= */
+const sel=$('formArea');
+const box=document.createElement('input');
+box.type='text';box.id='formAreaSearch';box.autocomplete='off';
+box.placeholder='🔍 এলাকা খুঁজুন (বাংলা / English / Banglish)...';
+box.className='w-full p-2 mb-1.5 text-xs sm:text-sm rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-emerald-500 bg-white';
+box.addEventListener('keydown',e=>{if(e.key==='Enter')e.preventDefault();});
+sel.parentNode.insertBefore(box,sel);
+sel.size=4;
+const info=document.createElement('p');
+info.className='text-[11px] text-emerald-700 font-semibold mt-1';
+sel.after(info);
+
+function areaInfo(){info.textContent=sel.value?'✓ নির্বাচিত এলাকা: '+sel.value:'';}
+function buildArea(){
+  const q=box.value.trim(),cur=sel.value;
+  const list=locations.filter(l=>!q||match(q,l));
+  if(!list.length){
+    sel.innerHTML='<option value="">কোনো এলাকা পাওয়া যায়নি</option>';
+    sel.value='';
+  }else{
+    sel.innerHTML=list.map(l=>`<option value="${esc(l)}">${esc(l)}</option>`).join('');
+    sel.value=list.includes(cur)?cur:list[0];
+  }
+  areaInfo();
+}
+box.addEventListener('input',buildArea);
+sel.addEventListener('change',areaInfo);
+
+const _rld=refreshLocationDropdowns;
+refreshLocationDropdowns=function(){_rld();buildArea();};
+
+/* ================= ২. রুমের বিবরণ: চিপ ================= */
+const sp=$('formSpecs');
+sp.maxLength=200;
+sp.placeholder='নিচের অপশন বাছুন অথবা নিজে লিখুন';
+const G={
+  bed:['১ বেড','২ বেড','৩ বেড','৪ বেড','৫+ বেড'],
+  bath:['১ বাথ','২ বাথ','৩ বাথ'],
+  bal:['বারান্দা নেই','১ বারান্দা','২ বারান্দা'],
+  ex:['গ্যাস সংযোগ','লিফট','পার্কিং','ওয়াইফাই','সিসিটিভি','জেনারেটর','ফার্নিশড','আলাদা মিটার','২৪ ঘণ্টা পানি']
+};
+const LB={bed:'বেডরুম',bath:'বাথরুম',bal:'বারান্দা',ex:'সুবিধা (একাধিক বাছতে পারেন)'};
+const specWrap=document.createElement('div');
+specWrap.className='mt-2 space-y-1.5';
+Object.keys(G).forEach(g=>{
+  const row=document.createElement('div');
+  row.innerHTML='<span class="block text-[10px] font-bold text-slate-400 mb-1">'+LB[g]+'</span>';
+  const line=document.createElement('div');
+  line.className='flex flex-wrap gap-1.5';
+  G[g].forEach(v=>{
+    const b=document.createElement('button');
+    b.type='button';b.className='um-chip';b.style.cssText=CH;b.textContent=v;b.dataset.v=v;
+    b.onclick=()=>{
+      let t=specTokens();
+      if(t.includes(v))t=t.filter(x=>x!==v);
+      else{if(g!=='ex')t=t.filter(x=>!G[g].includes(x));t.push(v);}
+      sp.value=t.join(', ');
+      syncSpecs();
+    };
+    line.appendChild(b);
+  });
+  row.appendChild(line);
+  specWrap.appendChild(row);
+});
+sp.after(specWrap);
+function specTokens(){return sp.value.split(',').map(s=>s.trim()).filter(Boolean);}
+function syncSpecs(){
+  const t=specTokens();
+  specWrap.querySelectorAll('button').forEach(b=>b.classList.toggle('on',t.includes(b.dataset.v)));
+}
+sp.addEventListener('input',syncSpecs);
+
+/* ================= ৩. কবে থেকে খালি: চিপ + তারিখ ================= */
+const av=$('formAvailable');
+av.placeholder='নিচের অপশন বাছুন অথবা নিজে লিখুন';
+const now=new Date();
+const opts=['এখনই খালি আছে','এই মাসের শেষে','আগামী মাসের ১ তারিখ থেকে'];
+for(let i=2;i<=3;i++){
+  const d=new Date(now.getFullYear(),now.getMonth()+i,1);
+  opts.push('১লা '+MN[d.getMonth()]+(d.getFullYear()!==now.getFullYear()?' '+bd(d.getFullYear()):'')+' থেকে');
+}
+const avWrap=document.createElement('div');
+avWrap.className='mt-2';
+const avLine=document.createElement('div');
+avLine.className='flex flex-wrap gap-1.5';
+opts.forEach(v=>{
+  const b=document.createElement('button');
+  b.type='button';b.className='um-chip';b.style.cssText=CH;b.textContent=v;b.dataset.v=v;
+  b.onclick=()=>{av.value=v;syncAvail();};
+  avLine.appendChild(b);
+});
+avWrap.appendChild(avLine);
+const dateRow=document.createElement('div');
+dateRow.className='flex items-center gap-2 mt-2';
+dateRow.innerHTML='<span class="text-[11px] text-slate-500 font-semibold whitespace-nowrap">অথবা তারিখ বাছুন:</span>';
+const dt=document.createElement('input');
+dt.type='date';
+dt.min=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+dt.className='flex-1 p-1.5 text-xs rounded-lg border border-slate-200 outline-none bg-white';
+dt.onchange=()=>{
+  if(!dt.value)return;
+  const d=new Date(dt.value+'T00:00:00');
+  av.value=bd(d.getDate())+' '+MN[d.getMonth()]+' '+bd(d.getFullYear())+' থেকে';
+  syncAvail();
+};
+dateRow.appendChild(dt);
+avWrap.appendChild(dateRow);
+av.after(avWrap);
+function syncAvail(){
+  avLine.querySelectorAll('button').forEach(b=>b.classList.toggle('on',av.value.trim()===b.dataset.v));
+}
+av.addEventListener('input',syncAvail);
+
+/* ================= ফর্ম রিসেট / এডিট এর সাথে মিল রাখা ================= */
+$('listingForm').addEventListener('reset',()=>setTimeout(()=>{
+  box.value='';dt.value='';buildArea();syncSpecs();syncAvail();
+},0));
+
+const _el=editListing;
+editListing=function(id){
+  box.value='';
+  _el(id);
+  buildArea();
+  sel.value=(listings.find(l=>l.id==id)||{}).area||sel.value;
+  areaInfo();syncSpecs();syncAvail();
+};
+
+/* শুরুতে একবার */
+buildArea();syncSpecs();syncAvail();
+})();
+</script>
  </body>
 </html>
