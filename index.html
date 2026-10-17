@@ -4064,5 +4064,139 @@ rf.onsubmit=async function(e){
 };
 })();
 </script>
+<!-- ===== লগইন / রিফ্রেশে প্রতিবার মিল-সাজেশন পপ-আপ ===== -->
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const WEEK=7*86400000;
+const bn=n=>Number(n).toLocaleString('bn-BD');
+const splitT=v=>String(v||'').split(/\s*,\s*/).filter(Boolean);
+const areasOf=r=>Array.isArray(r.areas)?r.areas.filter(Boolean):splitT(r.area);
+const expLs=x=>!!(x&&x.rented&&x.rentedAt&&Date.now()-x.rentedAt>=WEEK);
+const expRq=x=>!!(x&&x.status==='done'&&x.doneAt&&Date.now()-x.doneAt>=WEEK);
+const me=()=>currentUser?currentUser.phone:'';
+
+function adCode(kind,id){
+  const P={ls:'BS',rq:'BC'},s=String(id);
+  return P[kind]+'-'+(/^\d+$/.test(s)?Number(s).toString(36).toUpperCase():s.slice(-8).toUpperCase());
+}
+/* অনুরোধ R এর সাথে বাসা L মেলে কি? (০ = মেলে না) */
+function score(R,L){
+  const ar=areasOf(R),rt=splitT(R.type),lt=splitT(L.type);
+  const aOK=!ar.length||ar.includes(L.area);
+  const tOK=!rt.length||rt.some(t=>lt.includes(t));
+  const bOK=!R.budget||L.rentNegotiable||Number(L.rent)<=Number(R.budget);
+  if(!(aOK&&tOK&&bOK))return 0;
+  return 1+(ar.length?2:0)+(rt.length?1:0);
+}
+const waitFor=(fn,ms)=>new Promise(res=>{
+  const t0=Date.now();
+  (function tick(){
+    let v;try{v=fn();}catch(_){}
+    if(v)return res(v);
+    if(Date.now()-t0>ms)return res(null);
+    setTimeout(tick,250);
+  })();
+});
+async function loadRequests(){
+  if(isFirebaseReady){
+    try{const s=await firebaseDb.collection('rent_requests').get();const a=[];s.forEach(d=>a.push(d.data()));return a;}
+    catch(_){return [];}
+  }
+  try{return JSON.parse(localStorage.getItem('tolet_rent_requests'))||[];}catch(_){return [];}
+}
+const contactBtns=ph=>ph?('<a href="https://wa.me/88'+ph+'" target="_blank" rel="noopener noreferrer" class="w-8 h-8 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-700 flex items-center justify-center text-sm"><i class="fa-brands fa-whatsapp"></i></a><a href="tel:'+ph+'" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1"><i class="fa-solid fa-phone"></i> কল</a>'):'';
+const short=s=>{s=String(s||'');return s.length>34?s.slice(0,34)+'…':s;};
+
+/* ---------- মূল কাজ ---------- */
+let busy=false;
+async function runSuggest(){
+  if(busy||!currentUser||isAdmin())return;
+  busy=true;
+  try{
+    const phone=me();
+    const res=await Promise.all([waitFor(()=>listings.length>0,6000),loadRequests()]);
+    const reqs=res[1];
+    if(!currentUser||me()!==phone||isAdmin())return;
+    const modal=$('sugModal');
+    if(!modal||!modal.classList.contains('hidden'))return;
+
+    const myL=listings.filter(l=>l.ownerPhone===phone&&!l.rented&&!expLs(l));
+    const myR=reqs.filter(r=>r.ownerPhone===phone&&r.status!=='done'&&!expRq(r));
+
+    /* ক) আমার বাসার বিজ্ঞাপনের জন্য — বাসা খুঁজছেন এমন ভাড়াটিয়া */
+    let A=[];
+    if(myL.length){
+      reqs.filter(R=>R.ownerPhone!==phone&&R.status!=='done'&&!expRq(R)).forEach(R=>{
+        let best=null;
+        myL.forEach(L=>{const s=score(R,L);if(s>0&&(!best||s>best.s))best={R,L,s};});
+        if(best)A.push(best);
+      });
+      A.sort((a,b)=>(b.s-a.s)||((b.R.createdAt||0)-(a.R.createdAt||0)));
+    }
+    /* খ) আমার অনুরোধের জন্য — মিল আছে এমন বাসা */
+    let B=[];
+    if(myR.length){
+      listings.filter(L=>L.ownerPhone!==phone&&!L.rented&&!expLs(L)).forEach(L=>{
+        let best=null;
+        myR.forEach(R=>{const s=score(R,L);if(s>0&&(!best||s>best.s))best={R,L,s};});
+        if(best)B.push(best);
+      });
+      B.sort((a,b)=>(b.s-a.s)||((a.L.rentNegotiable?1e9:Number(a.L.rent))-(b.L.rentNegotiable?1e9:Number(b.L.rent))));
+    }
+    if(!A.length&&!B.length)return;
+
+    let html='';
+    if(A.length){
+      html+='<h5 class="text-xs font-bold text-slate-700 pt-1">🎯 আপনার বিজ্ঞাপনের জন্য '+bn(A.length)+'টি অনুরোধ</h5>';
+      html+=A.slice(0,6).map(x=>{
+        const R=x.R,ar=areasOf(R),ty=splitT(R.type),ph=normPhone(R.phone);
+        return '<div class="p-3 rounded-xl border border-slate-200 bg-slate-50 space-y-1.5">'+
+          '<div class="flex items-start justify-between gap-2"><h4 class="font-bold text-slate-800 text-sm"><i class="fa-solid fa-user text-[11px] text-slate-400 mr-1.5"></i>'+esc(R.name)+'</h4><span class="font-mono text-[10px] text-slate-400">'+adCode('rq',R.id)+'</span></div>'+
+          '<p class="text-[11px] text-emerald-700 font-semibold"><i class="fa-solid fa-location-dot mr-1"></i>'+esc(ar.join(', ')||'যেকোনো এলাকা')+(ty.length?' • '+esc(ty.join(', ')):'')+'</p>'+
+          '<p class="text-xs text-slate-600">বাজেট: <b>'+(R.budget?'৳'+bn(R.budget)+' পর্যন্ত':'আলোচনা সাপেক্ষে')+'</b>'+(R.members?' • '+esc(R.members):'')+(R.needFrom?' • '+esc(R.needFrom):'')+'</p>'+
+          '<p class="text-[10px] text-slate-400">মিল: '+esc(short(x.L.title))+'</p>'+
+          '<div class="flex items-center gap-1.5 pt-1">'+contactBtns(ph)+'</div></div>';
+      }).join('');
+      if(A.length>6)html+='<p class="text-center text-[11px] text-slate-400">আরও '+bn(A.length-6)+'টি মিল আছে — "বাসা চাই" পেজে দেখুন।</p>';
+    }
+    if(B.length){
+      html+='<h5 class="text-xs font-bold text-slate-700 pt-2">🏠 আপনার অনুরোধের জন্য '+bn(B.length)+'টি বাসা</h5>';
+      html+=B.slice(0,6).map(x=>{
+        const L=x.L,ph=normPhone(L.phone);
+        return '<div class="p-3 rounded-xl border border-slate-200 bg-slate-50 space-y-1.5">'+
+          '<div class="flex items-start justify-between gap-2"><h4 class="font-bold text-slate-800 text-sm">'+esc(L.title)+'</h4><span class="font-mono text-[10px] text-slate-400">'+adCode('ls',L.id)+'</span></div>'+
+          '<p class="text-[11px] text-emerald-700 font-semibold"><i class="fa-solid fa-location-dot mr-1"></i>'+esc(L.area)+' • '+esc(splitT(L.type).join(', '))+'</p>'+
+          '<p class="text-xs text-slate-600"><b>'+(L.rentNegotiable?'আলোচনা সাপেক্ষে':'৳'+bn(L.rent)+'/মাস')+'</b>'+(L.available?' • '+esc(L.available):'')+'</p>'+
+          '<div class="flex items-center gap-1.5 pt-1"><button type="button" data-chat="'+esc(L.id)+'" class="bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-700 text-xs font-bold px-2.5 py-1.5 rounded-lg"><i class="fa-solid fa-comment-dots mr-1"></i>চ্যাট</button>'+contactBtns(ph)+'</div></div>';
+      }).join('');
+      if(B.length>6)html+='<p class="text-center text-[11px] text-slate-400">আরও '+bn(B.length-6)+'টি মিল আছে — মূল পেজে দেখুন।</p>';
+    }
+
+    $('sugTitle').textContent='🔔 আপনার জন্য মিল পাওয়া গেছে';
+    $('sugSub').textContent='আপনার বিজ্ঞাপন ও অনুরোধের সাথে মিল আছে এমন তালিকা।';
+    $('sugList').innerHTML=html;
+    modal.classList.remove('hidden');modal.classList.add('flex');
+    $('sugList').scrollTop=0;
+  }catch(err){console.warn('Suggestion notice:',err);}
+  finally{busy=false;}
+}
+
+/* ---------- ১. প্রতিবার পেজ রিফ্রেশে (লগইন করা থাকলে) ---------- */
+if(currentUser)setTimeout(runSuggest,500);
+
+/* ---------- ২. প্রতিবার নতুন করে লগইন করলে ---------- */
+let lastPhone=currentUser?currentUser.phone:'';
+const _ua=updateAuthUI;
+updateAuthUI=function(){
+  _ua();
+  const p=currentUser?currentUser.phone:'';
+  if(p!==lastPhone){
+    lastPhone=p;
+    if(p)setTimeout(runSuggest,300);
+  }
+};
+})();
+</script>
  </body>
 </html>
