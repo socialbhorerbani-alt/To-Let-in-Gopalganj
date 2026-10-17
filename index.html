@@ -3766,5 +3766,303 @@ editListing=function(id){
 buildArea();syncSpecs();syncAvail();
 })();
 </script>
+<!-- ===== SUGGESTION + AD-ID + REPORT HELPER ===== -->
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const WEEK=7*86400000;
+const bn=n=>Number(n).toLocaleString('bn-BD');
+const splitT=v=>String(v||'').split(/\s*,\s*/).filter(Boolean);
+const areasOf=r=>Array.isArray(r.areas)?r.areas.filter(Boolean):splitT(r.area);
+const lsGet=k=>{try{return JSON.parse(localStorage.getItem(k))||[];}catch(_){return[];}};
+
+/* ================= বিজ্ঞাপন আইডি ================= */
+const PFX={ls:'BS',mk:'PJ',rq:'BC'};
+const KIND_LABEL={ls:'বাসা বিজ্ঞাপন',mk:'পুরনো জিনিস',rq:'বাসা চাই অনুরোধ'};
+function adCode(kind,id){
+  const s=String(id);
+  const body=/^\d+$/.test(s)?Number(s).toString(36).toUpperCase():s.slice(-8).toUpperCase();
+  return PFX[kind]+'-'+body;
+}
+
+/* পুরনো জিনিস ও বাসা-চাই ডেটার কপি (আইডি বসানো ও মিল খোঁজার জন্য) */
+let MK=[],RQ=[];
+const mkData=()=>isFirebaseReady?MK:lsGet('tolet_market');
+const rqData=()=>isFirebaseReady?RQ:lsGet('tolet_rent_requests');
+const expLs=x=>!!(x&&x.rented&&x.rentedAt&&Date.now()-x.rentedAt>=WEEK);
+const expMk=x=>!!(x&&x.status==='sold'&&x.soldAt&&Date.now()-x.soldAt>=WEEK);
+const expRq=x=>!!(x&&x.status==='done'&&x.doneAt&&Date.now()-x.doneAt>=WEEK);
+
+function findAd(code){
+  code=String(code||'').toUpperCase();
+  const pool={BS:()=>listings.map(x=>['ls',x]),PJ:()=>mkData().map(x=>['mk',x]),BC:()=>rqData().map(x=>['rq',x])}[code.slice(0,2)];
+  if(!pool)return null;
+  const hit=pool().find(([k,x])=>adCode(k,x.id)===code);
+  return hit?{kind:hit[0],item:hit[1]}:null;
+}
+
+/* ================= কার্ডের নিচে আইডি + কপি + রিপোর্ট ================= */
+function copyText(t,btn){
+  const done=()=>{const o=btn.innerHTML;btn.innerHTML='<i class="fa-solid fa-check mr-1"></i>কপি হয়েছে';setTimeout(()=>btn.innerHTML=o,1500);};
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done).catch(()=>{});return;}
+  const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();
+  try{document.execCommand('copy');done();}catch(_){}
+  ta.remove();
+}
+function idRow(kind,id){
+  const code=adCode(kind,id);
+  const d=document.createElement('div');
+  d.className='adid-row px-3.5 sm:px-5 py-2 border-t border-slate-100 bg-white flex items-center justify-between gap-2 text-[10px] text-slate-400';
+  d.innerHTML='<span>আইডি: <b class="font-mono text-slate-600 select-all">'+code+'</b></span><span class="flex items-center gap-3"><button type="button" data-x="copy" class="hover:text-emerald-700 font-semibold"><i class="fa-regular fa-copy mr-1"></i>কপি</button><button type="button" data-x="rep" class="text-rose-500 hover:text-rose-700 font-bold"><i class="fa-solid fa-flag mr-1"></i>রিপোর্ট</button></span>';
+  d.querySelector('[data-x=copy]').onclick=ev=>{ev.stopPropagation();copyText(code,ev.currentTarget);};
+  d.querySelector('[data-x=rep]').onclick=ev=>{ev.stopPropagation();window.openReportForAd(code);};
+  return d;
+}
+
+/* মূল পেজের বাসার কার্ড */
+function tagMain(){
+  const c=$('listingsContainer');if(!c)return;
+  [...c.children].forEach(card=>{
+    if(card.querySelector('.adid-row'))return;
+    const b=card.querySelector('[onclick^="openReviewModal"]');if(!b)return;
+    const m=/openReviewModal\('([^']+)'\)/.exec(b.getAttribute('onclick')||'');if(!m)return;
+    (card.firstElementChild||card).appendChild(idRow('ls',m[1]));
+  });
+}
+new MutationObserver(tagMain).observe($('listingsContainer'),{childList:true});
+
+/* পুরনো জিনিস পেজ */
+function tagMk(){
+  const g=$('um_mkGrid');if(!g)return;
+  const cards=[...g.children].filter(c=>!c.classList.contains('col-span-full'));
+  if(!cards.length)return;
+  const cat=$('um_mkCat').value,af=$('um_mkAreaF').value;
+  const list=mkData().filter(i=>!expMk(i)&&(cat==='all'||i.category===cat)&&(af==='all'||i.area===af))
+    .sort((a,b)=>((a.status==='sold')-(b.status==='sold'))||((b.createdAt||0)-(a.createdAt||0)));
+  cards.forEach((card,i)=>{
+    if(card.querySelector('.adid-row'))return;
+    const it=list[i],h=card.querySelector('h3'),wrap=card.children[1];
+    if(!it||!h||!wrap||h.textContent.trim()!==String(it.title||'').trim())return;
+    wrap.appendChild(idRow('mk',it.id));
+  });
+}
+/* বাসা চাই পেজ */
+function tagRq(){
+  const g=$('um_rqGrid');if(!g)return;
+  const cards=[...g.children].filter(c=>!c.classList.contains('col-span-full'));
+  if(!cards.length)return;
+  const af=$('um_rqAreaF').value||'all',tf=$('um_rqTypeF').value||'all';
+  const list=rqData().filter(r=>!expRq(r)&&(af==='all'||!areasOf(r).length||areasOf(r).includes(af))&&(tf==='all'||!r.type||splitT(r.type).includes(tf)))
+    .sort((a,b)=>((a.status==='done')-(b.status==='done'))||((b.createdAt||0)-(a.createdAt||0)));
+  cards.forEach((card,i)=>{
+    if(card.querySelector('.adid-row'))return;
+    const it=list[i],h=card.querySelector('h3'),wrap=card.children[1];
+    if(!it||!h||!wrap||h.textContent.trim()!==String(it.name||'').trim())return;
+    wrap.appendChild(idRow('rq',it.id));
+  });
+}
+new MutationObserver(tagMk).observe($('um_mkGrid'),{childList:true});
+new MutationObserver(tagRq).observe($('um_rqGrid'),{childList:true});
+
+if(isFirebaseReady){
+  firebaseDb.collection('market_items').onSnapshot(s=>{MK=[];s.forEach(d=>MK.push(d.data()));tagMk();},()=>{});
+  firebaseDb.collection('rent_requests').onSnapshot(s=>{RQ=[];s.forEach(d=>RQ.push(d.data()));tagRq();},()=>{});
+}
+tagMain();tagMk();tagRq();
+
+/* অ্যাডমিন/ইউজারের বিজ্ঞাপন তালিকায় আইডি */
+const _bar2=buildAdRows;
+buildAdRows=function(c,items,closeFn){
+  _bar2(c,items,closeFn);
+  [...c.children].forEach((row,i)=>{
+    const it=items[i];if(!it)return;
+    const p=row.querySelector('p');
+    if(p)p.insertAdjacentHTML('beforeend',' <span class="font-mono text-[10px] text-slate-400">'+esc(adCode('ls',it.id))+'</span>');
+  });
+};
+
+/* ================= রিপোর্ট: আইডি দিয়ে ================= */
+$('reportModal').style.zIndex=80;
+$('reportMessage').parentElement.insertAdjacentHTML('beforebegin',
+ '<div><label class="block font-medium text-slate-700 mb-1 text-xs">বিজ্ঞাপনের আইডি <span class="text-slate-400">(ঐচ্ছিক — বিজ্ঞাপনের নিচে লেখা থাকে)</span></label><input type="text" id="reportAdId" maxlength="16" placeholder="উদা: BS-LKJ3F9QA" oninput="this.value=this.value.toUpperCase()" class="w-full p-2 text-xs rounded-lg border border-slate-200 outline-none font-mono"></div>');
+
+window.openReportForAd=function(code){
+  openReportModal();
+  $('reportAdId').value=code;
+  $('reportType').value='ভুয়া বিজ্ঞাপন';
+  setTimeout(()=>$('reportMessage').focus(),60);
+};
+
+const _sr=submitReport;
+submitReport=function(e){
+  const code=($('reportAdId').value||'').trim().toUpperCase();
+  const ta=$('reportMessage');
+  if(code){
+    if(!/^(BS|PJ|BC)-[0-9A-Z]{3,12}$/.test(code)){e.preventDefault();alert('আইডি সঠিক নয়। উদা: BS-LKJ3F9QA');return;}
+    if(ta.value.trim().length>=5){
+      if(!findAd(code)&&!confirm('এই আইডি দিয়ে কোনো বিজ্ঞাপন পাওয়া যায়নি। তবুও রিপোর্ট পাঠাবেন?')){e.preventDefault();return;}
+      if(!ta.value.includes('[বিজ্ঞাপন আইডি:'))ta.value='[বিজ্ঞাপন আইডি: '+code+'] '+ta.value;
+    }
+  }
+  return _sr(e);
+};
+
+/* অ্যাডমিন রিপোর্টে বিজ্ঞাপনের তথ্য + এডিট/মুছুন */
+async function delAny(kind,id){
+  if(!isAdmin()||!confirm('বিজ্ঞাপনটি মুছে ফেলতে চান?'))return;
+  try{
+    const col=kind==='mk'?'market_items':'rent_requests';
+    if(isFirebaseReady)await firebaseDb.collection(col).doc(String(id)).delete();
+    else{const k=kind==='mk'?'tolet_market':'tolet_rent_requests';localStorage.setItem(k,JSON.stringify(lsGet(k).filter(x=>x.id!=id)));location.reload();}
+    renderReportsList();
+  }catch(err){alert(fbErrMsg(err,'মুছে ফেলা যায়নি।'));}
+}
+function decorateReports(){
+  const list=$('adminReportsList');if(!list)return;
+  [...list.children].forEach(d=>{
+    if(d.querySelector('.adid-look'))return;
+    const m=d.textContent.match(/\b(BS|PJ|BC)-[0-9A-Z]{3,12}\b/);if(!m)return;
+    const f=findAd(m[0]);
+    const b=document.createElement('div');
+    b.className='adid-look p-2 rounded-lg bg-white border border-slate-200 text-[11px] space-y-1.5';
+    if(!f){
+      b.innerHTML='<span class="text-slate-500">🔎 '+esc(m[0])+' — এই আইডির বিজ্ঞাপন পাওয়া যায়নি (মুছে গেছে হতে পারে)।</span>';
+    }else{
+      const x=f.item;
+      const title=f.kind==='rq'?(x.name+' — '+(areasOf(x).join(', ')||'যেকোনো এলাকা')):x.title;
+      const owner=f.kind==='ls'?(x.postedBy||''):f.kind==='mk'?(x.owner||''):(x.name||'');
+      const ph=x.ownerPhone||x.phone||'';
+      b.innerHTML='<div>🔎 <b>'+esc(m[0])+'</b> • '+KIND_LABEL[f.kind]+'<br><b>'+esc(title)+'</b> • মালিক: '+esc(owner)+' ('+esc(ph)+')</div><div class="flex gap-1.5"></div>';
+      const box=b.lastElementChild;
+      if(f.kind==='ls'){
+        const e=document.createElement('button');
+        e.className='px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg font-bold';
+        e.innerHTML='<i class="fa-solid fa-pen mr-1"></i>এডিট';
+        e.onclick=()=>{toggleAdminModal(false);editListing(x.id);};
+        box.appendChild(e);
+      }
+      const del=document.createElement('button');
+      del.className='px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg font-bold';
+      del.innerHTML='<i class="fa-solid fa-trash mr-1"></i>মুছুন';
+      del.onclick=()=>f.kind==='ls'?removeListing(x.id):delAny(f.kind,x.id);
+      box.appendChild(del);
+    }
+    d.appendChild(b);
+  });
+}
+const _rrl=renderReportsList;
+renderReportsList=function(){_rrl();decorateReports();};
+
+/* ================= মিল অনুযায়ী সাজেশন ================= */
+document.body.insertAdjacentHTML('beforeend',
+'<div id="sugModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-3" style="z-index:90">'+
+ '<div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl flex flex-col max-h-[90vh] overflow-hidden border border-slate-100">'+
+  '<div class="px-4 py-3 bg-gradient-to-r from-emerald-600 to-teal-700 text-white flex items-start justify-between gap-3">'+
+   '<div><h3 id="sugTitle" class="text-sm sm:text-base font-bold"></h3><p id="sugSub" class="text-[11px] text-emerald-100 mt-0.5"></p></div>'+
+   '<button type="button" id="sugX" class="text-white hover:text-slate-200 text-2xl font-bold leading-none">&times;</button>'+
+  '</div>'+
+  '<div id="sugList" class="p-3 sm:p-4 overflow-y-auto space-y-2.5 flex-1"></div>'+
+  '<div class="p-3 border-t border-slate-100"><button type="button" id="sugClose" class="w-full py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold">বন্ধ করুন</button></div>'+
+ '</div></div>');
+
+const sugClose=()=>{const m=$('sugModal');m.classList.add('hidden');m.classList.remove('flex');};
+$('sugX').onclick=sugClose;$('sugClose').onclick=sugClose;
+$('sugModal').addEventListener('click',e=>{if(e.target.id==='sugModal')sugClose();});
+$('sugList').addEventListener('click',e=>{
+  const c=e.target.closest('[data-chat]');
+  if(c){sugClose();openChatForListing(c.dataset.chat);}
+});
+
+const waitFor=(fn,ms)=>new Promise(res=>{
+  const t0=Date.now();
+  (function tick(){
+    let v;try{v=fn();}catch(_){}
+    if(v)return res(v);
+    if(Date.now()-t0>ms)return res(null);
+    setTimeout(tick,250);
+  })();
+});
+
+/* বাসার বিজ্ঞাপন L এর সাথে অনুরোধ R মেলে কি? (০ = মেলে না) */
+function score(R,L){
+  const ar=areasOf(R),rt=splitT(R.type),lt=splitT(L.type);
+  const aOK=!ar.length||ar.includes(L.area);
+  const tOK=!rt.length||rt.some(t=>lt.includes(t));
+  const bOK=!R.budget||L.rentNegotiable||Number(L.rent)<=Number(R.budget);
+  if(!(aOK&&tOK&&bOK))return 0;
+  return 1+(ar.length?2:0)+(rt.length?1:0);
+}
+const me=()=>currentUser?currentUser.phone:'';
+
+function showSug(title,sub,items,render,total){
+  $('sugTitle').textContent=title;
+  $('sugSub').textContent=sub;
+  $('sugList').innerHTML=items.map(render).join('')+
+    (total>items.length?'<p class="text-center text-[11px] text-slate-400 pt-1">আরও '+bn(total-items.length)+'টি মিল আছে — মূল পেজে দেখুন।</p>':'');
+  const m=$('sugModal');m.classList.remove('hidden');m.classList.add('flex');
+  $('sugList').scrollTop=0;
+}
+const contactBtns=ph=>ph?('<a href="https://wa.me/88'+ph+'" target="_blank" rel="noopener noreferrer" class="w-8 h-8 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-700 flex items-center justify-center text-sm"><i class="fa-brands fa-whatsapp"></i></a><a href="tel:'+ph+'" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1"><i class="fa-solid fa-phone"></i> কল</a>'):'';
+
+/* নতুন বিজ্ঞাপন দিলে -> মিল আছে এমন "বাসা চাই" অনুরোধ */
+function suggestForListing(L){
+  const all=rqData().filter(R=>R.status!=='done'&&!expRq(R)&&R.ownerPhone!==me())
+    .map(R=>({R,s:score(R,L)})).filter(x=>x.s>0)
+    .sort((a,b)=>(b.s-a.s)||((b.R.createdAt||0)-(a.R.createdAt||0)));
+  if(!all.length)return;
+  const top=all.slice(0,6).map(x=>x.R);
+  showSug('🎯 আপনার বিজ্ঞাপনের সাথে মিল আছে এমন '+bn(all.length)+'টি অনুরোধ',
+    'এই ভাড়াটিয়ারা এখন বাসা খুঁজছেন — সরাসরি যোগাযোগ করুন।',top,R=>{
+    const ar=areasOf(R),ty=splitT(R.type),ph=normPhone(R.phone);
+    return '<div class="p-3 rounded-xl border border-slate-200 bg-slate-50 space-y-1.5">'+
+      '<div class="flex items-start justify-between gap-2"><h4 class="font-bold text-slate-800 text-sm"><i class="fa-solid fa-user text-[11px] text-slate-400 mr-1.5"></i>'+esc(R.name)+'</h4><span class="font-mono text-[10px] text-slate-400">'+adCode('rq',R.id)+'</span></div>'+
+      '<p class="text-[11px] text-emerald-700 font-semibold"><i class="fa-solid fa-location-dot mr-1"></i>'+esc(ar.join(', ')||'যেকোনো এলাকা')+(ty.length?' • '+esc(ty.join(', ')):'')+'</p>'+
+      '<p class="text-xs text-slate-600">বাজেট: <b>'+(R.budget?'৳'+bn(R.budget)+' পর্যন্ত':'আলোচনা সাপেক্ষে')+'</b>'+(R.members?' • '+esc(R.members):'')+(R.needFrom?' • '+esc(R.needFrom):'')+'</p>'+
+      '<div class="flex items-center gap-1.5 pt-1">'+contactBtns(ph)+'</div></div>';
+  },all.length);
+}
+
+/* নতুন অনুরোধ করলে -> মিল আছে এমন বাসা */
+function suggestForRequest(R){
+  const all=listings.filter(L=>!L.rented&&!expLs(L)&&L.ownerPhone!==me())
+    .map(L=>({L,s:score(R,L)})).filter(x=>x.s>0)
+    .sort((a,b)=>(b.s-a.s)||((a.L.rentNegotiable?1e9:Number(a.L.rent))-(b.L.rentNegotiable?1e9:Number(b.L.rent))));
+  if(!all.length)return;
+  const top=all.slice(0,6).map(x=>x.L);
+  showSug('🏠 আপনার চাহিদার সাথে মিল আছে এমন '+bn(all.length)+'টি বাসা',
+    'চ্যাট করুন বা সরাসরি কল করে বাড়িওয়ালার সাথে কথা বলুন।',top,L=>{
+    const ph=normPhone(L.phone);
+    return '<div class="p-3 rounded-xl border border-slate-200 bg-slate-50 space-y-1.5">'+
+      '<div class="flex items-start justify-between gap-2"><h4 class="font-bold text-slate-800 text-sm">'+esc(L.title)+'</h4><span class="font-mono text-[10px] text-slate-400">'+adCode('ls',L.id)+'</span></div>'+
+      '<p class="text-[11px] text-emerald-700 font-semibold"><i class="fa-solid fa-location-dot mr-1"></i>'+esc(L.area)+' • '+esc(splitT(L.type).join(', '))+'</p>'+
+      '<p class="text-xs text-slate-600"><b>'+(L.rentNegotiable?'আলোচনা সাপেক্ষে':'৳'+bn(L.rent)+'/মাস')+'</b>'+(L.available?' • '+esc(L.available):'')+'</p>'+
+      '<div class="flex items-center gap-1.5 pt-1"><button type="button" data-chat="'+esc(L.id)+'" class="bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-700 text-xs font-bold px-2.5 py-1.5 rounded-lg"><i class="fa-solid fa-comment-dots mr-1"></i>চ্যাট</button>'+contactBtns(ph)+'</div></div>';
+  },all.length);
+}
+
+/* নতুন বিজ্ঞাপন সেভ হলে সাজেশন দেখাও */
+const _hfS=handleFormSubmit;
+handleFormSubmit=async function(e){
+  const wasEdit=!!$('editListingId').value,t0=Date.now();
+  const r=await _hfS(e);
+  if(wasEdit||!$('adModal').classList.contains('hidden'))return r;
+  waitFor(()=>listings.find(l=>(l.createdAt||0)>=t0&&l.ownerPhone===me()),8000)
+    .then(L=>{if(L)suggestForListing(L);});
+  return r;
+};
+
+/* নতুন অনুরোধ সেভ হলে সাজেশন দেখাও */
+const rf=$('um_rqForm'),_ro=rf.onsubmit;
+rf.onsubmit=async function(e){
+  const wasEdit=($('um_rqFormTitle').textContent||'').includes('এডিট'),t0=Date.now();
+  const r=await _ro.call(rf,e);
+  const saved=$('um_rqFormWrap').classList.contains('hidden')||$('um_rq').classList.contains('hidden');
+  if(wasEdit||!saved)return r;
+  waitFor(()=>rqData().find(x=>(x.createdAt||0)>=t0&&x.ownerPhone===me()),8000)
+    .then(R=>{if(R)suggestForRequest(R);});
+  return r;
+};
+})();
+</script>
  </body>
 </html>
