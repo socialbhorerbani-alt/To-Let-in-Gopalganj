@@ -866,12 +866,6 @@
         firebaseDb.collection("users").onSnapshot((snapshot) => {
           users = [];
           snapshot.forEach((doc) => users.push(doc.data()));
-          const adminExist = users.find(u => u.role === 'admin');
-          if (!adminExist) {
-            const defAdmin = { name: "প্রধান অ্যাডমিন", phone: "01700000000", email: "admin@gmail.com", password: "admin", role: "admin" };
-            users.unshift(defAdmin);
-            firebaseDb.collection("users").doc("user_01700000000").set(defAdmin);
-          }
           localStorage.setItem('tolet_users', JSON.stringify(users));
           renderAdminUsersTable();
         }, (err) => console.warn("Users sync notice:", err));
@@ -3394,6 +3388,133 @@ if(ql){
 fillFilters();refresh();schedule();
 })();
 </script>
+<!-- ===== SECURITY ADD-ON: আপনার ফাইলের সবার শেষের </script> এর পরে, </body> এর ঠিক আগে পেস্ট করুন ===== -->
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+let usersLoaded=!isFirebaseReady;
 
+/* ---------- A. প্রথম অ্যাডমিন বানানোর ফর্ম (অ্যাডমিন না থাকলেই দেখাবে) ---------- */
+const lf=document.querySelector('#adminLoginModal form');
+lf.id='adminLoginForm';
+const INP='w-full p-2 text-xs rounded-lg border border-slate-200 outline-none';
+lf.insertAdjacentHTML('beforebegin',`
+<div id="adminSetupBox" class="hidden p-4 sm:p-6 space-y-3 text-sm">
+  <div class="bg-rose-50 text-rose-800 text-[11px] p-2 rounded-lg border border-rose-200">কোনো অ্যাডমিন নেই। নিজের তথ্য দিয়ে প্রথম অ্যাডমিন তৈরি করুন।</div>
+  <input type="text" id="setupName" placeholder="নাম" class="${INP}">
+  <input type="tel" id="setupPhone" placeholder="মোবাইল 01XXXXXXXXX" class="${INP}">
+  <input type="email" id="setupEmail" placeholder="ইমেইল" class="${INP}">
+  <input type="password" id="setupPass" placeholder="শক্ত পাসওয়ার্ড (কমপক্ষে ৬ অক্ষর)" autocomplete="new-password" class="${INP}">
+  <button type="button" onclick="handleAdminSetup()" class="w-full py-2.5 bg-slate-900 hover:bg-black text-white rounded-lg font-bold text-xs">অ্যাডমিন তৈরি করুন</button>
+</div>`);
+function updateSetupUI(){
+  const need=usersLoaded&&!users.some(u=>u.role==='admin');
+  $('adminSetupBox').classList.toggle('hidden',!need);
+  lf.classList.toggle('hidden',need);
+}
+const _tal=toggleAdminLoginModal;
+toggleAdminLoginModal=function(s){_tal(s);if(s)updateSetupUI();};
+
+window.handleAdminSetup=async function(){
+  if(!usersLoaded||users.some(u=>u.role==='admin'))return alert('অ্যাডমিন আগেই আছে।');
+  const g=id=>$(id).value.trim();
+  const name=cleanName(g('setupName')),phone=normPhone(g('setupPhone')),email=g('setupEmail').toLowerCase(),password=g('setupPass');
+  if(!name)return alert('নাম লিখুন!');
+  if(!validPhone(phone))return alert('সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন!');
+  if(!/^\S+@\S+\.\S+$/.test(email))return alert('সঠিক ইমেইল দিন!');
+  if(password.length<6||password.toLowerCase()==='admin')return alert('কমপক্ষে ৬ অক্ষরের শক্ত পাসওয়ার্ড দিন!');
+  if(users.some(u=>u.phone===phone))return alert('এই মোবাইল নম্বর আগেই ব্যবহৃত!');
+  const nu={name,phone,email,password,role:'admin'};
+  try{
+    if(isFirebaseReady)await firebaseDb.collection('users').doc('user_'+phone).set(nu);
+    else{users.push(nu);localStorage.setItem('tolet_users',JSON.stringify(users));}
+    currentUser=nu;localStorage.setItem('tolet_current_user',JSON.stringify(nu));
+    toggleAdminLoginModal(false);updateAuthUI();openAdminModal();
+  }catch(e){console.error(e);alert(fbErrMsg(e,'অ্যাডমিন তৈরি ব্যর্থ হয়েছে।'));}
+};
+
+/* ---------- B. অ্যাডমিন লগইন: হার্ডকোড করা admin/admin ফলব্যাক বাদ ---------- */
+handleAdminLogin=function(e){
+  e.preventDefault();
+  const v=$('adminEmailInput').value.trim().toLowerCase(),p=$('adminPasswordInput').value.trim();
+  const a=users.find(u=>u.role==='admin'&&(u.phone===v||u.phone===normPhone(v)||(u.email&&u.email.toLowerCase()===v))&&u.password===p);
+  if(!a)return alert('অ্যাডমিন ইউজারনেম অথবা পাসওয়ার্ড সঠিক নয়! পুনরায় চেষ্টা করুন।');
+  currentUser=a;localStorage.setItem('tolet_current_user',JSON.stringify(a));
+  toggleAdminLoginModal(false);updateAuthUI();openAdminModal();
+};
+
+/* ডিফল্ট তথ্য ব্যবহার করলে সতর্কতা */
+const _oam=openAdminModal;
+openAdminModal=function(){
+  _oam();
+  if(isAdmin()&&(currentUser.password==='admin'||currentUser.phone==='01700000000'||currentUser.email==='admin@gmail.com'))
+    setTimeout(()=>alert('⚠️ আপনি ডিফল্ট অ্যাডমিন তথ্য ব্যবহার করছেন। "ব্যবহারকারী" ট্যাব থেকে এখনই নিজের ফোন, ইমেইল ও পাসওয়ার্ড বদলান।'),300);
+};
+
+/* ---------- C. যেকোনো অ্যাডমিন বা ইউজার রিমুভ (শেষ অ্যাডমিন বাদে) ---------- */
+renderAdminUsersTable=function(){
+  const tb=$('adminUsersTableBody');if(!tb)return;tb.innerHTML='';
+  users.forEach(u=>{
+    const adm=u.role==='admin';
+    const tr=document.createElement('tr');tr.className='hover:bg-slate-50 transition';
+    tr.innerHTML=`<td class="p-2 sm:p-2.5 font-semibold text-slate-800">${esc(u.name)} ${adm?'<span class="bg-amber-100 text-amber-800 text-[9px] px-1 py-0.5 rounded font-bold ml-1">ADMIN</span>':''}</td><td class="p-2 sm:p-2.5 text-slate-600">${esc(u.phone)}</td><td class="p-2 sm:p-2.5"><span class="font-mono bg-slate-100 px-1.5 py-0.5 rounded text-emerald-800 font-bold">${esc(u.password)}</span></td><td class="p-2 sm:p-2.5 text-center"><div class="flex items-center justify-center gap-1"><button data-a="e" class="px-2 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded text-xs font-bold"><i class="fa-solid fa-pen"></i></button><button data-a="d" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded text-xs font-bold"><i class="fa-solid fa-trash"></i></button></div></td>`;
+    tr.querySelector('[data-a=e]').onclick=()=>adminEditUser(u.phone);
+    tr.querySelector('[data-a=d]').onclick=()=>adminDeleteUser(u.phone);
+    tb.appendChild(tr);
+  });
+};
+adminDeleteUser=async function(phone){
+  if(!isAdmin())return;
+  const u=users.find(x=>x.phone===phone);if(!u)return;
+  const isAdm=u.role==='admin';
+  if(isAdm&&users.filter(x=>x.role==='admin').length<=1)return alert('এটিই শেষ অ্যাডমিন, তাই মুছে ফেলা যাবে না। আগে আরেকজন অ্যাডমিন যুক্ত করুন।');
+  const self=currentUser&&currentUser.phone===phone;
+  if(!confirm(self?'আপনি নিজের অ্যাডমিন অ্যাকাউন্ট মুছতে যাচ্ছেন। মুছলে লগআউট হয়ে যাবেন। নিশ্চিত?':(isAdm?'এই অ্যাডমিন অ্যাকাউন্টটি মুছে ফেলতে চান?':'অ্যাকাউন্টটি মুছে ফেলতে চান?')))return;
+  try{
+    if(isFirebaseReady)await firebaseDb.collection('users').doc('user_'+phone).delete();
+    else{users=users.filter(x=>x.phone!==phone);localStorage.setItem('tolet_users',JSON.stringify(users));renderAdminUsersTable();}
+    if(self)logout();
+  }catch(err){console.error(err);alert('মুছে ফেলা যায়নি।');}
+};
+renderAdminUsersTable();
+
+/* ---------- D. ইউজার এডিটে ভূমিকা (ইউজার/অ্যাডমিন) বদলানোর অপশন ---------- */
+$('adminUserEditForm').querySelector('.flex.justify-end').insertAdjacentHTML('beforebegin',
+ `<div><label class="block font-medium text-slate-700 mb-1 text-xs">ভূমিকা</label><select id="editUserRole" class="w-full p-2 text-xs rounded-lg border border-slate-200"><option value="user">সাধারণ ব্যবহারকারী</option><option value="admin">অ্যাডমিন</option></select></div>`);
+const _aeu=adminEditUser;
+adminEditUser=function(phone){
+  _aeu(phone);
+  const u=users.find(x=>x.phone===phone);
+  if(u)$('editUserRole').value=u.role==='admin'?'admin':'user';
+};
+saveAdminUserEdit=async function(e){
+  e.preventDefault();if(!isAdmin())return;
+  const oldPhone=$('editUserOldPhone').value;
+  const old=users.find(u=>u.phone===oldPhone)||{};
+  const u={name:cleanName($('editUserName').value),email:$('editUserEmail').value.trim().toLowerCase(),phone:normPhone($('editUserPhone').value),password:$('editUserPassword').value.trim(),role:$('editUserRole').value==='admin'?'admin':'user'};
+  if(!u.name||!validPhone(u.phone)||!u.password)return alert('সঠিক তথ্য দিন!');
+  if(u.phone!==oldPhone&&users.some(x=>x.phone===u.phone))return alert('এই মোবাইল নম্বর আগেই ব্যবহৃত!');
+  if(old.role==='admin'&&u.role!=='admin'&&users.filter(x=>x.role==='admin').length<=1)return alert('এটিই শেষ অ্যাডমিন, সাধারণ ইউজার করা যাবে না।');
+  try{
+    const self=currentUser&&currentUser.phone===oldPhone;
+    if(self){currentUser=u;localStorage.setItem('tolet_current_user',JSON.stringify(u));}
+    if(isFirebaseReady)await saveUserDoc(u,oldPhone);
+    else{users=users.map(x=>x.phone===oldPhone?u:x);localStorage.setItem('tolet_users',JSON.stringify(users));renderAdminUsersTable();}
+    if(self)updateAuthUI();
+    toggleAdminEditUserModal(false);alert('ব্যবহারকারীর তথ্য সফলভাবে আপডেট হয়েছে!');
+  }catch(err){console.error(err);alert('আপডেট ব্যর্থ হয়েছে।');}
+};
+
+/* ---------- E. অন্য অ্যাডমিন মুছে দিলে সাথে সাথে লগআউট + সেটআপ ফর্ম আপডেট ---------- */
+if(isFirebaseReady)firebaseDb.collection('users').onSnapshot(()=>{
+  setTimeout(()=>{
+    usersLoaded=true;updateSetupUI();
+    if(!currentUser||!users.length)return;
+    if(!users.some(u=>u.phone===currentUser.phone)){logout();alert('আপনার অ্যাকাউন্টটি আর পাওয়া যাচ্ছে না।');}
+  },50);
+},()=>{});
+else updateSetupUI();
+})();
+</script>
  </body>
 </html>
