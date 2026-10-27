@@ -7,7 +7,12 @@
 <link rel="apple-touch-icon" href="Website Logo.png">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>টু-লেট গোপালগঞ্জ | To-Let Gopalganj</title>
+  <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#059669">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="To Let Gopalgonj">
+  <title>To-Let Gopalganj | টু-লেট গোপালগঞ্জ</title>
   <meta name="description" content="গোপালগঞ্জে বাসা, হোস্টেল বা মেস ভাড়া নেওয়ার নির্ভরযোগ্য মাধ্যম।">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -4196,6 +4201,275 @@ updateAuthUI=function(){
     if(p)setTimeout(runSuggest,300);
   }
 };
+})();
+</script>
+<!-- ===== APP (PWA) ADD-ON: অ্যাপ মোডে অ্যাডমিন বন্ধ + ডাউনলোড পপ-আপ + ফুটার বাটন ===== -->
+<style>
+  .is-app #adminLoginModal,.is-app #adminPanelModal,.is-app #adminEditUserModal,.is-app #adminSetupBox{display:none!important}
+</style>
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const GAP=30*60*1000;      // পপ-আপ কত সময় পরপর আসবে (৩০ মিনিট)
+const FIRST=10000;         // প্রথমবার কত মিলিসেকেন্ড পরে (১০ সেকেন্ড)
+const K_TS='tolet_app_pop_ts',K_INST='tolet_app_installed';
+
+const APP=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true||/[?&]app=1(&|$)/.test(location.search);
+const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+
+/* service worker */
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+
+/* ---------- অ্যাপ মোড: অ্যাডমিন সাইড সম্পূর্ণ বাদ ---------- */
+if(APP){
+  document.documentElement.classList.add('is-app');
+  isAdmin=function(){return false;};
+  toggleAdminLoginModal=function(){};
+  openAdminLoginModal=function(){};
+  openAdminModal=function(){};
+  handleAdminLogin=function(e){if(e)e.preventDefault();};
+  document.querySelectorAll('[onclick*="dmin"]').forEach(e=>(e.closest('li')||e).remove());
+  if(currentUser&&currentUser.role==='admin'){
+    currentUser=null;localStorage.removeItem('tolet_current_user');updateAuthUI();
+  }
+  return; // অ্যাপে ডাউনলোড পপ-আপ/বাটন লাগবে না
+}
+
+/* ---------- ওয়েবসাইট মোড: ডাউনলোড পপ-আপ + ফুটার বাটন ---------- */
+let dp=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;});
+window.addEventListener('appinstalled',()=>{
+  localStorage.setItem(K_INST,'1');dp=null;closePop();
+  const b=$('footerAppWrap');if(b)b.remove();
+});
+const installed=()=>localStorage.getItem(K_INST)==='1';
+
+document.body.insertAdjacentHTML('beforeend',
+'<style>'+
+ '@keyframes apPop{from{opacity:0;transform:translateY(28px) scale(.92)}to{opacity:1;transform:none}}'+
+ '@keyframes apFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}'+
+ '@keyframes apShine{0%{transform:translateX(-120%) skewX(-20deg)}60%,100%{transform:translateX(220%) skewX(-20deg)}}'+
+ '@keyframes apPulse{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.55)}70%{box-shadow:0 0 0 12px rgba(16,185,129,0)}}'+
+ '#appPop.flex .ap-card{animation:apPop .45s cubic-bezier(.2,.9,.3,1.2) both}'+
+ '.ap-logo{animation:apFloat 3s ease-in-out infinite}'+
+ '.ap-btn{position:relative;overflow:hidden;animation:apPulse 2s infinite}'+
+ '.ap-btn::after{content:"";position:absolute;top:0;left:0;width:40%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent);animation:apShine 2.8s infinite}'+
+'</style>'+
+'<div id="appPop" class="fixed inset-0 bg-slate-950/70 backdrop-blur-md hidden items-center justify-center p-4" style="z-index:95">'+
+ '<div class="ap-card bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl shadow-emerald-900/40 relative">'+
+  '<button type="button" id="appPopX" aria-label="বন্ধ করুন" class="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-white/20 hover:bg-white/35 backdrop-blur text-white text-xl leading-none flex items-center justify-center transition active:scale-90">&times;</button>'+
+  '<div class="relative overflow-hidden text-center text-white px-6 pt-9 pb-7 bg-gradient-to-br from-emerald-500 via-emerald-700 to-teal-900">'+
+   '<div class="absolute -top-12 -left-12 w-40 h-40 rounded-full bg-white/10 blur-2xl"></div>'+
+   '<div class="absolute -bottom-16 -right-10 w-44 h-44 rounded-full bg-teal-300/20 blur-2xl"></div>'+
+   '<span class="relative inline-flex items-center gap-1.5 bg-white/15 border border-white/25 backdrop-blur text-[10px] font-bold tracking-wider px-3 py-1 rounded-full mb-4"><i class="fa-solid fa-sparkles text-amber-300"></i> সম্পূর্ণ ফ্রি অ্যাপ</span>'+
+   '<div class="relative">'+
+    '<div class="ap-logo w-20 h-20 mx-auto rounded-3xl bg-white flex items-center justify-center shadow-xl shadow-black/25 ring-4 ring-white/30"><i class="fa-solid fa-house-chimney text-4xl text-emerald-600"></i></div>'+
+   '</div>'+
+   '<h3 class="relative mt-4 text-xl font-extrabold tracking-tight">To Let Gopalgonj</h3>'+
+   '<p class="relative text-xs text-emerald-100 mt-1.5 leading-relaxed">অ্যাপ ইনস্টল করে আরও সহজে<br>গোপালগঞ্জে বাসা খুঁজুন</p>'+
+  '</div>'+
+  '<div class="p-5 space-y-4 bg-gradient-to-b from-white to-slate-50">'+
+   '<div class="grid grid-cols-3 gap-2 text-center">'+
+    '<div class="rounded-2xl bg-emerald-50 border border-emerald-100 py-3 px-1"><div class="w-9 h-9 mx-auto rounded-xl bg-emerald-600 text-white flex items-center justify-center text-sm mb-1.5 shadow-sm shadow-emerald-300"><i class="fa-solid fa-bolt"></i></div><p class="text-[11px] font-bold text-slate-700 leading-tight">এক ট্যাপে<br>ওপেন</p></div>'+
+    '<div class="rounded-2xl bg-sky-50 border border-sky-100 py-3 px-1"><div class="w-9 h-9 mx-auto rounded-xl bg-sky-600 text-white flex items-center justify-center text-sm mb-1.5 shadow-sm shadow-sky-300"><i class="fa-solid fa-expand"></i></div><p class="text-[11px] font-bold text-slate-700 leading-tight">ফুল স্ক্রিন<br>ও দ্রুত</p></div>'+
+    '<div class="rounded-2xl bg-amber-50 border border-amber-100 py-3 px-1"><div class="w-9 h-9 mx-auto rounded-xl bg-amber-500 text-white flex items-center justify-center text-sm mb-1.5 shadow-sm shadow-amber-300"><i class="fa-solid fa-comments"></i></div><p class="text-[11px] font-bold text-slate-700 leading-tight">বাসা ও চ্যাট<br>একই সুবিধা</p></div>'+
+   '</div>'+
+   '<div id="appPopHelp" class="hidden text-[11px] bg-amber-50 border border-amber-200 text-amber-800 p-3 rounded-xl leading-relaxed"></div>'+
+   '<div class="space-y-2">'+
+    '<button type="button" id="appPopInstall" class="ap-btn w-full py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white rounded-2xl text-sm font-extrabold active:scale-95 transition flex items-center justify-center gap-2.5 shadow-lg shadow-emerald-500/40"><i class="fa-solid fa-download"></i> অ্যাপ ডাউনলোড করুন</button>'+
+    '<button type="button" id="appPopLater" class="w-full py-2 text-slate-400 hover:text-slate-600 text-xs font-semibold transition">পরে করব</button>'+
+   '</div>'+
+  '</div>'+
+ '</div></div>');
+
+function openPop(){
+  localStorage.setItem(K_TS,String(Date.now()));
+  $('appPopHelp').classList.add('hidden');
+  const m=$('appPop');m.classList.remove('hidden');m.classList.add('flex');
+}
+function closePop(){const m=$('appPop');if(m){m.classList.add('hidden');m.classList.remove('flex');}}
+$('appPopX').onclick=closePop;
+$('appPopLater').onclick=closePop;
+$('appPop').addEventListener('click',e=>{if(e.target.id==='appPop')closePop();});
+
+async function doInstall(){
+  if(dp){
+    dp.prompt();
+    try{const r=await dp.userChoice;if(r.outcome==='accepted')localStorage.setItem(K_INST,'1');}catch(_){}
+    dp=null;closePop();return;
+  }
+  const h=$('appPopHelp');
+  h.innerHTML=isIOS
+    ? 'iPhone/iPad-এ: Safari ব্রাউজারের নিচের <b>Share (⬆️)</b> বাটনে চাপুন, তারপর <b>"Add to Home Screen"</b> বাছুন।'
+    : 'ব্রাউজারের উপরের <b>মেনু (⋮)</b> খুলে <b>"Install app"</b> অথবা <b>"Add to Home screen"</b> বাছুন। (Chrome ব্যবহার করলে ভালো কাজ করবে)';
+  h.classList.remove('hidden');
+  const m=$('appPop');if(m.classList.contains('hidden')){m.classList.remove('hidden');m.classList.add('flex');}
+}
+$('appPopInstall').onclick=doInstall;
+window.installToLetApp=function(){openPop();doInstall();};
+
+/* ফুটারে বাটন (ডান পাশে, হেল্প ও সাপোর্ট বক্সের নিচে, বড় আকারে) */
+const sup=$('footerDisplayPhone')?$('footerDisplayPhone').closest('.space-y-3'):null;
+if(sup&&!installed()){
+  sup.insertAdjacentHTML('beforeend',
+   '<div id="footerAppWrap" class="pt-1">'+
+    '<button type="button" onclick="installToLetApp()" class="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-extrabold text-sm sm:text-base px-5 py-4 rounded-2xl shadow-lg shadow-emerald-500/40 ring-2 ring-emerald-300/40 active:scale-95 transition">'+
+     '<span class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-xl"><i class="fa-solid fa-download"></i></span>'+
+     '<span class="text-left leading-tight">অ্যাপ ডাউনলোড করুন<span class="block text-[11px] font-medium text-emerald-50">To Let Gopalgonj • ফ্রি ও দ্রুত</span></span>'+
+    '</button>'+
+   '</div>');
+}
+
+/* কিছু সময় পরপর পপ-আপ */
+const otherModalOpen=()=>[...document.querySelectorAll('.fixed.inset-0')].some(m=>m.id!=='appPop'&&m.classList.contains('flex'));
+function maybe(){
+  if(installed()||!$('appPop').classList.contains('hidden'))return;
+  if(Date.now()-Number(localStorage.getItem(K_TS)||0)<GAP)return;
+  if(otherModalOpen())return;
+  openPop();
+}
+setTimeout(maybe,FIRST);
+setInterval(maybe,60000);
+})();
+</script>
+<!-- ===== SOCIAL LOGIN ADD-ON: Google (Firebase Auth) ===== -->
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+if(!isFirebaseReady){return;}
+
+/* Firebase Auth library load (page load-e-i, jate popup block na hoy) */
+let authReady=new Promise((res,rej)=>{
+  if(firebase.auth)return res();
+  const s=document.createElement('script');
+  s.src='https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js';
+  s.onload=res;s.onerror=()=>rej(new Error('Auth লাইব্রেরি লোড হয়নি'));
+  document.head.appendChild(s);
+});
+const getAuth=async()=>{await authReady;return firebase.auth();};
+
+/* ---------- বাটন UI ---------- */
+const btns=(label)=>`
+<div class="social-login-box pt-1">
+  <div class="flex items-center gap-2 my-2"><span class="flex-1 h-px bg-slate-200"></span><span class="text-[11px] text-slate-400 font-semibold">অথবা</span><span class="flex-1 h-px bg-slate-200"></span></div>
+  <div class="grid grid-cols-1 gap-2">
+    <button type="button" data-p="google" class="flex items-center justify-center gap-2 py-2.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold active:scale-95 transition"><i class="fa-brands fa-google text-rose-500"></i> Google ${label}</button>
+  </div>
+</div>`;
+$('loginForm').querySelector('button[type=submit]').insertAdjacentHTML('afterend',btns('লগইন'));
+$('registerForm').querySelector('button[type=submit]').insertAdjacentHTML('afterend',btns('সাইন-আপ'));
+document.querySelectorAll('.social-login-box [data-p]').forEach(b=>b.onclick=()=>socialLogin(b.dataset.p));
+
+/* ---------- ফোন নম্বর নেওয়ার মডাল (নতুন সোশ্যাল ইউজারের জন্য) ---------- */
+document.body.insertAdjacentHTML('beforeend',`
+<div id="socialProfileModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-3" style="z-index:100">
+  <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-slate-100">
+    <div class="px-5 py-3.5 bg-emerald-600 text-white flex justify-between items-center">
+      <h3 class="text-sm font-bold"><i class="fa-solid fa-user-check mr-1.5"></i> প্রোফাইল সম্পূর্ণ করুন</h3>
+      <button type="button" id="spCancelX" class="text-white text-2xl font-bold leading-none">&times;</button>
+    </div>
+    <div class="p-4 sm:p-5 space-y-3 text-sm">
+      <p class="text-[11px] text-slate-500 leading-relaxed">বিজ্ঞাপন, কল ও চ্যাটের জন্য আপনার মোবাইল নম্বর লাগবে। এটি একবারই দিতে হবে।</p>
+      <div><label class="block font-medium text-slate-700 mb-1 text-xs">নাম *</label><input id="spName" maxlength="40" class="w-full p-2 text-xs rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none"></div>
+      <div><label class="block font-medium text-slate-700 mb-1 text-xs">মোবাইল নম্বর *</label><input id="spPhone" type="tel" placeholder="017XXXXXXXX" class="w-full p-2 text-xs rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none"></div>
+      <div><label class="block font-medium text-slate-700 mb-1 text-xs">ইমেইল <span id="spEmailHint" class="text-slate-400"></span></label><input id="spEmail" type="email" placeholder="example@gmail.com" class="w-full p-2 text-xs rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none"></div>
+      <div class="flex gap-2 pt-1">
+        <button type="button" id="spCancel" class="flex-1 py-2.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-bold">বাতিল</button>
+        <button type="button" id="spSave" class="flex-[2] py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold active:scale-95">অ্যাকাউন্ট তৈরি করুন</button>
+      </div>
+    </div>
+  </div>
+</div>`);
+const spShow=s=>{const m=$('socialProfileModal');m.classList.toggle('hidden',!s);m.classList.toggle('flex',s);};
+let pending=null;
+$('spCancel').onclick=$('spCancelX').onclick=()=>{pending=null;spShow(false);};
+
+/* ---------- হেল্পার ---------- */
+const waitFor=(fn,ms)=>new Promise(res=>{const t0=Date.now();(function tick(){let v;try{v=fn();}catch(_){}if(v)return res(v);if(Date.now()-t0>ms)return res(null);setTimeout(tick,250);})();});
+const randPass=()=>{const a=new Uint32Array(3);crypto.getRandomValues(a);return Array.from(a).map(x=>x.toString(36)).join('').slice(0,12);};
+const errText=e=>{
+  const c=(e&&e.code)||'';
+  if(c==='auth/popup-closed-by-user'||c==='auth/cancelled-popup-request')return '';
+  if(c==='auth/operation-not-allowed')return 'এই লগইন পদ্ধতি Firebase Console-এ চালু করা নেই।';
+  if(c==='auth/unauthorized-domain')return 'এই ডোমেইন Firebase > Authentication > Settings > Authorized domains-এ যোগ করুন।';
+  if(c==='auth/account-exists-with-different-credential')return 'এই ইমেইল দিয়ে অন্য পদ্ধতিতে অ্যাকাউন্ট আছে। সেই পদ্ধতিতে লগইন করুন।';
+  if(c==='auth/network-request-failed')return 'ইন্টারনেট সংযোগ সমস্যা, আবার চেষ্টা করুন।';
+  return 'লগইন ব্যর্থ হয়েছে। '+(e&&e.message?'('+e.message+')':'');
+};
+
+/* ---------- মূল লগইন (শুধু Google) ---------- */
+async function socialLogin(name){
+  let auth;
+  try{auth=await getAuth();}catch(e){return alert(e.message);}
+  const prov=new firebase.auth.GoogleAuthProvider();
+  prov.setCustomParameters({prompt:'select_account'});
+  try{
+    const r=await auth.signInWithPopup(prov);
+    await afterSocial(r.user,'google');
+  }catch(e){
+    const c=(e&&e.code)||'';
+    if(c==='auth/popup-blocked'||c==='auth/operation-not-supported-in-this-environment'){
+      try{await auth.signInWithRedirect(prov);}catch(e2){const m=errText(e2);if(m)alert(m);}
+      return;
+    }
+    const m=errText(e);if(m)alert(m);
+  }
+}
+
+async function afterSocial(fu,provName){
+  const auth=await getAuth();
+  try{
+    if(!(await waitFor(()=>users.length>0,6000)))return alert('ব্যবহারকারীর তালিকা লোড হয়নি। ইন্টারনেট চেক করে আবার চেষ্টা করুন।');
+    const email=(fu.email||'').toLowerCase();
+    let u=users.find(x=>x.socialUid===fu.uid);
+    if(!u&&email&&fu.emailVerified)u=users.find(x=>x.email&&x.email.toLowerCase()===email);
+    if(u){
+      if(u.role==='admin'){alert('অ্যাডমিন অ্যাকাউন্টে সোশ্যাল লগইন চলবে না।');return;}
+      if(!u.socialUid){
+        u=Object.assign({},u,{socialUid:fu.uid,provider:provName});
+        try{await firebaseDb.collection('users').doc('user_'+u.phone).set(u);}catch(_){}
+      }
+      currentUser=u;localStorage.setItem('tolet_current_user',JSON.stringify(u));
+      toggleAuthModal(false);updateAuthUI();alert('স্বাগতম, '+u.name+'!');
+      return;
+    }
+    /* নতুন ইউজার -> ফোন নম্বর নিন */
+    pending={uid:fu.uid,provider:provName};
+    $('spName').value=cleanName(fu.displayName||'');
+    $('spEmail').value=fu.email||'';
+    $('spEmail').readOnly=!!(fu.email&&fu.emailVerified);
+    $('spEmailHint').textContent=fu.email?'':'(ঐচ্ছিক, পাসওয়ার্ড রিসেটের জন্য কাজে লাগবে)';
+    $('spPhone').value='';
+    toggleAuthModal(false);spShow(true);
+  }finally{
+    auth.signOut().catch(()=>{}); // আমাদের নিজস্ব সেশন ব্যবহার হচ্ছে
+  }
+}
+
+$('spSave').onclick=async()=>{
+  if(!pending)return;
+  const name=cleanName($('spName').value),phone=normPhone($('spPhone').value),email=$('spEmail').value.trim().toLowerCase();
+  if(!name)return alert('সঠিক নাম লিখুন!');
+  if(!validPhone(phone))return alert('সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন (017XXXXXXXX)');
+  if(email&&!/^\S+@\S+\.\S+$/.test(email))return alert('সঠিক ইমেইল দিন!');
+  if(users.some(x=>x.phone===phone))return alert('এই মোবাইল নম্বরে আগেই অ্যাকাউন্ট আছে। পাসওয়ার্ড দিয়ে লগইন করুন (ভুলে গেলে "পাসওয়ার্ড ভুলে গেছেন?" ব্যবহার করুন)।');
+  if(email&&users.some(x=>x.email&&x.email.toLowerCase()===email))return alert('এই ইমেইল দিয়ে আগেই অ্যাকাউন্ট আছে। পাসওয়ার্ড দিয়ে লগইন করুন।');
+  const nu={name,email,phone,password:randPass(),role:'user',socialUid:pending.uid,provider:pending.provider};
+  const b=$('spSave');b.disabled=true;b.textContent='তৈরি হচ্ছে...';
+  try{
+    const d=await firebaseDb.collection('users').doc('user_'+phone).get();
+    if(d.exists)return alert('এই মোবাইল নম্বর আগেই ব্যবহৃত!');
+    await firebaseDb.collection('users').doc('user_'+phone).set(nu);
+    currentUser=nu;localStorage.setItem('tolet_current_user',JSON.stringify(nu));
+    pending=null;spShow(false);updateAuthUI();alert('অ্যাকাউন্ট তৈরি সম্পন্ন হয়েছে!');
+  }catch(e){console.error(e);alert(fbErrMsg(e,'অ্যাকাউন্ট তৈরি ব্যর্থ হয়েছে।'));}
+  finally{b.disabled=false;b.textContent='অ্যাকাউন্ট তৈরি করুন';}
+};
+
+/* redirect দিয়ে লগইন হলে ফিরে এসে শেষ করুন (মোবাইল/অ্যাপ মোড) */
+getAuth().then(a=>a.getRedirectResult()).then(r=>{
+  if(r&&r.user)afterSocial(r.user,'google');
+}).catch(e=>{const m=errText(e);if(m)alert(m);});
 })();
 </script>
  </body>
