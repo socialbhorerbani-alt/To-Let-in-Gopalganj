@@ -6497,5 +6497,668 @@ openUserDashboard=function(){
 };
 })();
 </script>
+<!-- ===== ACCOUNT DELETE ADD-ON: কারণ + ক্যাপচা + পাসওয়ার্ড + সতর্কবার্তা ===== -->
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const toast=(m,k,ms)=>(window.uxToast?window.uxToast(m,k,ms):alert(m));
+const REASONS=['আমার আর বাসা/জিনিসের প্রয়োজন নেই','বাসা পেয়ে গেছি / জিনিস বিক্রি হয়ে গেছে','সাইটটি ব্যবহার করা কঠিন লাগছে','ভুয়া বা বিরক্তিকর মেসেজ আসছে','নিরাপত্তা বা গোপনীয়তা নিয়ে চিন্তা','অন্য একটি অ্যাকাউন্ট ব্যবহার করব','অন্যান্য'];
+const OFF="flex-1 py-3 text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1.5 font-bold";
+const DEL_OFF="flex-1 py-3 text-rose-500 hover:text-rose-700 flex items-center justify-center gap-1.5 font-bold leading-tight";
+const DEL_ON="flex-1 py-3 text-rose-700 border-b-2 border-rose-600 bg-white flex items-center justify-center gap-1.5 font-bold leading-tight";
+const INP='w-full p-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-rose-400 outline-none text-xs bg-white';
+
+/* ---------- ট্যাব + প্যানেল ---------- */
+$('dashTabAdsBtn').parentElement.insertAdjacentHTML('beforeend','<button id="dashTabDelBtn" type="button" onclick="switchDashTab(\'del\')" class="'+DEL_OFF+'"><i class="fa-solid fa-user-xmark"></i> অ্যাকাউন্ট ডিলিট</button>');
+$('dashTabPass').insertAdjacentHTML('afterend',
+'<div id="dashTabDel" class="hidden p-4 sm:p-6 overflow-y-auto flex-1">'+
+ '<div class="max-w-md mx-auto space-y-3.5">'+
+  '<div class="bg-rose-50 border border-rose-200 text-rose-800 text-xs p-3 rounded-xl flex items-start gap-2"><i class="fa-solid fa-triangle-exclamation text-rose-600 text-base mt-0.5"></i><span>অ্যাকাউন্ট মুছলে আপনার সব বিজ্ঞাপন, অনুরোধ ও পাঠানো মেসেজও মুছে যাবে। এটি আর ফেরানো যাবে না।</span></div>'+
+  '<div id="delAdminNote" class="hidden bg-amber-50 border border-amber-200 text-amber-800 text-xs p-3 rounded-xl">অ্যাডমিন অ্যাকাউন্ট এখান থেকে মুছা যায় না। অ্যাডমিন প্যানেলের "ব্যবহারকারী" ট্যাব থেকে করুন।</div>'+
+  '<form id="delForm" autocomplete="off" class="space-y-3 text-sm">'+
+   '<div><label class="block font-medium text-slate-700 mb-1 text-xs">অ্যাকাউন্ট মুছতে চান কেন? *</label><select id="delReason" class="'+INP+'"></select>'+
+    '<textarea id="delOther" rows="2" maxlength="300" placeholder="কারণটি লিখুন..." class="'+INP+' hidden mt-2"></textarea>'+
+    '<p class="text-[10px] text-slate-400 mt-1">আপনার দেওয়া কারণ অ্যাডমিন দেখতে পাবেন, যাতে সাইট আরও ভালো করা যায়।</p></div>'+
+   '<div><label class="block font-medium text-slate-700 mb-1 text-xs">ক্যাপচা: নিচের কোডটি লিখুন *</label>'+
+    '<div class="flex items-center gap-2"><canvas id="delCap" width="150" height="46" class="rounded-lg border border-slate-300 flex-shrink-0"></canvas>'+
+    '<button type="button" id="delCapRef" class="w-10 h-10 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center" aria-label="নতুন কোড"><i class="fa-solid fa-rotate"></i></button></div>'+
+    '<input type="text" id="delCapIn" maxlength="5" autocomplete="off" autocapitalize="characters" placeholder="৫ অক্ষরের কোড" class="'+INP+' mt-2 font-mono tracking-widest"></div>'+
+   '<div><label class="block font-medium text-slate-700 mb-1 text-xs">আপনার পাসওয়ার্ড *</label><input type="password" id="delPass" autocomplete="new-password" placeholder="বর্তমান পাসওয়ার্ড দিন" class="'+INP+'">'+
+    '<p id="delSocialNote" class="hidden text-[10px] text-sky-700 mt-1">Google দিয়ে অ্যাকাউন্ট খুলেছেন এবং পাসওয়ার্ড জানা না থাকলে ফাঁকা রাখুন — শেষ ধাপে Google দিয়ে যাচাই করা হবে।</p></div>'+
+   '<button type="submit" class="w-full py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-bold text-xs transition flex items-center justify-center gap-1.5 active:scale-95 mt-2"><i class="fa-solid fa-trash"></i> অ্যাকাউন্ট মুছতে এগিয়ে যান</button>'+
+  '</form></div></div>');
+
+/* ---------- সতর্কবার্তা মডাল ---------- */
+document.body.insertAdjacentHTML('beforeend',
+'<div id="delWarn" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center p-3" style="z-index:120">'+
+ '<div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">'+
+  '<div class="px-5 py-4 bg-rose-600 text-white flex items-center gap-2.5"><i class="fa-solid fa-triangle-exclamation text-xl"></i><h3 class="text-sm font-extrabold">সতর্কতা: অ্যাকাউন্ট চিরতরে মুছে যাবে</h3></div>'+
+  '<div class="p-4 space-y-3 text-xs text-slate-700 leading-relaxed">'+
+   '<p class="font-bold text-rose-700">এই কাজটি আর ফেরানো যাবে না। যা যা মুছে যাবে:</p>'+
+   '<ul class="list-disc pl-5 space-y-1"><li>আপনার অ্যাকাউন্ট ও লগইন তথ্য</li><li>আপনার সব বাসার বিজ্ঞাপন</li><li>আপনার সব পুরনো জিনিসের বিজ্ঞাপন ও বাসা চাই অনুরোধ</li><li>আপনার পাঠানো সব চ্যাট ও ভয়েস মেসেজ</li></ul>'+
+   '<p class="bg-amber-50 border border-amber-200 text-amber-800 rounded-lg p-2.5">অন্যের বিজ্ঞাপনে দেওয়া আপনার রিভিউ থেকে যাবে। পরে চাইলে একই নম্বর বা ইমেইলে নতুন অ্যাকাউন্ট খুলতে পারবেন, তবে পুরনো কিছু ফিরে পাবেন না।</p>'+
+  '</div>'+
+  '<div class="p-4 pt-0 flex gap-2"><button type="button" id="delNo" class="flex-1 py-2.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold active:scale-95">না, ফিরে যাই</button>'+
+  '<button type="button" id="delYes" class="flex-1 py-2.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold active:scale-95 disabled:opacity-60"></button></div>'+
+ '</div></div>');
+
+/* ---------- ক্যাপচা ---------- */
+let capCode='';
+function newCap(){
+  const ch='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',a=new Uint32Array(5);crypto.getRandomValues(a);
+  capCode=Array.from(a).map(x=>ch[x%ch.length]).join('');
+  const c=$('delCap'),x=c.getContext('2d');
+  x.fillStyle='#f1f5f9';x.fillRect(0,0,c.width,c.height);
+  for(let i=0;i<8;i++){
+    x.strokeStyle='hsl('+(Math.random()*360)+',45%,60%)';x.lineWidth=1.5;x.beginPath();
+    x.moveTo(Math.random()*c.width,Math.random()*c.height);x.lineTo(Math.random()*c.width,Math.random()*c.height);x.stroke();
+  }
+  x.font='bold 26px monospace';x.textBaseline='middle';
+  capCode.split('').forEach((l,i)=>{
+    x.save();x.translate(14+i*26,c.height/2+(Math.random()*8-4));x.rotate((Math.random()-.5)*.5);
+    x.fillStyle='hsl('+(Math.random()*360)+',60%,30%)';x.fillText(l,0,0);x.restore();
+  });
+  $('delCapIn').value='';
+}
+$('delCapRef').onclick=newCap;
+
+/* ---------- ফর্ম রিসেট ---------- */
+function resetForm(){
+  $('delReason').innerHTML='<option value="">— কারণ বাছুন —</option>'+REASONS.map(r=>'<option>'+esc(r)+'</option>').join('');
+  $('delOther').value='';$('delOther').classList.add('hidden');
+  $('delPass').value='';
+  const adm=isAdmin();
+  $('delForm').classList.toggle('hidden',adm);
+  $('delAdminNote').classList.toggle('hidden',!adm);
+  $('delSocialNote').classList.toggle('hidden',!(currentUser&&currentUser.socialUid));
+  newCap();
+}
+$('delReason').onchange=()=>{const o=$('delReason').value==='অন্যান্য';$('delOther').classList.toggle('hidden',!o);if(o)$('delOther').focus();};
+
+const _sw=switchDashTab;
+switchDashTab=function(t){
+  const db=$('dashTabDelBtn');
+  if(t==='del'){
+    $('dashTabAds').classList.add('hidden');$('dashTabPass').classList.add('hidden');$('dashTabDel').classList.remove('hidden');
+    $('dashTabAdsBtn').className=OFF;$('dashTabPassBtn').className=OFF;db.className=DEL_ON;
+    resetForm();return;
+  }
+  $('dashTabDel').classList.add('hidden');db.className=DEL_OFF;_sw(t);
+};
+
+/* ---------- যাচাই ---------- */
+let pending=null;
+$('delForm').onsubmit=e=>{
+  e.preventDefault();
+  if(!currentUser||isAdmin())return;
+  const sel=$('delReason').value;
+  if(!sel)return toast('অ্যাকাউন্ট মুছার একটি কারণ বেছে নিন।','warn');
+  let reason=sel;
+  if(sel==='অন্যান্য'){
+    reason=$('delOther').value.trim();
+    if(reason.length<3)return toast('কারণটি লিখুন (কমপক্ষে ৩ অক্ষর)।','warn');
+    reason='অন্যান্য: '+reason;
+  }
+  if($('delCapIn').value.trim().toUpperCase()!==capCode){newCap();return toast('ক্যাপচা কোড মেলেনি, নতুন কোডটি লিখুন।','err');}
+  const typed=$('delPass').value;
+  const rec=users.find(u=>u.phone===currentUser.phone)||currentUser;
+  let viaGoogle=false;
+  if(typed){
+    if(typed!==rec.password){$('delPass').value='';return toast('পাসওয়ার্ড সঠিক নয়!','err');}
+  }else if(currentUser.socialUid){viaGoogle=true;}
+  else return toast('পাসওয়ার্ড দিন।','warn');
+  pending={reason,viaGoogle};
+  showWarn();
+};
+
+/* ---------- সতর্কবার্তা ---------- */
+let cd=null;
+function showWarn(){
+  const m=$('delWarn'),y=$('delYes');
+  m.classList.remove('hidden');m.classList.add('flex');
+  let n=3;y.disabled=true;y.textContent='হ্যাঁ, মুছুন ('+n+')';
+  clearInterval(cd);
+  cd=setInterval(()=>{n--;if(n<=0){clearInterval(cd);y.disabled=false;y.innerHTML='<i class="fa-solid fa-trash mr-1"></i> হ্যাঁ, চিরতরে মুছুন';}else y.textContent='হ্যাঁ, মুছুন ('+n+')';},1000);
+}
+function hideWarn(){clearInterval(cd);const m=$('delWarn');m.classList.add('hidden');m.classList.remove('flex');}
+$('delNo').onclick=hideWarn;
+
+/* ---------- Google দিয়ে পুনরায় যাচাই ---------- */
+async function reauthGoogle(me){
+  if(!isFirebaseReady)throw new Error('Google যাচাই করা যাচ্ছে না।');
+  if(!firebase.auth)await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js';s.onload=res;s.onerror=()=>rej(new Error('Google যাচাই লোড হয়নি।'));document.head.appendChild(s);});
+  const auth=firebase.auth(),p=new firebase.auth.GoogleAuthProvider();
+  p.setCustomParameters({prompt:'select_account'});
+  let r;
+  try{r=await auth.signInWithPopup(p);}
+  catch(e){throw new Error((e&&(e.code==='auth/popup-closed-by-user'||e.code==='auth/cancelled-popup-request'))?'Google যাচাই বাতিল হয়েছে।':'Google যাচাই ব্যর্থ হয়েছে।');}
+  auth.signOut().catch(()=>{});
+  if(r.user.uid!==me.socialUid)throw new Error('এটি আপনার অ্যাকাউন্টের Google আইডি নয়।');
+}
+
+/* ---------- অ্যাডমিনকে কারণ জানানো (রিপোর্ট ট্যাবে দেখা যাবে) ---------- */
+async function sendReason(me,reason){
+  const r={id:Date.now(),type:'অ্যাকাউন্ট ডিলিট',message:'কারণ: '+reason,name:cleanName(me.name).slice(0,40),phone:me.phone,email:(me.email||'').slice(0,80),reporterPhone:me.phone,status:'new',createdAt:Date.now(),date:new Date().toLocaleString('bn-BD')};
+  try{
+    if(isFirebaseReady)await firebaseDb.collection('reports').doc(String(r.id)).set(r);
+    else{const l=readLS('tolet_reports',[]);l.unshift(r);localStorage.setItem('tolet_reports',JSON.stringify(l));}
+  }catch(_){}
+}
+
+/* ---------- ডেটা মুছা ---------- */
+async function purge(me){
+  const ph=me.phone;
+  if(isFirebaseReady){
+    const refs=[];
+    for(const [c,f] of [['listings','ownerPhone'],['market_items','ownerPhone'],['rent_requests','ownerPhone'],['chats','senderPhone']]){
+      const s=await firebaseDb.collection(c).where(f,'==',ph).get();
+      s.forEach(d=>refs.push(d.ref));
+    }
+    for(let i=0;i<refs.length;i+=400){const b=firebaseDb.batch();refs.slice(i,i+400).forEach(r=>b.delete(r));await b.commit();}
+    /* সবশেষে অ্যাকাউন্ট; সেশন-সিঙ্কের "অ্যাকাউন্ট পাওয়া যাচ্ছে না" বার্তা এড়াতে আগে currentUser খালি করা হয় */
+    currentUser=null;
+    try{await firebaseDb.collection('users').doc('user_'+ph).delete();}
+    catch(e){currentUser=me;throw e;}
+  }else{
+    listings=listings.filter(l=>l.ownerPhone!==ph);localStorage.setItem('gopalganj_tolet',JSON.stringify(listings));
+    ['tolet_market','tolet_rent_requests'].forEach(k=>{try{localStorage.setItem(k,JSON.stringify((JSON.parse(localStorage.getItem(k))||[]).filter(x=>x.ownerPhone!==ph)));}catch(_){}});
+    chats=chats.filter(m=>m.senderPhone!==ph);localStorage.setItem('tolet_chats',JSON.stringify(chats));
+    users=users.filter(u=>u.phone!==ph);localStorage.setItem('tolet_users',JSON.stringify(users));
+    currentUser=null;applyFilters();
+  }
+}
+
+/* ---------- চূড়ান্ত নিশ্চিতকরণ ---------- */
+$('delYes').onclick=async()=>{
+  const me=currentUser;if(!me||!pending||isAdmin())return;
+  const y=$('delYes');y.disabled=true;y.textContent='মুছে ফেলা হচ্ছে...';
+  try{
+    if(pending.viaGoogle)await reauthGoogle(me);
+    await sendReason(me,pending.reason);
+    await purge(me);
+    pending=null;hideWarn();toggleDashboardModal(false);
+    try{
+      if(localStorage.getItem('tolet_remember_phone')===me.phone)localStorage.removeItem('tolet_remember_phone');
+      ['tolet_seen_'+me.phone,'tolet_ad_draft','tolet_mk_draft'].forEach(k=>localStorage.removeItem(k));
+    }catch(_){}
+    logout();
+    toast('আপনার অ্যাকাউন্ট ও সব তথ্য মুছে ফেলা হয়েছে। ধন্যবাদ, আবার দেখা হবে!','ok',6000);
+  }catch(err){
+    console.error(err);
+    if(!currentUser)currentUser=me;
+    hideWarn();
+    toast(fbErrMsg(err,'অ্যাকাউন্ট মুছা যায়নি।'),'err',6000);
+  }finally{y.disabled=false;}
+};
+})();
+</script>
+<!-- ===== ACCOUNT DELETE: ট্যাব লুকিয়ে, পাসওয়ার্ড ট্যাবের নিচে ছোট লিংক ===== -->
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const btn=$('dashTabDelBtn'),panel=$('dashTabDel'),passForm=document.querySelector('#dashTabPass form');
+if(!btn||!panel||!passForm)return;
+
+/* ট্যাব বারের বাটন লুকানো */
+btn.style.display='none';
+
+/* পাসওয়ার্ড ট্যাবের নিচে ছোট লিংক */
+passForm.insertAdjacentHTML('afterend',
+ '<div class="pt-5 mt-3 border-t border-slate-100 text-center">'+
+ '<button type="button" id="delLinkOpen" class="text-[11px] text-slate-400 hover:text-rose-600 underline">অ্যাকাউন্ট মুছতে চান?</button></div>');
+$('delLinkOpen').onclick=()=>switchDashTab('del');
+
+/* ডিলিট প্যানেলের উপরে "ফিরে যান" */
+panel.firstElementChild.insertAdjacentHTML('afterbegin',
+ '<button type="button" id="delBack" class="text-xs font-semibold text-slate-500 hover:text-slate-800"><i class="fa-solid fa-arrow-left mr-1"></i> ফিরে যান</button>');
+$('delBack').onclick=()=>switchDashTab('pass');
+})();
+</script>
+<!-- ===== PASSWORD HASH ADD-ON (PBKDF2 + salt) ===== -->
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const toast=(m,k,ms)=>(window.uxToast?window.uxToast(m,k,ms):alert(m));
+if(!window.crypto||!crypto.subtle){console.warn('Password hash: https দরকার, তাই আগের নিয়মেই চলছে।');return;}
+
+/* ---------- হ্যাশ ফাংশন ---------- */
+const enc=new TextEncoder();
+const b64=buf=>btoa(String.fromCharCode(...new Uint8Array(buf)));
+const unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+const isHash=s=>/^pbkdf2\$\d+\$[A-Za-z0-9+\/=]+\$[A-Za-z0-9+\/=]+$/.test(String(s||''));
+async function derive(pw,salt,it){
+  const k=await crypto.subtle.importKey('raw',enc.encode(pw),'PBKDF2',false,['deriveBits']);
+  return crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:salt,iterations:it},k,256);
+}
+async function hashPw(pw){
+  const salt=crypto.getRandomValues(new Uint8Array(16)),it=100000;
+  return 'pbkdf2$'+it+'$'+b64(salt)+'$'+b64(await derive(pw,salt,it));
+}
+async function checkPw(pw,stored){
+  if(!isHash(stored))return typeof stored==='string'&&stored!==''&&pw===stored; // পুরনো (সাধারণ লেখা) পাসওয়ার্ড
+  const p=stored.split('$');
+  return b64(await derive(pw,unb64(p[2]),Number(p[1])))===p[3];
+}
+
+/* ---------- সব সেভ (পাসওয়ার্ড বদল, OTP রিসেট, অ্যাডমিন এডিট) হ্যাশ হয়ে যাবে ---------- */
+const _sud=saveUserDoc;
+saveUserDoc=async function(u,oldPhone){
+  if(u&&u.password&&!isHash(u.password))u.password=await hashPw(u.password);
+  return _sud(u,oldPhone);
+};
+
+/* ---------- ইউজার লগইন ---------- */
+handleUserLogin=async function(e){
+  e.preventDefault();
+  const raw=$('loginPhone').value.trim().toLowerCase(),asPhone=normPhone(raw),pw=$('loginPassword').value,rem=$('rememberMeCheckbox').checked;
+  const bad=()=>alert("ভুল মোবাইল নম্বর/ইমেইল অথবা পাসওয়ার্ড! সঠিক তথ্য দিন।");
+  const user=users.find(u=>u.phone===raw||u.phone===asPhone||(u.email&&u.email.toLowerCase()===raw));
+  if(!user||user.role==='admin'||!(await checkPw(pw,user.password)))return bad();
+  if(rem)localStorage.setItem('tolet_remember_phone',raw);else localStorage.removeItem('tolet_remember_phone');
+  currentUser=user;localStorage.setItem('tolet_current_user',JSON.stringify(currentUser));
+  toggleAuthModal(false);updateAuthUI();alert('স্বাগতম, '+currentUser.name+'!');
+};
+
+/* ---------- অ্যাডমিন লগইন ---------- */
+handleAdminLogin=async function(e){
+  e.preventDefault();
+  if(document.documentElement.classList.contains('is-app'))return;
+  const v=$('adminEmailInput').value.trim().toLowerCase(),p=$('adminPasswordInput').value.trim();
+  const cand=users.filter(u=>u.role==='admin'&&(u.phone===v||u.phone===normPhone(v)||(u.email&&u.email.toLowerCase()===v)));
+  let a=null;
+  for(const u of cand){if(await checkPw(p,u.password)){a=u;break;}}
+  if(!a)return alert('অ্যাডমিন ইউজারনেম অথবা পাসওয়ার্ড সঠিক নয়! পুনরায় চেষ্টা করুন।');
+  currentUser=a;localStorage.setItem('tolet_current_user',JSON.stringify(a));
+  toggleAdminLoginModal(false);updateAuthUI();openAdminModal();
+};
+
+/* ---------- নতুন অ্যাকাউন্ট ---------- */
+handleRegister=async function(e){
+  e.preventDefault();
+  const name=cleanName($('regName').value),email=$('regEmail').value.trim().toLowerCase(),phone=normPhone($('regPhone').value),password=$('regPassword').value;
+  if(!name)return alert('সঠিক নাম লিখুন!');
+  if(!validPhone(phone))return alert('সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন (017XXXXXXXX)');
+  if(password.length<4)return alert('পাসওয়ার্ড কমপক্ষে ৪ অক্ষরের দিন!');
+  if(phone==='01700000000'||email==='admin@gmail.com')return alert('এই তথ্য ব্যবহার করা যাবে না!');
+  if(users.find(u=>u.phone===phone))return alert('মোবাইল নম্বরটি আগেই ব্যবহৃত হয়েছে!');
+  if(users.find(u=>u.email&&u.email.toLowerCase()===email))return alert('এই ইমেইল দিয়ে আগেই অ্যাকাউন্ট খোলা হয়েছে!');
+  const nu={name,email,phone,password:await hashPw(password),role:'user'};
+  try{
+    if(isFirebaseReady){
+      const d=await firebaseDb.collection('users').doc('user_'+phone).get();
+      if(d.exists)return alert('মোবাইল নম্বরটি আগেই ব্যবহৃত হয়েছে!');
+      await firebaseDb.collection('users').doc('user_'+phone).set(nu);
+    }else{users.push(nu);localStorage.setItem('tolet_users',JSON.stringify(users));}
+  }catch(err){console.error(err);return alert('অ্যাকাউন্ট তৈরি ব্যর্থ হয়েছে, আবার চেষ্টা করুন।');}
+  currentUser=nu;localStorage.setItem('tolet_current_user',JSON.stringify(nu));
+  e.target.reset();toggleAuthModal(false);updateAuthUI();alert('অ্যাকাউন্ট তৈরি সম্পন্ন হয়েছে!');
+};
+
+/* ---------- নিজের পাসওয়ার্ড বদল: "বর্তমান পাসওয়ার্ড" যাচাই হ্যাশের সাথে মেলানো ---------- */
+const _hsp=handleSelfPasswordChange;
+handleSelfPasswordChange=async function(e){
+  e.preventDefault();
+  const cur=$('selfCurrentPass').value.trim();
+  if(currentUser&&isHash(currentUser.password)&&await checkPw(cur,currentUser.password)){
+    const saved=currentUser.password;currentUser.password=cur; // আসল ফাংশনের সিঙ্ক যাচাই পার করানোর জন্য মুহূর্তের জন্য
+    let p;try{p=_hsp.call(this,e);}finally{currentUser.password=saved;}
+    return p;
+  }
+  return _hsp.call(this,e);
+};
+
+/* ---------- অ্যাকাউন্ট ডিলিট ফর্মের পাসওয়ার্ড যাচাই (ডিলিট অ্যাড-অন থাকলে) ---------- */
+const df=$('delForm');
+if(df&&df.onsubmit){
+  const _dos=df.onsubmit;
+  df.onsubmit=async function(e){
+    e.preventDefault();
+    const typed=$('delPass').value;
+    const rec=currentUser&&users.find(u=>u.phone===currentUser.phone);
+    if(typed&&rec&&isHash(rec.password)&&await checkPw(typed,rec.password)){
+      const saved=rec.password;rec.password=typed;
+      try{_dos.call(df,e);}finally{rec.password=saved;}
+    }else _dos.call(df,e);
+  };
+}
+
+/* ---------- নিজের পুরনো পাসওয়ার্ড (সাধারণ লেখা) নিজে থেকেই হ্যাশে বদলানো ---------- */
+async function upgradeSelf(){
+  if(!currentUser||!isFirebaseReady||!currentUser.password||isHash(currentUser.password))return;
+  const me=currentUser;
+  try{
+    const ref=firebaseDb.collection('users').doc('user_'+me.phone),d=await ref.get();
+    if(!d.exists||d.data().password!==me.password)return;
+    const h=await hashPw(me.password);
+    await ref.update({password:h});
+    if(currentUser&&currentUser.phone===me.phone){
+      currentUser=Object.assign({},currentUser,{password:h});
+      localStorage.setItem('tolet_current_user',JSON.stringify(currentUser));
+    }
+  }catch(_){}
+}
+
+/* ---------- অ্যাডমিন খুললে সবার পুরনো পাসওয়ার্ড একসাথে হ্যাশ ---------- */
+let busy=false;
+async function migrateAll(){
+  if(busy||!isAdmin()||!isFirebaseReady)return;
+  const legacy=users.filter(u=>u.password&&!isHash(u.password));
+  if(!legacy.length)return;
+  busy=true;
+  try{
+    let n=0;
+    for(const u of legacy){
+      const ref=firebaseDb.collection('users').doc('user_'+u.phone),d=await ref.get();
+      if(!d.exists||d.data().password!==u.password)continue;
+      await ref.update({password:await hashPw(u.password)});n++;
+    }
+    if(n)toast(n+'টি ইউজারের পাসওয়ার্ড সুরক্ষিত (হ্যাশ) করা হয়েছে।','ok',4500);
+  }catch(err){console.warn('Hash migration notice:',err);}
+  finally{busy=false;}
+}
+if(isFirebaseReady)firebaseDb.collection('users').onSnapshot(()=>setTimeout(migrateAll,800),()=>{});
+
+const _ua=updateAuthUI;
+updateAuthUI=function(){_ua();setTimeout(()=>{upgradeSelf();migrateAll();},0);};
+
+/* ---------- অ্যাডমিন প্যানেলে পাসওয়ার্ডের জায়গায় 🔒 ---------- */
+const _rt=renderAdminUsersTable;
+renderAdminUsersTable=function(){
+  _rt();
+  const tb=$('adminUsersTableBody');if(!tb)return;
+  [...tb.children].forEach((tr,i)=>{
+    const u=users[i],sp=tr.querySelector('td:nth-child(3) span');
+    if(u&&sp&&isHash(u.password)){sp.textContent='🔒 সুরক্ষিত';sp.className='text-[11px] text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded';}
+  });
+};
+renderAdminUsersTable();
+
+/* ---------- অ্যাডমিন ইউজার এডিট: ফাঁকা রাখলে আগের পাসওয়ার্ডই থাকবে ---------- */
+const _aeu=adminEditUser;
+adminEditUser=function(phone){
+  _aeu(phone);
+  const f=$('editUserPassword');
+  f.dataset.old=(users.find(u=>u.phone===phone)||{}).password||'';
+  f.value='';f.required=false;f.placeholder='নতুন পাসওয়ার্ড (ফাঁকা রাখলে আগেরটাই থাকবে)';
+  f.className=f.className.replace('text-emerald-700','text-slate-700');
+};
+const _sae=saveAdminUserEdit;
+saveAdminUserEdit=function(e){
+  const f=$('editUserPassword');
+  if(!f.value.trim()&&f.dataset.old)f.value=f.dataset.old;
+  return _sae.call(this,e);
+};
+
+/* শুরুতে একবার */
+upgradeSelf();migrateAll();
+})();
+</script>
+<!-- ===== PRIVACY POLICY (বাংলা + English) + অর্থ লেনদেন দায় অস্বীকার + সরাসরি লিংক ===== -->
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const UPD={bn:'৪ নভেম্বর ২০২৬',en:'4 November 2026'};
+const H=t=>'<h4 class="text-sm font-extrabold text-slate-900 mb-1.5">'+t+'</h4>';
+const UL=a=>'<ul class="list-disc pl-5 space-y-1">'+a.map(x=>'<li>'+x+'</li>').join('')+'</ul>';
+
+/* ---------- মডাল ---------- */
+document.body.insertAdjacentHTML('beforeend',
+'<div id="privacyModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-end sm:items-center justify-center sm:p-4" style="z-index:130">'+
+ '<div class="bg-white w-full sm:max-w-2xl rounded-t-3xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden" style="max-height:94vh">'+
+  '<div class="px-4 sm:px-6 py-3.5 bg-emerald-700 text-white flex items-center justify-between gap-3 flex-shrink-0">'+
+   '<div><h3 id="privTitle" class="text-sm sm:text-base font-extrabold"></h3><p id="privSub" class="text-[10px] text-emerald-100 mt-0.5"></p></div>'+
+   '<button type="button" id="privX" aria-label="বন্ধ করুন" class="w-9 h-9 rounded-full bg-white/15 hover:bg-white/30 text-2xl leading-none flex items-center justify-center">&times;</button>'+
+  '</div>'+
+  '<div id="privBar" class="flex items-center gap-2 px-4 sm:px-6 py-2 bg-emerald-50 border-b border-emerald-100 flex-shrink-0">'+
+   '<span class="text-[11px] font-bold text-emerald-800 mr-1"><i class="fa-solid fa-language"></i></span>'+
+   '<button type="button" data-l="bn">বাংলা</button><button type="button" data-l="en">English</button>'+
+   '<button type="button" id="privCopy" class="ml-auto px-3 py-1.5 rounded-full text-xs font-bold border bg-white border-slate-300 text-slate-700 hover:bg-slate-50 active:scale-95"></button>'+
+  '</div>'+
+  '<div id="privBody" class="p-4 sm:p-6 overflow-y-auto flex-1 text-xs sm:text-[13px] text-slate-700 leading-relaxed space-y-4" style="-webkit-overflow-scrolling:touch"></div>'+
+  '<div class="p-3 border-t border-slate-100 flex-shrink-0" style="padding-bottom:calc(.75rem + env(safe-area-inset-bottom,0px))"><button type="button" id="privClose" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold active:scale-95"></button></div>'+
+ '</div></div>');
+
+function contacts(en){
+  const s=(typeof adSettings!=='undefined'&&adSettings)||{};
+  const ph=s.footerPhone||'',wa=s.footerWa||'',fb=s.footerFb||'';
+  const L=en?['Phone','WhatsApp','Facebook']:['ফোন','হোয়াটসঅ্যাপ','ফেসবুক'];
+  return [ph?L[0]+': <b>'+esc(ph)+'</b>':'',wa?L[1]+': <b>'+esc(wa)+'</b>':'',fb?L[2]+': <b>'+esc(fb.replace(/^https?:\/\/(www\.)?/,''))+'</b>':''].filter(Boolean);
+}
+
+/* ---------- বাংলা ---------- */
+function buildBN(){
+  const c=contacts(false);
+  return ''+
+  '<p>"টু-লেট গোপালগঞ্জ" (এরপর "আমরা") গোপালগঞ্জ শহর ও আশপাশে বাসা, মেস, সাবলেট ভাড়া এবং পুরনো জিনিস কেনা-বেচার একটি অনলাইন প্ল্যাটফর্ম। ওয়েবসাইট বা অ্যাপ ব্যবহার করলে আপনি এই নীতিমালায় সম্মত হচ্ছেন।</p>'+
+
+  '<div class="rounded-2xl border-2 border-amber-300 bg-amber-50 p-3.5 space-y-2">'+
+   '<h4 class="text-sm font-extrabold text-amber-900"><i class="fa-solid fa-triangle-exclamation mr-1.5"></i> গুরুত্বপূর্ণ: অর্থ লেনদেন ও দায় অস্বীকার</h4>'+
+   UL([
+    '<b>আমরা কারও কাছ থেকে কোনো টাকা নিই না ও চাই না।</b> ভাড়া, বায়না, অগ্রিম, কমিশন বা সার্ভিস চার্জ — কোনোটাই আমরা নিই না। এই প্ল্যাটফর্ম সম্পূর্ণ বিনামূল্যে, শুধু মালিক ও ভাড়াটিয়া/ক্রেতা-বিক্রেতাকে যোগাযোগ করিয়ে দেয়।',
+    'বাসা ভাড়া বা জিনিস কেনা-বেচার সব কথাবার্তা ও লেনদেন হয় <b>সরাসরি ব্যবহারকারীদের নিজেদের মধ্যে</b>। টু-লেট গোপালগঞ্জ এসব লেনদেনের কোনো পক্ষ বা মধ্যস্থতাকারী নয়, কারও টাকা জমা রাখে না এবং কোনো লেনদেনের গ্যারান্টি দেয় না।',
+    'বিজ্ঞাপন, ছবি, ভিডিও, ভাড়া, দাম ও যোগাযোগের তথ্য ব্যবহারকারীরা নিজেরা দেন। আমরা প্রতিটি তথ্য বা ব্যক্তির পরিচয় যাচাই করি না, তাই তথ্যের সত্যতা বা নির্ভুলতার দায় আমাদের নয়।',
+    '<b>কোনো ব্যবহারকারীর সাথে আর্থিক লেনদেন করে কেউ প্রতারিত বা ক্ষতিগ্রস্ত হলে তার জন্য টু-লেট গোপালগঞ্জ কোনোভাবে দায়ী থাকবে না।</b> লেনদেনের ঝুঁকি ও দায় সংশ্লিষ্ট ব্যক্তিদের নিজেদের।',
+    'আমাদের নাম ব্যবহার করে কেউ টাকা চাইলে তা প্রতারণা — টাকা দেবেন না এবং আমাদের জানান।'
+   ])+
+   '<div class="bg-white border border-amber-200 rounded-xl p-2.5 text-[12px] text-slate-700 space-y-1">'+
+    '<p class="font-bold text-amber-900">নিজেকে সুরক্ষিত রাখতে:</p>'+
+    '<p>• নিজে বাসা বা জিনিস দেখে ও যাচাই করে নিশ্চিত হওয়ার আগে কোনো টাকা পাঠাবেন না।</p>'+
+    '<p>• সম্ভব হলে বাড়িওয়ালার পরিচয়পত্র দেখে নিন এবং টাকা দিলে রসিদ/লিখিত প্রমাণ রাখুন।</p>'+
+    '<p>• প্রতারণার শিকার হলে স্থানীয় থানায় বা জরুরি সেবা ৯৯৯-এ জানান, এবং আমাদের জানাতে বিজ্ঞাপনের নিচের "রিপোর্ট" বাটন ব্যবহার করুন। আমরা সন্দেহজনক বিজ্ঞাপন সরিয়ে দিতে পারি।</p>'+
+   '</div>'+
+  '</div>'+
+
+  '<div>'+H('১. আমরা কোন তথ্য সংগ্রহ করি')+UL([
+   '<b>অ্যাকাউন্টের তথ্য:</b> নাম, মোবাইল নম্বর, ইমেইল ও পাসওয়ার্ড। Google দিয়ে লগইন করলে Google থেকে আপনার নাম ও ইমেইল পাওয়া যায়।',
+   '<b>আপনার দেওয়া কনটেন্ট:</b> বাসা ও পুরনো জিনিসের বিজ্ঞাপন, ছবি, ভিডিও, ঠিকানা, ভাড়া/দাম, "বাসা চাই" অনুরোধ, রিভিউ ও রেটিং।',
+   '<b>যোগাযোগ:</b> প্ল্যাটফর্মের ভেতরের চ্যাট ও ভয়েস মেসেজ, এবং আপনার পাঠানো রিপোর্ট বা অভিযোগ।',
+   '<b>ডিভাইসে সংরক্ষিত তথ্য:</b> লগইন সেশন, "মনে রাখুন" এর ফোন নম্বর/ইমেইল, সেভ করা বাসার তালিকা ও অসম্পূর্ণ ফর্মের খসড়া — এগুলো শুধু আপনার ব্রাউজারে থাকে।',
+   'আমরা আপনার সঠিক অবস্থান (GPS), কন্টাক্ট লিস্ট বা গ্যালারি নিজে থেকে সংগ্রহ করি না। ছবি বা ভিডিও আপলোড এবং ভয়েস রেকর্ডের সময় শুধু আপনার অনুমতি নিয়ে ফাইল/মাইক্রোফোন ব্যবহার হয়।'
+  ])+'</div>'+
+
+  '<div>'+H('২. তথ্য কীভাবে ব্যবহার করি')+UL([
+   'অ্যাকাউন্ট তৈরি, লগইন ও পাসওয়ার্ড পুনরুদ্ধার (ইমেইলে OTP) করতে।',
+   'বিজ্ঞাপন প্রকাশ করতে এবং মালিক ও ভাড়াটিয়াকে একে অপরের সাথে যোগাযোগ করিয়ে দিতে।',
+   '"বাসা চাই" অনুরোধের সাথে মিল আছে এমন বাসা বা অনুরোধ আপনাকে দেখাতে।',
+   'ভুয়া বিজ্ঞাপন, প্রতারণা ও অপব্যবহার ঠেকাতে এবং রিপোর্টের ব্যবস্থা নিতে।',
+   'আমরা আপনার ব্যক্তিগত তথ্য বিক্রি করি না।'
+  ])+'</div>'+
+
+  '<div>'+H('৩. যা সবার সামনে প্রকাশ পায়')+
+   '<p>বিজ্ঞাপনে আপনি যে নাম, মোবাইল নম্বর, ঠিকানা, ছবি ও ভিডিও দেন তা সাইটের সবাই দেখতে পারেন, কারণ যোগাযোগের জন্যই এগুলো দেওয়া। "বাসা চাই" অনুরোধের নাম ও নম্বরও সবার কাছে দৃশ্যমান। যে তথ্য সবাইকে দেখাতে চান না তা বিজ্ঞাপনে লিখবেন না। চ্যাট শুধু কথোপকথনের দুই পক্ষ দেখতে পায়।</p></div>'+
+
+  '<div>'+H('৪. তৃতীয় পক্ষের সেবা')+
+   '<p>সাইট চালাতে আমরা নিচের সেবাগুলো ব্যবহার করি। এগুলো নিজেদের নীতি অনুযায়ী প্রয়োজনীয় তথ্য প্রক্রিয়া করতে পারে:</p>'+UL([
+   '<b>Google Firebase</b> (Firestore ডেটাবেজ ও Google লগইন) — অ্যাকাউন্ট, বিজ্ঞাপন ও চ্যাটের তথ্য সংরক্ষণ।',
+   '<b>ImgBB</b> — আপলোড করা ছবি সংরক্ষণ।',
+   '<b>Cloudinary</b> — আপলোড করা ভিডিও সংরক্ষণ ও পরিবেশন।',
+   '<b>EmailJS</b> — পাসওয়ার্ড পুনরুদ্ধারের OTP ইমেইল পাঠানো।',
+   '<b>Google AdSense ও অন্যান্য বিজ্ঞাপন</b> — সাইটে বিজ্ঞাপন দেখানো। Google কুকি বা বিজ্ঞাপন আইডি ব্যবহার করে আপনার আগ্রহ অনুযায়ী বিজ্ঞাপন দেখাতে পারে। এটি বন্ধ করতে Google Ads Settings-এ যান।',
+   'বিজ্ঞাপনদাতার ব্যানার বা পপ-আপে ক্লিক করলে আপনি অন্য ওয়েবসাইটে যাবেন; সেই সাইটের নীতি আমাদের নিয়ন্ত্রণে নেই।'
+  ])+'</div>'+
+
+  '<div>'+H('৫. তথ্য কতদিন থাকে')+UL([
+   'অ্যাকাউন্ট ও বিজ্ঞাপনের তথ্য আপনি মুছে ফেলা পর্যন্ত থাকে।',
+   '"ভাড়া হয়ে গেছে", "বিক্রি হয়েছে" বা "বাসা পেয়েছি" মার্ক করার ৭ দিন পর সেই বিজ্ঞাপন বা অনুরোধ নিজে থেকেই মুছে যায়।'
+  ])+'</div>'+
+
+  '<div>'+H('৬. অ্যাকাউন্ট ও তথ্য মুছে ফেলা')+
+   '<p>আপনি নিজেই যেকোনো সময় অ্যাকাউন্ট মুছতে পারেন: লগইন করে <b>প্রোফাইল → পাসওয়ার্ড পরিবর্তন ট্যাব → একদম নিচে "অ্যাকাউন্ট মুছতে চান?"</b>। এজন্য কারণ বাছাই, ক্যাপচা ও পাসওয়ার্ড লাগে। মুছলে আপনার অ্যাকাউন্ট, সব বাসা ও পুরনো জিনিসের বিজ্ঞাপন, বাসা চাই অনুরোধ এবং আপনার পাঠানো চ্যাট স্থায়ীভাবে মুছে যায়। অন্যের বিজ্ঞাপনে দেওয়া রিভিউ থেকে যায়। লগইন করতে না পারলে নিচের যোগাযোগ মাধ্যমে জানালে আমরা মুছে দেব।</p></div>'+
+
+  '<div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-3.5 space-y-2">'+H('৭. লক্ষ্য দর্শক (Target Audience)')+
+   '<p>এই প্ল্যাটফর্ম <b>১৮ বছর ও তার বেশি বয়সী</b> ব্যবহারকারীর জন্য — বাসা ভাড়া, মেস, সাবলেট ও পুরনো জিনিস কেনা-বেচার মতো লেনদেন প্রাপ্তবয়স্কদের জন্য। ১৮ বছরের কম বয়সীদের জন্য এটি তৈরি করা হয়নি এবং আমরা জেনেশুনে তাদের তথ্য সংগ্রহ করি না। কোনো অপ্রাপ্তবয়স্কের তথ্য আমাদের কাছে আছে বলে জানালে আমরা তা মুছে দেব।</p></div>'+
+
+  '<div class="rounded-2xl border border-sky-200 bg-sky-50 p-3.5 space-y-2">'+H('৮. কনটেন্ট রেটিং ও কনটেন্ট নীতি')+
+   '<p>এখানে সহিংসতা, যৌন কনটেন্ট, জুয়া, মাদক বা অশালীন কিছু প্রকাশ করা নিষিদ্ধ, এবং এসব বিষয় নিয়ে কোনো কনটেন্ট আমরা নিজে থেকে দেখাই না। সাধারণ দর্শকের জন্য উপযোগী (General)।</p>'+
+   '<p>তবে ব্যবহারকারীরা নিজেরাই বিজ্ঞাপন, ছবি, ভিডিও, রিভিউ ও চ্যাট মেসেজ দিতে পারেন (ইউজার-জেনারেটেড কনটেন্ট)। ভুয়া বিজ্ঞাপন, প্রতারণা, হয়রানি বা আপত্তিকর কনটেন্ট চোখে পড়লে বিজ্ঞাপনের নিচের <b>"রিপোর্ট"</b> বাটন বা পেজের নিচের "রিপোর্ট করুন" অংশ থেকে জানান। অ্যাডমিন যাচাই করে বিজ্ঞাপন সরানো বা অ্যাকাউন্ট মুছে দিতে পারেন।</p></div>'+
+
+  '<div>'+H('৯. নিরাপত্তা সতর্কতা')+UL([
+   'নিজে বাসা দেখে নিশ্চিত হওয়ার আগে অগ্রিম, বায়না বা কোনো টাকা পাঠাবেন না।',
+   'আপনার পাসওয়ার্ড কাউকে জানাবেন না এবং অন্য ওয়েবসাইটের পাসওয়ার্ড এখানে ব্যবহার করবেন না।',
+   'আমরা তথ্য সুরক্ষায় যুক্তিসঙ্গত ব্যবস্থা নিই, কিন্তু ইন্টারনেটে কোনো ব্যবস্থাই শতভাগ নিরাপদ নয়।'
+  ])+'</div>'+
+
+  '<div>'+H('১০. নীতিমালা পরিবর্তন')+'<p>এই নীতিমালা সময়ে সময়ে বদলাতে পারে। বদলালে এই পেজে নতুন তারিখসহ প্রকাশ করা হবে।</p></div>'+
+
+  '<div class="rounded-2xl border border-slate-200 bg-slate-50 p-3.5">'+H('১১. যোগাযোগ')+
+   '<p>প্রাইভেসি বা তথ্য মুছা নিয়ে যেকোনো প্রশ্নে যোগাযোগ করুন:</p>'+
+   (c.length?'<div class="mt-1.5 space-y-1">'+c.map(x=>'<p>'+x+'</p>').join('')+'</div>':'<p class="text-slate-500">সাইটের নিচের "হেল্প ও সাপোর্ট" অংশ দেখুন।</p>')+
+  '</div>';
+}
+
+/* ---------- English ---------- */
+function buildEN(){
+  const c=contacts(true);
+  return ''+
+  '<p>"To-Let Gopalganj" ("we", "us") is an online platform for finding houses, mess seats and sublets for rent, and for buying and selling used items in and around Gopalganj town. By using this website or app you agree to this policy.</p>'+
+
+  '<div class="rounded-2xl border-2 border-amber-300 bg-amber-50 p-3.5 space-y-2">'+
+   '<h4 class="text-sm font-extrabold text-amber-900"><i class="fa-solid fa-triangle-exclamation mr-1.5"></i> Important: Payments &amp; Disclaimer</h4>'+
+   UL([
+    '<b>We do not take or ask for any money from anyone.</b> Rent, booking or advance money, commission or service charge — we collect none of these. This platform is completely free and only helps owners and tenants, or buyers and sellers, get in touch with each other.',
+    'All conversations and deals about renting a house or buying/selling an item take place <b>directly between the users themselves</b>. To-Let Gopalganj is not a party to, or an intermediary in, any transaction. We do not hold anyone\'s money and do not guarantee any deal.',
+    'Ads, photos, videos, rent, prices and contact details are provided by users. We do not verify every detail or every person, so we are not responsible for the accuracy or truthfulness of any information.',
+    '<b>If anyone is cheated or suffers a loss through a financial transaction with another user, To-Let Gopalganj will not be liable in any way.</b> The risk and responsibility belong to the people involved in the transaction.',
+    'If anyone asks you for money in our name, it is fraud — do not pay, and report it to us.'
+   ])+
+   '<div class="bg-white border border-amber-200 rounded-xl p-2.5 text-[12px] text-slate-700 space-y-1">'+
+    '<p class="font-bold text-amber-900">To protect yourself:</p>'+
+    '<p>• Do not send any money before you have personally seen and verified the house or item.</p>'+
+    '<p>• If possible, check the landlord\'s ID, and keep a receipt or written proof for any payment.</p>'+
+    '<p>• If you are a victim of fraud, inform your local police station or the emergency service 999, and use the "রিপোর্ট" (Report) button under the ad to tell us. We can remove suspicious ads.</p>'+
+   '</div>'+
+  '</div>'+
+
+  '<div>'+H('1. What information we collect')+UL([
+   '<b>Account information:</b> name, mobile number, email and password. If you sign in with Google, we receive your name and email from Google.',
+   '<b>Content you provide:</b> house and used-item ads, photos, videos, addresses, rent/price, "looking for a house" requests, reviews and ratings.',
+   '<b>Communication:</b> in-platform chat and voice messages, and any reports or complaints you send.',
+   '<b>Data stored on your device:</b> login session, the phone/email saved by "Remember me", your saved-houses list and drafts of unfinished forms — these stay only in your browser.',
+   'We do not collect your exact location (GPS), contact list or gallery on our own. Files or the microphone are used only with your permission, when you upload photos/videos or record a voice message.'
+  ])+'</div>'+
+
+  '<div>'+H('2. How we use your information')+UL([
+   'To create your account, log you in and recover your password (OTP by email).',
+   'To publish your ads and let owners and tenants contact each other.',
+   'To show you houses or requests that match your "looking for a house" request or ad.',
+   'To prevent fake ads, fraud and misuse, and to act on reports.',
+   'We do not sell your personal information.'
+  ])+'</div>'+
+
+  '<div>'+H('3. What is publicly visible')+
+   '<p>The name, mobile number, address, photos and videos you put in an ad can be seen by everyone on the site, because they are given for contact purposes. The name and number in a "looking for a house" request are also visible to all. Do not put in an ad any information you do not want everyone to see. Chats are visible only to the two people in the conversation.</p></div>'+
+
+  '<div>'+H('4. Third-party services')+
+   '<p>We use the following services to run the site. They may process the necessary data under their own policies:</p>'+UL([
+   '<b>Google Firebase</b> (Firestore database and Google sign-in) — storing account, ad and chat data.',
+   '<b>ImgBB</b> — storing uploaded photos.',
+   '<b>Cloudinary</b> — storing and delivering uploaded videos.',
+   '<b>EmailJS</b> — sending password-recovery OTP emails.',
+   '<b>Google AdSense and other advertising</b> — showing ads on the site. Google may use cookies or advertising IDs to show ads based on your interests. To turn this off, visit Google Ads Settings.',
+   'If you click an advertiser\'s banner or pop-up you will go to another website; its policy is outside our control.'
+  ])+'</div>'+
+
+  '<div>'+H('5. How long data is kept')+UL([
+   'Account and ad data stay until you delete them.',
+   '7 days after an ad or request is marked "rented", "sold" or "found a house", it is deleted automatically.'
+  ])+'</div>'+
+
+  '<div>'+H('6. Deleting your account and data')+
+   '<p>You can delete your account yourself at any time: log in, go to <b>Profile → Change Password tab → the small link at the very bottom ("অ্যাকাউন্ট মুছতে চান?" / "Want to delete your account?")</b>. You will be asked to choose a reason, solve a captcha and enter your password. Deleting permanently removes your account, all your house and used-item ads, your "looking for a house" requests and the chats you sent. Reviews you left on other people\'s ads remain. If you cannot log in, contact us using the details below and we will delete it for you.</p></div>'+
+
+  '<div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-3.5 space-y-2">'+H('7. Target audience')+
+   '<p>This platform is for users <b>aged 18 and over</b> — transactions such as renting houses, mess seats, sublets and buying/selling used items are meant for adults. It is not designed for people under 18 and we do not knowingly collect their information. If you tell us we hold a minor\'s information, we will delete it.</p></div>'+
+
+  '<div class="rounded-2xl border border-sky-200 bg-sky-50 p-3.5 space-y-2">'+H('8. Content rating and content policy')+
+   '<p>Publishing violence, sexual content, gambling, drugs or obscene material is prohibited here, and we do not ourselves show content on such subjects. It is suitable for a general audience (General).</p>'+
+   '<p>However, users post ads, photos, videos, reviews and chat messages themselves (user-generated content). If you see a fake ad, fraud, harassment or objectionable content, report it using the <b>"রিপোর্ট" (Report)</b> button under the ad or the "রিপোর্ট করুন" section at the bottom of the page. The admin may review it and remove the ad or delete the account.</p></div>'+
+
+  '<div>'+H('9. Safety warnings')+UL([
+   'Do not pay any advance, booking money or other payment before you have personally verified the house or item.',
+   'Never share your password and do not reuse passwords from other websites here.',
+   'We take reasonable steps to protect data, but no system on the internet is 100% secure.'
+  ])+'</div>'+
+
+  '<div>'+H('10. Changes to this policy')+'<p>This policy may change from time to time. Changes will be published on this page with a new date.</p></div>'+
+
+  '<div class="rounded-2xl border border-slate-200 bg-slate-50 p-3.5">'+H('11. Contact')+
+   '<p>For any question about privacy or data deletion, contact us:</p>'+
+   (c.length?'<div class="mt-1.5 space-y-1">'+c.map(x=>'<p>'+x+'</p>').join('')+'</div>':'<p class="text-slate-500">See the "Help &amp; Support" section at the bottom of the site.</p>')+
+  '</div>';
+}
+
+/* ---------- খোলা / বন্ধ / ভাষা ---------- */
+const modal=$('privacyModal'),body=$('privBody'),bar=$('privBar');
+const isOpen=()=>!modal.classList.contains('hidden');
+const langOfHash=()=>{const h=location.hash.toLowerCase();return h==='#privacy-bn'?'bn':(h==='#privacy'||h==='#privacy-en')?'en':null;};
+
+function render(l){
+  body.innerHTML=l==='en'?buildEN():buildBN();
+  $('privTitle').innerHTML='<i class="fa-solid fa-shield-halved mr-1.5"></i> '+(l==='en'?'Privacy Policy':'প্রাইভেসি পলিসি');
+  $('privSub').textContent=(l==='en'?'To-Let Gopalganj • Last updated: ':'টু-লেট গোপালগঞ্জ • সর্বশেষ হালনাগাদ: ')+UPD[l];
+  $('privClose').textContent=l==='en'?'Got it, close':'বুঝেছি, বন্ধ করুন';
+  $('privCopy').innerHTML='<i class="fa-regular fa-copy mr-1"></i>'+(l==='en'?'Copy link':'লিংক কপি');
+  bar.querySelectorAll('[data-l]').forEach(b=>{
+    const on=b.dataset.l===l;
+    b.className='px-3.5 py-1.5 rounded-full text-xs font-bold border '+(on?'bg-emerald-600 border-emerald-600 text-white':'bg-white border-slate-300 text-slate-600');
+  });
+  body.scrollTop=0;
+  modal.dataset.lang=l;
+  const u=location.pathname+location.search+(l==='en'?'#privacy-en':'#privacy-bn');
+  if(isOpen()&&location.pathname+location.search+location.hash!==u)history.replaceState(history.state,'',u);
+}
+function openPrivacy(l){
+  modal.classList.remove('hidden');modal.classList.add('flex');
+  document.body.style.overflow='hidden';
+  render(l||'en');
+}
+let closing=false,closeTimer=null;
+function closePrivacy(){
+  closing=true;clearTimeout(closeTimer);closeTimer=setTimeout(()=>{closing=false;},1000);
+  modal.classList.add('hidden');modal.classList.remove('flex');
+  document.body.style.overflow='';
+  if(/^#privacy/i.test(location.hash))history.replaceState(history.state,'',location.pathname+location.search);
+}
+window.openPrivacyPolicy=function(l){openPrivacy(l==='bn'?'bn':'en');};
+
+bar.addEventListener('click',e=>{const b=e.target.closest('[data-l]');if(b)render(b.dataset.l);});
+$('privX').onclick=closePrivacy;
+$('privClose').onclick=closePrivacy;
+modal.addEventListener('click',e=>{if(e.target===modal)closePrivacy();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&isOpen())closePrivacy();});
+window.addEventListener('hashchange',()=>{
+  const l=langOfHash();
+  if(!l)return;
+  if(closing){history.replaceState(history.state,'',location.pathname+location.search);return;} /* বন্ধ করার সময় back() দিয়ে hash ফিরলে আবার খুলবে না */
+  if(isOpen())render(l);else openPrivacy(l);
+});
+
+$('privCopy').onclick=async()=>{
+  const en=modal.dataset.lang==='en';
+  const base=location.protocol.indexOf('http')===0?location.origin+location.pathname:location.href.split('#')[0];
+  const url=base+(en?'#privacy-en':'#privacy-bn');
+  try{await navigator.clipboard.writeText(url);}
+  catch(_){const t=document.createElement('textarea');t.value=url;document.body.appendChild(t);t.select();try{document.execCommand('copy');}catch(__){}t.remove();}
+  (window.uxToast||alert)((en?'Link copied: ':'লিংক কপি হয়েছে: ')+url,'ok',4500);
+};
+
+/* ---------- লিংক বসানো ---------- */
+const ql=document.querySelector('footer a[onclick="openInboxModal()"]');
+if(ql){
+  const li=document.createElement('li');
+  li.innerHTML='<a href="javascript:void(0)" onclick="openPrivacyPolicy()" class="hover:text-emerald-400 transition">প্রাইভেসি পলিসি</a>';
+  ql.closest('ul').appendChild(li);
+}
+const cr=document.querySelector('footer > div:last-child > div');
+if(cr)cr.insertAdjacentHTML('afterbegin','<a href="javascript:void(0)" onclick="openPrivacyPolicy()" class="hover:text-emerald-400 underline">প্রাইভেসি পলিসি</a><span class="text-slate-600">•</span><span>১৮+ ব্যবহারকারীর জন্য</span>');
+
+const rf=$('registerForm'),rb=rf&&rf.querySelector('button[type=submit]');
+if(rb)rb.insertAdjacentHTML('beforebegin','<p class="text-[11px] text-slate-500 leading-relaxed">অ্যাকাউন্ট খুললে আপনি নিশ্চিত করছেন যে আপনার বয়স ১৮ বা তার বেশি এবং আমাদের <button type="button" onclick="openPrivacyPolicy()" class="text-emerald-700 font-bold underline">প্রাইভেসি পলিসিতে</button> সম্মত।</p>');
+
+/* সরাসরি লিংকে (…/#privacy বা …/#privacy-en) ঢুকলে খুলে যাবে */
+const first=langOfHash();
+if(first)setTimeout(()=>openPrivacy(first),500);
+})();
+</script>
  </body>
 </html>
