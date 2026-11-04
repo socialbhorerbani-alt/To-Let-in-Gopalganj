@@ -6241,5 +6241,261 @@ new MutationObserver(()=>{
 renderPk();renderEx();setStep(0);
 })();
 </script>
+<!-- ===== MOBILE (PHONE VIEW) UX ADD-ON =====
+     সবার শেষের add-on এর পরে, </body> এর ঠিক আগে পেস্ট করুন।
+     আগের কিছু বদলাতে বা মুছতে হবে না। সরিয়ে দিলে সাইট আগের মতোই চলবে।
+     (কম্পিউটারের লেআউটে প্রায় কিছুই বদলায় না; মূল পরিবর্তন ফোনের জন্য) -->
+<style>
+  /* ---------- নিচের নেভিগেশন বার ---------- */
+  .uxp-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:50px;padding:.3rem 0;font-size:10px;font-weight:700;color:#64748b;background:none;border:0;cursor:pointer;font-family:inherit;transition:transform .12s,color .12s}
+  .uxp-tab i{font-size:18px}
+  .uxp-tab:active{transform:scale(.88);color:#059669}
+  .uxp-fab{width:54px;height:54px;margin-top:-24px;border-radius:9999px;background:linear-gradient(135deg,#10b981,#047857);color:#fff;border:3px solid #fff;box-shadow:0 8px 18px rgba(5,150,105,.45);font-size:20px;cursor:pointer;transition:transform .12s}
+  .uxp-fab:active{transform:scale(.9)}
+
+  /* ---------- "+" চাপলে নিচ থেকে উঠে আসা মেনু ---------- */
+  #uxpSheet{position:fixed;inset:0;z-index:45;display:none;align-items:flex-end;background:rgba(15,23,42,.55);backdrop-filter:blur(3px)}
+  #uxpSheet.show{display:flex}
+  .uxp-panel{width:100%;background:#fff;border-radius:1.5rem 1.5rem 0 0;padding:.6rem 1rem calc(1rem + env(safe-area-inset-bottom,0px));animation:uxpUp .25s ease both;box-shadow:0 -10px 40px rgba(2,6,23,.25)}
+  .uxp-grab{width:42px;height:4px;border-radius:9999px;background:#cbd5e1;margin:0 auto .8rem}
+  .uxp-item{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:.85rem .9rem;margin-bottom:.5rem;border-radius:1rem;border:1px solid #e2e8f0;background:#f8fafc;cursor:pointer;font-family:inherit;transition:.12s}
+  .uxp-item:active{transform:scale(.97);background:#ecfdf5}
+  .uxp-ic{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;flex-shrink:0}
+  .uxp-item b{display:block;font-size:14px;color:#0f172a}
+  .uxp-item small{display:block;font-size:11px;color:#64748b;margin-top:1px}
+  @keyframes uxpUp{from{transform:translateY(100%)}to{transform:none}}
+
+  /* ---------- ফিল্টার বাটন ---------- */
+  .uxp-fbtn{display:none}
+
+  @media(max-width:639px){
+    body{padding-bottom:calc(5rem + env(safe-area-inset-bottom,0px))!important}
+    #uxpNav{padding:.2rem .25rem calc(.25rem + env(safe-area-inset-bottom,0px))!important;align-items:flex-end!important}
+    .ux-top{bottom:calc(5.75rem + env(safe-area-inset-bottom,0px))!important}
+
+    /* ফিল্টার: ভাঁজ করা অবস্থায় শুধু সার্চ + ধরন-চিপ + সক্রিয় ফিল্টার দেখাবে */
+    .uxp-fbtn{display:flex;grid-column:1/-1;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:.7rem .9rem;border-radius:.85rem;border:1px solid #cbd5e1;background:#f8fafc;color:#334155;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+    .uxp-fbtn:active{transform:scale(.98)}
+    .uxp-fbtn .cnt{background:#059669;color:#fff;font-size:11px;padding:.1rem .5rem;border-radius:9999px;margin-left:6px}
+    .uxp-fbtn .chev{transition:transform .2s;color:#94a3b8}
+    .uxp-open .uxp-fbtn .chev{transform:rotate(180deg)}
+    .uxp-closed .uxp-f{display:none!important}
+    .uxp-hastypes .uxp-t{display:none!important}
+
+    /* ছোট ট্যাপ-বাটন বড় করা (আঙুলে সহজে চাপা যাবে) */
+    #listingsContainer a[href^="https://wa.me"]{width:2.4rem!important;height:2.4rem!important;font-size:1.1rem!important}
+    #listingsContainer a[href^="tel:"]{padding:.6rem .95rem!important}
+    #listingsContainer [onclick^="openChatForListing"]{padding:.6rem .8rem!important}
+    #um_mkGrid a[href^="https://wa.me"],#um_rqGrid a[href^="https://wa.me"]{width:2.4rem!important;height:2.4rem!important}
+    #um_mkGrid a[href^="tel:"],#um_rqGrid a[href^="tel:"]{padding:.6rem .95rem!important}
+    button[onclick*="Modal(false)"],button[onclick="closePopupAd()"],button[onclick="closeVideoModal()"]{min-width:42px;min-height:42px}
+    .ux-fab{width:38px!important;height:38px!important}
+
+    /* ছোট পপ-আপ ফর্মগুলো নিচ থেকে উঠে আসবে (ফোনে এভাবেই সহজ) */
+    #authModal,#reportModal,#reviewModal,#forgotPasswordModal,#adminLoginModal,#adminEditUserModal,#userDashboardModal{align-items:flex-end!important;padding:0!important}
+    #authModal>div,#reportModal>div,#reviewModal>div,#forgotPasswordModal>div,#adminLoginModal>div,#adminEditUserModal>div,#userDashboardModal>div{
+      max-width:100%!important;width:100%!important;border-radius:1.4rem 1.4rem 0 0!important;
+      max-height:92dvh;overflow-y:auto;animation:uxpUp .25s ease both;padding-bottom:env(safe-area-inset-bottom,0px)}
+    #userDashboardModal>div{max-height:94dvh}
+  }
+  .overflow-y-auto{overscroll-behavior:contain}
+  header.sticky{will-change:transform}
+</style>
+
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const mq=window.matchMedia('(max-width:639px)');
+const toast=(m,k,ms)=>(window.uxToast?window.uxToast(m,k,ms):0);
+
+/* =====================================================
+   ১. নিচের নেভিগেশন: হোম | পুরনো জিনিস | ➕ | বাসা চাই | প্রোফাইল
+   ===================================================== */
+const nav=document.querySelector('div[class*="fixed"][class*="bottom-0"][class*="sm:hidden"]');
+if(nav){
+  nav.id='uxpNav';
+  nav.innerHTML=
+   '<button type="button" class="uxp-tab" data-t="home"><i class="fa-solid fa-house-chimney"></i><span>হোম</span></button>'+
+   '<button type="button" class="uxp-tab" data-t="mk"><i class="fa-solid fa-recycle"></i><span>পুরনো জিনিস</span></button>'+
+   '<button type="button" class="uxp-fab" data-t="add" aria-label="বিজ্ঞাপন বা অনুরোধ দিন"><i class="fa-solid fa-plus"></i></button>'+
+   '<button type="button" class="uxp-tab" data-t="rq"><i class="fa-solid fa-bullhorn"></i><span>বাসা চাই</span></button>'+
+   '<button type="button" class="uxp-tab" data-t="me"><i class="fa-solid fa-circle-user"></i><span>প্রোফাইল</span></button>';
+  nav.addEventListener('click',e=>{
+    const b=e.target.closest('[data-t]');if(!b)return;
+    const t=b.dataset.t;
+    if(t==='home'){resetFilters();window.scrollTo({top:0,behavior:'smooth'});}
+    else if(t==='mk')openMarket();
+    else if(t==='rq')openRentRequests();
+    else if(t==='me')openUserDashboard();
+    else if(t==='add')sheet(true);
+  });
+}
+
+/* "+" মেনু */
+document.body.insertAdjacentHTML('beforeend',
+'<div id="uxpSheet" role="dialog" aria-label="কী করতে চান?"><div class="uxp-panel">'+
+ '<div class="uxp-grab"></div>'+
+ '<p class="text-sm font-extrabold text-slate-800 mb-2.5 px-1">কী করতে চান?</p>'+
+ '<button type="button" class="uxp-item" data-a="ad"><span class="uxp-ic" style="background:#059669"><i class="fa-solid fa-house-chimney"></i></span><span><b>বাসার বিজ্ঞাপন দিন</b><small>আপনার বাসা, মেস বা সিট খালি আছে</small></span></button>'+
+ '<button type="button" class="uxp-item" data-a="sell"><span class="uxp-ic" style="background:#f59e0b"><i class="fa-solid fa-recycle"></i></span><span><b>পুরনো জিনিস বিক্রি করুন</b><small>ফার্নিচার, ইলেকট্রনিক্স, বই…</small></span></button>'+
+ '<button type="button" class="uxp-item" data-a="req"><span class="uxp-ic" style="background:#0284c7"><i class="fa-solid fa-bullhorn"></i></span><span><b>বাসা চাই — অনুরোধ পাঠান</b><small>চাহিদা জানান, বাড়িওয়ালারা যোগাযোগ করবেন</small></span></button>'+
+ '<button type="button" class="uxp-item" data-a="x" style="justify-content:center;background:#fff;margin-bottom:0"><b style="color:#64748b">বন্ধ করুন</b></button>'+
+'</div></div>');
+const sh=$('uxpSheet');
+function sheet(s){sh.classList.toggle('show',!!s);}
+sh.addEventListener('click',e=>{
+  if(e.target===sh){sheet(false);return;}
+  const b=e.target.closest('[data-a]');if(!b)return;
+  const a=b.dataset.a;sheet(false);
+  if(a==='ad')openAdModalForCreate();
+  else if(a==='sell')openMarketSell();
+  else if(a==='req')openRequestForm();
+});
+
+/* =====================================================
+   ২. ফিল্টার ভাঁজ করা: শুরুতে কম জায়গা নেয়, দরকারে খুলে নেওয়া যায়
+   ===================================================== */
+const areaSel=$('areaFilter');
+const panel=$('filterPanel')||(areaSel&&areaSel.closest('.grid'));
+if(panel){
+  panel.classList.add('uxp-closed');
+  if($('uxTypeChips'))panel.classList.add('uxp-hastypes');
+  const mark=(el,extra)=>{if(el){el.classList.add('uxp-f');if(extra)el.classList.add(extra);}};
+  mark(areaSel.parentElement);
+  mark($('typeFilter').parentElement,'uxp-t');
+  const rb=panel.querySelector('button[onclick="resetFilters()"]');
+  if(rb)mark(rb.parentElement);
+  if($('uxSort'))mark($('uxSort').parentElement);
+
+  const fb=document.createElement('button');
+  fb.type='button';fb.className='uxp-fbtn';
+  fb.innerHTML='<span><i class="fa-solid fa-sliders mr-2 text-emerald-600"></i>এলাকা, ভাড়া ও সাজানো<span class="cnt hidden" id="uxpCnt"></span></span><i class="fa-solid fa-chevron-down chev"></i>';
+  panel.firstElementChild.after(fb);
+  fb.onclick=()=>{
+    const open=panel.classList.toggle('uxp-open');
+    panel.classList.toggle('uxp-closed',!open);
+  };
+  const bnD=s=>String(s).replace(/\d/g,d=>'০১২৩৪৫৬৭৮৯'[d]);
+  function badge(){
+    let n=0;
+    if(areaSel.value!=='all')n++;
+    if($('uxPrice')&&$('uxPrice').value!=='0')n++;
+    if($('uxSort')&&$('uxSort').value!=='new')n++;
+    if($('uxFavBtn')&&$('uxFavBtn').classList.contains('on'))n++;
+    const c=$('uxpCnt');c.textContent=bnD(n);c.classList.toggle('hidden',!n);
+  }
+  const _af=applyFilters;
+  applyFilters=function(){const r=_af.apply(this,arguments);badge();return r;};
+  badge();
+}
+
+/* =====================================================
+   ৩. নিচে স্ক্রল করলে হেডার সরে যায়, উপরে টানলে ফিরে আসে (ফোনে বেশি জায়গা)
+   ===================================================== */
+const hdr=document.querySelector('body > header.sticky');
+if(hdr){
+  hdr.style.transition='transform .25s ease';
+  let lastY=window.scrollY,hid=false;
+  window.addEventListener('scroll',()=>{
+    if(!mq.matches){if(hid){hid=false;hdr.style.transform='';}lastY=window.scrollY;return;}
+    const y=window.scrollY,d=y-lastY;
+    if(Math.abs(d)<8)return;
+    const hide=d>0&&y>140;
+    if(hide!==hid){hid=hide;hdr.style.transform=hide?'translateY(-100%)':'';}
+    lastY=y;
+  },{passive:true});
+}
+
+/* =====================================================
+   ৪. ছবি দরকার হলে লোড হবে (মোবাইল ডেটা ও গতি বাঁচে)
+   ===================================================== */
+const lazy=root=>root.querySelectorAll('img:not([loading])').forEach(i=>{i.loading='lazy';i.decoding='async';});
+['listingsContainer','um_mkGrid'].forEach(id=>{
+  const c=$(id);if(!c)return;
+  new MutationObserver(()=>lazy(c)).observe(c,{childList:true});
+  lazy(c);
+});
+
+/* =====================================================
+   ৫. ফোনের ব্যাক বাটন: পেজ ছেড়ে না গিয়ে খোলা পপ-আপ/ফর্ম বন্ধ করবে
+   ===================================================== */
+const hideManual=id=>{const m=$(id);if(m){m.classList.add('hidden');m.classList.remove('flex');}};
+const CL={
+  chatModal:()=>toggleChatModal(false),
+  inboxModal:()=>toggleInboxModal(false),
+  reviewModal:()=>toggleReviewModal(false),
+  userDashboardModal:()=>toggleDashboardModal(false),
+  authModal:()=>toggleAuthModal(false),
+  forgotPasswordModal:()=>toggleForgotPasswordModal(false),
+  adminLoginModal:()=>toggleAdminLoginModal(false),
+  adminPanelModal:()=>toggleAdminModal(false),
+  adminEditUserModal:()=>toggleAdminEditUserModal(false),
+  adModal:()=>toggleAdModal(false),
+  reportModal:()=>toggleReportModal(false),
+  imageLightboxModal:()=>closeImageLightbox(),
+  videoModal:()=>closeVideoModal(),
+  popupAdModal:()=>closePopupAd(),
+  um_mk:()=>{const f=$('um_mkFormWrap');if(f&&!f.classList.contains('hidden'))umCancel('mk');else umClose();},
+  um_rq:()=>{const f=$('um_rqFormWrap');if(f&&!f.classList.contains('hidden'))umCancel('rq');else umClose();},
+  uxDetail:()=>hideManual('uxDetail'),
+  sugModal:()=>hideManual('sugModal'),
+  appPop:()=>hideManual('appPop'),
+  socialProfileModal:()=>hideManual('socialProfileModal')
+};
+const overlays=()=>[...document.querySelectorAll('.fixed.inset-0')];
+const openList=()=>overlays().filter(m=>!m.classList.contains('hidden')&&getComputedStyle(m).display!=='none');
+function closeTop(list){
+  let top=null,best=-1;
+  list.forEach((m,i)=>{const z=(parseInt(getComputedStyle(m).zIndex,10)||0)*1000+i;if(z>=best){best=z;top=m;}});
+  if(!top)return;
+  try{
+    if(top===sh){sheet(false);return;}
+    (CL[top.id]||(()=>{top.classList.add('hidden');top.classList.remove('flex');}))();
+  }catch(_){top.classList.add('hidden');top.classList.remove('flex');}
+}
+let pushed=false;
+function sync(){
+  const n=openList().length;
+  if(n&&!pushed){history.pushState({uxo:1},'');pushed=true;}
+  else if(!n&&pushed){pushed=false;if(history.state&&history.state.uxo)history.back();}
+}
+window.addEventListener('popstate',()=>{
+  const o=openList();
+  if(!o.length){pushed=false;return;}
+  closeTop(o);pushed=false;
+  setTimeout(()=>{if(openList().length&&!pushed){history.pushState({uxo:1},'');pushed=true;}},80);
+});
+const ov=new MutationObserver(sync);
+overlays().forEach(m=>ov.observe(m,{attributes:true,attributeFilter:['class','style']}));
+ov.observe(document.body,{childList:true}); // পরে যোগ হওয়া পপ-আপের জন্য
+new MutationObserver(()=>{overlays().forEach(m=>{if(!m._uxpw){m._uxpw=1;ov.observe(m,{attributes:true,attributeFilter:['class','style']});}});}).observe(document.body,{childList:true});
+overlays().forEach(m=>m._uxpw=1);
+
+/* =====================================================
+   ৬. কিবোর্ড খুললে চ্যাটের লেখার ঘর ঢাকা পড়বে না
+   ===================================================== */
+const cm=$('chatModal');
+if(window.visualViewport&&cm){
+  const vv=window.visualViewport;
+  const fit=()=>{
+    if(cm.classList.contains('hidden')||!matchMedia('(pointer:coarse)').matches){cm.style.height='';cm.style.top='';cm.style.bottom='';return;}
+    cm.style.bottom='auto';cm.style.top=vv.offsetTop+'px';cm.style.height=vv.height+'px';
+    const c=$('chatMessagesContainer');if(c)c.scrollTop=c.scrollHeight;
+  };
+  vv.addEventListener('resize',fit);vv.addEventListener('scroll',fit);
+  new MutationObserver(fit).observe(cm,{attributes:true,attributeFilter:['class']});
+}
+
+/* =====================================================
+   ৭. শেষ: নতুন অ্যাকাউন্টে "প্রোফাইল" ট্যাবে লগইন না থাকলে সরাসরি লগইন খুলুক
+   ===================================================== */
+const _oud=openUserDashboard;
+openUserDashboard=function(){
+  if(!currentUser){toast('প্রোফাইল দেখতে আগে লগইন করুন।','warn',2200);toggleAuthModal(true);return;}
+  return _oud.apply(this,arguments);
+};
+})();
+</script>
  </body>
 </html>
