@@ -7160,5 +7160,300 @@ const first=langOfHash();
 if(first)setTimeout(()=>openPrivacy(first),500);
 })();
 </script>
+<!-- ===== TRUST ADD-ON: যাচাইকৃত ব্যাজ (নামের পাশে) + কতদিন আগে/খালি আছে কি না + ভাড়া হয়ে গেছে (এক ক্লিক) + ফুটার সতর্কতা + আমাদের সম্পর্কে ===== -->
+<style>
+  .vx-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:8px}
+  .vx-ver{display:inline-flex;align-items:center;vertical-align:middle;margin-left:5px;line-height:0}
+  .vx-ver img{width:10px;height:10px;object-fit:contain;display:block;filter:drop-shadow(0 1px 2px rgba(91,23,232,.35))}
+  .vx-st{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:9999px;font-size:11px;font-weight:700;line-height:1.4}
+  .vx-yes{background:#ecfdf5;color:#047857;border:1px solid #a7f3d0}
+  .vx-no{background:#fff1f2;color:#be123c;border:1px solid #fecdd3}
+  .vx-warn{background:#fffbeb;color:#b45309;border:1px solid #fde68a}
+  .vx-ago{font-size:11px;color:#64748b;font-weight:600;margin-left:auto;white-space:nowrap}
+  .vx-act{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px}
+  .vx-btn{padding:.4rem .75rem;border-radius:.6rem;font-size:11px;font-weight:800;border:1px solid;cursor:pointer;font-family:inherit;transition:transform .12s}
+  .vx-btn:active{transform:scale(.94)}
+  .vx-rent{background:#fffbeb;border-color:#fcd34d;color:#b45309}
+  .vx-un{background:#f1f5f9;border-color:#cbd5e1;color:#475569}
+  .vx-vbtn{background:#f5f3ff;border-color:#c4b5fd;color:#5b21b6}
+  #aboutModal h4{margin:0}
+</style>
+
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const toast=(m,k,ms)=>(window.uxToast?window.uxToast(m,k,ms):alert(m));
+const bn=n=>Number(n).toLocaleString('bn-BD');
+
+/* =====================================================
+   ১. যাচাইকৃত ব্যাজ (নামের পাশে) + কতদিন আগে + খালি আছে কি না
+   ===================================================== */
+window.__vxFB='data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#5b17e8"/><path d="M6.5 12.5l3.8 3.8 7.2-8" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+const badge=s=>'<img src="Verified_badge.png" alt="" width="'+s+'" height="'+s+'" onerror="this.onerror=null;this.src=window.__vxFB">';
+const nameBadge=s=>'<span class="vx-ver" title="যাচাইকৃত">'+badge(s)+'</span>';
+const DAY=86400000;
+
+function agoText(ts){
+  ts=Number(ts)||0; if(!ts)return '';
+  const m=Math.floor(Math.max(0,Date.now()-ts)/60000);
+  if(m<1)return 'এইমাত্র পোস্ট হয়েছে';
+  if(m<60)return bn(m)+' মিনিট আগে পোস্ট হয়েছে';
+  const h=Math.floor(m/60); if(h<24)return bn(h)+' ঘণ্টা আগে পোস্ট হয়েছে';
+  const d=Math.floor(h/24); if(d<30)return bn(d)+' দিন আগে পোস্ট হয়েছে';
+  const mo=Math.floor(d/30); if(mo<12)return bn(mo)+' মাস আগে পোস্ট হয়েছে';
+  return bn(Math.floor(d/365))+' বছর আগে পোস্ট হয়েছে';
+}
+/* উপরের সারিতে এখন আর ব্যাজ নেই; ব্যাজ বসে শুধু নামের পাশে */
+function chips(it){
+  let h='';
+  const old=it.createdAt&&(Date.now()-Number(it.createdAt))>30*DAY;
+  if(it.rented)h+='<span class="vx-st vx-no">● ভাড়া হয়ে গেছে</span>';
+  else if(old)h+='<span class="vx-st vx-warn" title="অনেকদিন আগের বিজ্ঞাপন">● পুরনো বিজ্ঞাপন — ফোনে নিশ্চিত হোন</span>';
+  else h+='<span class="vx-st vx-yes" title="বাড়িওয়ালার দেওয়া তথ্য অনুযায়ী">● এখনো খালি আছে</span>';
+  const a=agoText(it.createdAt);
+  if(a)h+='<span class="vx-ago"><i class="fa-regular fa-clock"></i> '+a+'</span>';
+  return h;
+}
+function actions(it){
+  let h='';
+  if(canManage(it))h+=it.rented
+    ?'<button type="button" data-vx="rent" data-on="0" class="vx-btn vx-un">↺ আবার খালি করুন</button>'
+    :'<button type="button" data-vx="rent" data-on="1" class="vx-btn vx-rent">✓ ভাড়া হয়ে গেছে</button>';
+  if(isAdmin())h+=it.verified
+    ?'<button type="button" data-vx="verify" data-on="0" class="vx-btn vx-un">যাচাই বাতিল</button>'
+    :'<button type="button" data-vx="verify" data-on="1" class="vx-btn vx-vbtn">✓ যাচাই করুন</button>';
+  return h?'<div class="vx-act">'+h+'</div>':'';
+}
+
+/* ---- মূল পেজের কার্ডে বসানো ---- */
+const lc=$('listingsContainer');
+function decorate(){
+  [...lc.children].forEach(card=>{
+    if(card.dataset.vid)return;
+    const b=card.querySelector('[onclick^="openReviewModal"]');if(!b)return;
+    const m=/openReviewModal\('([^']+)'\)/.exec(b.getAttribute('onclick')||'');if(!m)return;
+    const it=listings.find(l=>String(l.id)===m[1]);
+    const h=card.querySelector('h3');if(!it||!h)return;
+    card.dataset.vid=m[1];
+    h.insertAdjacentHTML('beforebegin','<div class="vx-row">'+chips(it)+'</div>'+actions(it));
+    /* যাচাইকৃত হলে বিজ্ঞাপনদাতার নামের পাশে ব্যাজ */
+    if(it.verified){
+      const ic=card.querySelector('i.fa-user');
+      if(ic&&ic.parentElement)ic.parentElement.insertAdjacentHTML('beforeend',nameBadge(10));
+    }
+  });
+}
+new MutationObserver(decorate).observe(lc,{childList:true});
+decorate();
+
+lc.addEventListener('click',e=>{
+  const b=e.target.closest('[data-vx]');if(!b)return;
+  e.stopPropagation();
+  const card=b.closest('[data-vid]');if(!card)return;
+  const on=b.dataset.on==='1';
+  if(b.dataset.vx==='rent')quickRent(card.dataset.vid,on);
+  else if(b.dataset.vx==='verify')setVerified(card.dataset.vid,on);
+});
+
+/* ---- বিস্তারিত ভিউয়েও ---- */
+const db=$('uxDetailBody');
+if(db)new MutationObserver(()=>{
+  const h2=db.querySelector('h2');if(!h2)return;
+  const t=h2.textContent.trim();
+  let c=listings.filter(l=>String(l.title||'').trim()===t);
+  if(c.length>1){
+    const tel=$('uxDetailBar')&&$('uxDetailBar').querySelector('a[href^="tel:"]');
+    if(tel){const p=normPhone(tel.getAttribute('href').slice(4));const f=c.filter(l=>normPhone(l.phone)===p);if(f.length)c=f;}
+  }
+  const it=c[0];if(!it)return;
+  h2.insertAdjacentHTML('afterend','<div class="vx-row">'+chips(it)+'</div>'+
+    (it.verified?'<p class="text-[11px] text-red-700 bg-violet-50 border border-violet-200 rounded-xl p-2.5 leading-relaxed">'+badge(14)+' অ্যাডমিন এই বিজ্ঞাপনটি যাচাই করেছেন। তবুও নিজে বাসা দেখে নিশ্চিত না হয়ে টাকা দেবেন না।</p>':''));
+  /* "বিজ্ঞাপনদাতা: নাম" এর পাশে ব্যাজ */
+  if(it.verified){
+    const p=[...db.querySelectorAll('p')].find(x=>x.textContent.includes('বিজ্ঞাপনদাতা'));
+    const sp=p&&p.querySelector('span');
+    if(sp&&!sp.querySelector('.vx-ver'))sp.insertAdjacentHTML('beforeend',nameBadge(20));
+  }
+}).observe(db,{childList:true});
+
+/* =====================================================
+   ২. অ্যাকশন: ভাড়া হয়ে গেছে (এক ক্লিক) ও অ্যাডমিন যাচাই
+   ===================================================== */
+async function patchListing(id,patch){
+  if(isFirebaseReady)await firebaseDb.collection('listings').doc(String(id)).update(patch);
+  else{
+    const it=listings.find(l=>l.id==id);if(it)Object.assign(it,patch);
+    localStorage.setItem('gopalganj_tolet',JSON.stringify(listings));
+    applyFilters();renderAdminAdsList();renderUserAdsList();
+  }
+}
+async function quickRent(id,on){
+  const it=listings.find(l=>l.id==id);
+  if(!it||!canManage(it))return toast('আপনার অনুমতি নেই!','err');
+  try{
+    await patchListing(id,on?{rented:true,rentedAt:Date.now()}:{rented:false,rentedAt:0});
+    toast(on?'"ভাড়া হয়ে গেছে" চিহ্ন দেওয়া হয়েছে। ৭ দিন পর বিজ্ঞাপনটি নিজে মুছে যাবে। ভুল হলে "আবার খালি করুন" চাপুন।':'বাসাটি আবার খালি হিসেবে দেখানো হচ্ছে।','ok',4500);
+  }catch(e){console.error(e);toast(fbErrMsg(e,'আপডেট করা যায়নি।'),'err');}
+}
+async function setVerified(id,on){
+  if(!isAdmin())return toast('শুধু অ্যাডমিন যাচাই করতে পারবেন।','err');
+  if(!confirm(on?'এই বিজ্ঞাপনটি "যাচাইকৃত" করবেন?':'যাচাইকৃত ব্যাজ সরাবেন?'))return;
+  try{
+    await patchListing(id,on?{verified:true,verifiedAt:Date.now()}:{verified:false,verifiedAt:0});
+    toast(on?'বিজ্ঞাপনটি যাচাইকৃত হিসেবে চিহ্নিত হয়েছে।':'যাচাইকৃত ব্যাজ সরানো হয়েছে।','ok',3000);
+  }catch(e){console.error(e);toast(fbErrMsg(e,'আপডেট করা যায়নি।'),'err');}
+}
+
+/* অ্যাডমিন প্যানেল / ড্যাশবোর্ডের তালিকায় */
+const _bar=buildAdRows;
+buildAdRows=function(c,items,closeFn){
+  _bar(c,items,closeFn);
+  [...c.children].forEach((row,i)=>{
+    const it=items[i];if(!it)return;
+    const h=row.querySelector('h4');
+    if(it.verified&&h)h.insertAdjacentHTML('beforeend',nameBadge(18));
+    if(isAdmin()){
+      const box=row.lastElementChild;if(!box)return;
+      const b=document.createElement('button');
+      b.className='px-2 py-1 text-[11px] font-bold rounded-lg '+(it.verified?'bg-slate-100 hover:bg-slate-200 text-slate-700':'bg-violet-50 hover:bg-violet-100 text-violet-700');
+      b.textContent=it.verified?'যাচাই বাতিল':'✓ যাচাই';
+      b.onclick=()=>setVerified(it.id,!it.verified);
+      box.prepend(b);
+    }
+  });
+};
+
+/* এডিট করলে "যাচাইকৃত" ব্যাজ হারিয়ে না যায়:
+   অ্যাডমিন এডিট করলে সবসময় থাকবে; ইউজার ভাড়া/এলাকা/ঠিকানা/ফোন বদলালে ব্যাজ চলে যাবে (আবার যাচাই লাগবে) */
+const _hf=handleFormSubmit;
+handleFormSubmit=function(e){
+  const eid=$('editListingId').value;
+  const old=eid?listings.find(l=>l.id==eid):null;
+  let keep=null;
+  if(old&&old.verified){
+    const neg=$('formRentNegotiable').checked;
+    const same=isAdmin()||(
+      (neg?0:Number($('formRent').value))===(old.rentNegotiable?0:Number(old.rent))&&
+      $('formArea').value===old.area&&
+      $('formAddress').value.trim()===(old.address||'')&&
+      normPhone($('formPhone').value)===normPhone(old.phone));
+    if(same)keep={verified:true,verifiedAt:old.verifiedAt||0};
+  }
+  const p=_hf.call(this,e);
+  if(!keep)return p;
+  return Promise.resolve(p).then(async()=>{
+    try{
+      if(isFirebaseReady)await firebaseDb.collection('listings').doc(String(eid)).update(keep);
+      else{const n=listings.find(l=>l.id==eid);if(n){Object.assign(n,keep);localStorage.setItem('gopalganj_tolet',JSON.stringify(listings));applyFilters();}}
+    }catch(_){}
+  });
+};
+
+/* লগইন/লগআউটের পর কার্ড নতুন করে আঁকা (যাতে নিজের বিজ্ঞাপনে বাটন আসে) */
+const _ua=updateAuthUI;
+updateAuthUI=function(){_ua.apply(this,arguments);setTimeout(()=>{try{applyFilters();}catch(_){}},0);};
+
+/* =====================================================
+   ৩. ফুটারে সতর্কতা
+   ===================================================== */
+const ft=document.querySelector('footer');
+if(ft&&ft.lastElementChild&&!$('vxFootWarn'))
+  ft.lastElementChild.insertAdjacentHTML('beforebegin',
+   '<div id="vxFootWarn" class="max-w-7xl mx-auto px-4 pb-6 w-full"><div class="flex items-start gap-3 bg-amber-500/10 border border-amber-400/40 text-amber-200 rounded-xl p-3 sm:p-3.5">'+
+   '<i class="fa-solid fa-triangle-exclamation text-amber-400 text-lg mt-0.5"></i>'+
+   '<p class="text-xs sm:text-sm font-semibold" style="line-height:1.55"><b class="text-amber-300">সতর্কতা:</b> বাসা না দেখে অগ্রিম টাকা দেবেন না। সন্দেহ হলে বিজ্ঞাপনের নিচের "রিপোর্ট" বাটনে জানান।</p></div></div>');
+
+/* =====================================================
+   ৪. "আমাদের সম্পর্কে" পেজ (বাংলা + English)
+   ===================================================== */
+const H=t=>'<h4 class="text-sm font-extrabold text-slate-900 mb-1.5">'+t+'</h4>';
+const UL=a=>'<ul class="list-disc pl-5 space-y-1">'+a.map(x=>'<li>'+x+'</li>').join('')+'</ul>';
+function contacts(en){
+  const s=(typeof adSettings!=='undefined'&&adSettings)||{};
+  const L=en?['Phone','WhatsApp','Facebook']:['ফোন','হোয়াটসঅ্যাপ','ফেসবুক'];
+  return [s.footerPhone?L[0]+': <b>'+esc(s.footerPhone)+'</b>':'',s.footerWa?L[1]+': <b>'+esc(s.footerWa)+'</b>':'',s.footerFb?L[2]+': <b>'+esc(String(s.footerFb).replace(/^https?:\/\/(www\.)?/,''))+'</b>':''].filter(Boolean);
+}
+function aboutBN(){
+  const c=contacts(false);
+  return '<p><b>টু-লেট গোপালগঞ্জ</b> গোপালগঞ্জ শহর ও বিশ্ববিদ্যালয়ের (BSMRSTU) আশপাশে বাসা, মেস, ব্যাচেলর রুম ও সাবলেট খোঁজা এবং বিজ্ঞাপন দেওয়ার একটি বিনামূল্যের অনলাইন প্ল্যাটফর্ম।</p>'+
+  '<div>'+H('আমরা কী করি')+UL([
+    'ছবি ও ভিডিওসহ বাসার বিজ্ঞাপন দেখার সুযোগ, যাতে না গিয়েই প্রাথমিক ধারণা পাওয়া যায়।',
+    'বাড়িওয়ালা ও ভাড়াটিয়া সরাসরি কল, হোয়াটসঅ্যাপ বা চ্যাটে কথা বলতে পারেন।',
+    '"বাসা চাই" অনুরোধ পাঠিয়ে নিজের চাহিদা জানালে বাড়িওয়ালারা যোগাযোগ করতে পারেন।',
+    'পুরনো জিনিস (ফার্নিচার, ইলেকট্রনিক্স, বই ইত্যাদি) কেনা-বেচা।'])+'</div>'+
+  '<div>'+H('আমাদের লক্ষ্য')+'<p>গোপালগঞ্জে বাসা খোঁজা সহজ, দ্রুত ও স্বচ্ছ করা — বিশেষ করে শিক্ষার্থী ও নতুন আসা মানুষের জন্য।</p></div>'+
+  '<div class="rounded-2xl border border-violet-200 bg-violet-50 p-3.5 space-y-1.5">'+H(badge(18)+' "যাচাইকৃত" ব্যাজ মানে কী')+
+   '<p>অ্যাডমিন কোনো বিজ্ঞাপন দেখে যাচাই করলে বিজ্ঞাপনদাতার নামের পাশে এই ব্যাজ দেওয়া হয়। এটি বাড়তি আস্থার একটি চিহ্ন, কিন্তু কোনো গ্যারান্টি নয়। ব্যাজ থাকলেও নিজে বাসা দেখে নিশ্চিত হয়ে তারপর সিদ্ধান্ত নিন। ব্যবহারকারী বিজ্ঞাপনের ভাড়া, এলাকা, ঠিকানা বা ফোন নম্বর বদলালে ব্যাজ সরে যায়।</p></div>'+
+  '<div class="rounded-2xl border-2 border-amber-300 bg-amber-50 p-3.5 space-y-1.5">'+H('আমরা যা করি না')+UL([
+    '<b>আমরা কারও কাছ থেকে টাকা নিই না</b> — ভাড়া, বায়না, কমিশন বা সার্ভিস চার্জ কিছুই না।',
+    'আমরা লেনদেনের পক্ষ বা মধ্যস্থতাকারী নই এবং কোনো লেনদেনের গ্যারান্টি দিই না।',
+    '<b>বাসা না দেখে অগ্রিম টাকা দেবেন না।</b>'])+'</div>'+
+  '<div>'+H('কোনো সমস্যা হলে')+'<p>ভুয়া বিজ্ঞাপন বা প্রতারণা দেখলে বিজ্ঞাপনের নিচের "রিপোর্ট" বাটন ব্যবহার করুন। আমাদের <button type="button" data-go="privacy" class="text-emerald-700 font-bold underline">প্রাইভেসি পলিসি</button>ও দেখে নিতে পারেন।</p></div>'+
+  '<div class="rounded-2xl border border-slate-200 bg-slate-50 p-3.5">'+H('যোগাযোগ')+(c.length?c.map(x=>'<p>'+x+'</p>').join(''):'<p class="text-slate-500">সাইটের নিচের "হেল্প ও সাপোর্ট" অংশ দেখুন।</p>')+'</div>';
+}
+function aboutEN(){
+  const c=contacts(true);
+  return '<p><b>To-Let Gopalganj</b> is a free online platform for finding and advertising houses, mess seats, bachelor rooms and sublets in and around Gopalganj town and the BSMRSTU area.</p>'+
+  '<div>'+H('What we do')+UL([
+    'Browse house ads with photos and videos to get a first idea without visiting.',
+    'Owners and tenants talk directly by call, WhatsApp or chat.',
+    'Post a "looking for a house" request so owners can contact you.',
+    'Buy and sell used items (furniture, electronics, books and more).'])+'</div>'+
+  '<div>'+H('Our goal')+'<p>To make finding a home in Gopalganj easier, faster and more transparent — especially for students and newcomers.</p></div>'+
+  '<div class="rounded-2xl border border-violet-200 bg-violet-50 p-3.5 space-y-1.5">'+H(badge(18)+' What the "Verified" badge means')+
+   '<p>The badge appears next to the poster\'s name when an admin has reviewed and verified an ad. It is an extra sign of trust, not a guarantee. Even with the badge, please see the place yourself before deciding. The badge is removed if a user changes the rent, area, address or phone number of the ad.</p></div>'+
+  '<div class="rounded-2xl border-2 border-amber-300 bg-amber-50 p-3.5 space-y-1.5">'+H('What we do not do')+UL([
+    '<b>We do not take any money from anyone</b> — no rent, booking money, commission or service charge.',
+    'We are not a party to or intermediary in any transaction and do not guarantee any deal.',
+    '<b>Do not pay any advance without seeing the place.</b>'])+'</div>'+
+  '<div>'+H('If something goes wrong')+'<p>If you see a fake ad or fraud, use the "রিপোর্ট" (Report) button under the ad. Please also read our <button type="button" data-go="privacy" class="text-emerald-700 font-bold underline">Privacy Policy</button>.</p></div>'+
+  '<div class="rounded-2xl border border-slate-200 bg-slate-50 p-3.5">'+H('Contact')+(c.length?c.map(x=>'<p>'+x+'</p>').join(''):'<p class="text-slate-500">See the "Help &amp; Support" section at the bottom of the site.</p>')+'</div>';
+}
+
+document.body.insertAdjacentHTML('beforeend',
+'<div id="aboutModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-end sm:items-center justify-center sm:p-4" style="z-index:130">'+
+ '<div class="bg-white w-full sm:max-w-2xl rounded-t-3xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden" style="max-height:94vh">'+
+  '<div class="px-4 sm:px-6 py-3.5 bg-emerald-700 text-white flex items-center justify-between gap-3 flex-shrink-0"><h3 id="abTitle" class="text-sm sm:text-base font-extrabold"></h3>'+
+   '<button type="button" id="abX" aria-label="বন্ধ করুন" class="w-9 h-9 rounded-full bg-white/15 hover:bg-white/30 text-2xl leading-none flex items-center justify-center">&times;</button></div>'+
+  '<div id="abBar" class="flex items-center gap-2 px-4 sm:px-6 py-2 bg-emerald-50 border-b border-emerald-100 flex-shrink-0"><span class="text-[11px] font-bold text-emerald-800 mr-1"><i class="fa-solid fa-language"></i></span><button type="button" data-l="bn">বাংলা</button><button type="button" data-l="en">English</button></div>'+
+  '<div id="abBody" class="p-4 sm:p-6 overflow-y-auto flex-1 text-xs sm:text-[13px] text-slate-700 space-y-4" style="line-height:1.7;-webkit-overflow-scrolling:touch"></div>'+
+  '<div class="p-3 border-t border-slate-100 flex-shrink-0" style="padding-bottom:calc(.75rem + env(safe-area-inset-bottom,0px))"><button type="button" id="abClose" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold active:scale-95"></button></div>'+
+ '</div></div>');
+
+const am=$('aboutModal');
+function renderAbout(l){
+  $('abBody').innerHTML=l==='en'?aboutEN():aboutBN();
+  $('abTitle').innerHTML='<i class="fa-solid fa-circle-info mr-1.5"></i> '+(l==='en'?'About Us':'আমাদের সম্পর্কে');
+  $('abClose').textContent=l==='en'?'Close':'বন্ধ করুন';
+  $('abBar').querySelectorAll('[data-l]').forEach(b=>{
+    b.className='px-3.5 py-1.5 rounded-full text-xs font-bold border '+(b.dataset.l===l?'bg-emerald-600 border-emerald-600 text-white':'bg-white border-slate-300 text-slate-600');
+  });
+  $('abBody').scrollTop=0;
+}
+function openAbout(l){am.classList.remove('hidden');am.classList.add('flex');document.body.style.overflow='hidden';renderAbout(l||'bn');}
+function closeAbout(){am.classList.add('hidden');am.classList.remove('flex');document.body.style.overflow='';}
+window.openAboutUs=l=>openAbout(l==='en'?'en':'bn');
+$('abBar').addEventListener('click',e=>{const b=e.target.closest('[data-l]');if(b)renderAbout(b.dataset.l);});
+$('abX').onclick=closeAbout;$('abClose').onclick=closeAbout;
+am.addEventListener('click',e=>{
+  if(e.target===am)return closeAbout();
+  if(e.target.closest('[data-go=privacy]')){closeAbout();if(window.openPrivacyPolicy)openPrivacyPolicy();}
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!am.classList.contains('hidden'))closeAbout();});
+window.addEventListener('hashchange',()=>{if(location.hash.toLowerCase()==='#about')openAbout('bn');});
+if(location.hash.toLowerCase()==='#about')setTimeout(()=>openAbout('bn'),500);
+
+/* ফুটারে লিংক বসানো */
+const pl=document.querySelector('footer a[onclick="openPrivacyPolicy()"]');
+if(pl&&pl.closest('ul')){
+  const li=document.createElement('li');
+  li.innerHTML='<a href="javascript:void(0)" onclick="openAboutUs()" class="hover:text-emerald-400 transition">আমাদের সম্পর্কে</a>';
+  pl.closest('ul').appendChild(li);
+}
+const pb=document.querySelector('footer > div:last-child > div > a[onclick="openPrivacyPolicy()"]');
+if(pb)pb.insertAdjacentHTML('beforebegin','<a href="javascript:void(0)" onclick="openAboutUs()" class="hover:text-emerald-400 underline">আমাদের সম্পর্কে</a><span class="text-slate-600">•</span>');
+})();
+</script>
  </body>
 </html>
