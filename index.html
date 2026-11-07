@@ -7160,7 +7160,7 @@ const first=langOfHash();
 if(first)setTimeout(()=>openPrivacy(first),500);
 })();
 </script>
-<!-- ===== VERIFIED BADGE + POSTED-AGO + VACANCY STATUS + ONE-CLICK RENTED ===== -->
+<!-- ===== VERIFIED BADGE + POSTED-AGO + VACANCY STATUS + ONE-CLICK RENTED (secure) ===== -->
 <style>
   .uxv-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;padding:.2rem .55rem;border-radius:9999px;background:#2563eb;color:#fff;box-shadow:0 2px 6px rgba(37,99,235,.4)}
   .uxv-line{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:.5rem;font-size:11px;font-weight:600;color:#64748b}
@@ -7186,6 +7186,58 @@ const toast=(m,k,ms)=>(window.uxToast?window.uxToast(m,k,ms):alert(m));
 const bn=n=>String(n).replace(/\d/g,d=>'০১২৩৪৫৬৭৮৯'[d]);
 const DAY=86400000;
 const box=$('listingsContainer');
+
+/* ---------- Firebase Auth (শুধু অ্যাডমিনের জন্য) ---------- */
+async function authLib(){
+  if(!firebase.auth){
+    await new Promise((res,rej)=>{
+      const s=document.createElement('script');
+      s.src='https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js';
+      s.onload=res;s.onerror=()=>rej(new Error('Auth লাইব্রেরি লোড হয়নি'));
+      document.head.appendChild(s);
+    });
+  }
+  return firebase.auth();
+}
+const authReady=a=>new Promise(r=>{const u=a.onAuthStateChanged(()=>{u();r();});});
+
+async function adminSignIn(email,pw){
+  if(!isFirebaseReady||!email)return false;
+  try{
+    const a=await authLib();await authReady(a);
+    if(a.currentUser&&a.currentUser.email&&a.currentUser.email.toLowerCase()===String(email).toLowerCase())return true;
+    await a.signInWithEmailAndPassword(email,pw);
+    return true;
+  }catch(err){
+    console.warn('Admin auth notice:',err);
+    toast('Firebase অ্যাডমিন অ্যাকাউন্টে সাইন-ইন হয়নি, তাই "যাচাই" দেওয়া যাবে না। Firebase Console > Authentication > Users এ অ্যাডমিনের একই ইমেইল ও পাসওয়ার্ড দিয়ে ইউজার বানান।','warn',9000);
+    return false;
+  }
+}
+async function requireAdminAuth(){
+  if(!isFirebaseReady)return true;
+  try{
+    const a=await authLib();await authReady(a);
+    if(a.currentUser)return true;
+  }catch(_){}
+  toast('যাচাই সংরক্ষণের জন্য অ্যাডমিন হিসেবে লগআউট করে আবার লগইন করুন (Firebase অ্যাডমিন অ্যাকাউন্ট দরকার)।','err',8000);
+  return false;
+}
+
+/* অ্যাডমিন লগইনের সময় Firebase-এও সাইন-ইন */
+const _hal=handleAdminLogin;
+handleAdminLogin=async function(e){
+  const pw=($('adminPasswordInput').value||'').trim();
+  const r=await _hal.call(this,e);
+  if(isAdmin())adminSignIn(currentUser.email,pw);
+  return r;
+};
+/* লগআউটে Firebase থেকেও বের */
+const _lo=logout;
+logout=function(){
+  try{if(isFirebaseReady&&firebase.auth&&firebase.auth().currentUser)firebase.auth().signOut().catch(()=>{});}catch(_){}
+  return _lo.apply(this,arguments);
+};
 
 /* ---------- সময় ---------- */
 function tsOf(it){
@@ -7213,7 +7265,7 @@ async function patchListing(id,patch){
   }
 }
 
-/* ভাড়া হয়ে গেছে: এক ক্লিকে (মার্ক করার ৭ দিন পরে আগের কোডই নিজে থেকে মুছে দেবে) */
+/* ভাড়া হয়ে গেছে: এক ক্লিকে (৭ দিন পরে আগের কোডই নিজে থেকে মুছে দেবে) */
 async function toggleRentedOne(id){
   const it=listings.find(l=>l.id==id);
   if(!it||!canManage(it))return toast('আপনার অনুমতি নেই!','err');
@@ -7228,6 +7280,7 @@ async function toggleVerified(id){
   const it=listings.find(l=>l.id==id);if(!it)return;
   if(!it.verified){
     if(!confirm('আপনি কি বাড়িওয়ালার সাথে ফোনে কথা বলে নিশ্চিত হয়েছেন যে বিজ্ঞাপনটি সঠিক এবং বাসাটি সত্যিই খালি?\n\nনিশ্চিত হলে ব্যাজ দিন।'))return;
+    if(!(await requireAdminAuth()))return;
     await patchListing(id,{verified:true,verifiedAt:Date.now(),verifiedBy:currentUser.name||'অ্যাডমিন'});
     toast('"যাচাইকৃত" ব্যাজ দেওয়া হয়েছে।','ok');
   }else{
@@ -7246,7 +7299,6 @@ function decorate(){
     const it=listings.find(l=>String(l.id)===m[1]);if(!it)return;
     card.dataset.uxv=m[1];
 
-    /* ১) ছবির উপরে "যাচাইকৃত" ব্যাজ */
     if(it.verified){
       const top=card.querySelector('.relative');
       let chips=top&&top.children[1];
@@ -7259,7 +7311,6 @@ function decorate(){
       chips.insertAdjacentHTML('beforeend','<span class="uxv-badge" title="অ্যাডমিন বাড়িওয়ালার সাথে ফোনে কথা বলে যাচাই করেছেন"><i class="fa-solid fa-circle-check"></i> যাচাইকৃত</span>');
     }
 
-    /* ২) কতদিন আগে পোস্ট + খালি আছে কি না */
     const info=card.firstElementChild&&card.firstElementChild.children[1];
     if(info){
       const ts=tsOf(it),old=ts&&(Date.now()-ts)>30*DAY;
@@ -7272,7 +7323,6 @@ function decorate(){
       info.insertAdjacentHTML('afterbegin',h);
     }
 
-    /* ৩) মালিক/অ্যাডমিনের বাটন */
     if(typeof canManage==='function'&&canManage(it)){
       let a='<div class="uxv-act">';
       a+='<button type="button" data-uxa="rent" class="uxv-rent'+(it.rented?' on':'')+'">'+(it.rented?'<i class="fa-solid fa-rotate-left"></i> আবার খালি করুন':'<i class="fa-solid fa-key"></i> ভাড়া হয়ে গেছে')+'</button>';
@@ -7296,14 +7346,12 @@ box.addEventListener('click',async e=>{
   finally{b.disabled=false;}
 });
 
-/* "X দিন আগে" লেখা প্রতি মিনিটে নতুন হবে */
 setInterval(()=>{box.querySelectorAll('[data-uxts]').forEach(s=>{s.textContent=ago(Number(s.dataset.uxts));});},60000);
 
-/* লগইন/লগআউটের পর বাটনগুলো ঠিক করতে কার্ড নতুন করে আঁকা */
 const _ua=updateAuthUI;
 updateAuthUI=function(){_ua.apply(this,arguments);applyFilters();};
 
-/* ---------- অ্যাডমিন প্যানেলের বিজ্ঞাপন তালিকায় যাচাই বাটন ---------- */
+/* ---------- অ্যাডমিন প্যানেলের তালিকায় যাচাই + কল বাটন ---------- */
 const _bar=buildAdRows;
 buildAdRows=function(c,items,closeFn){
   _bar(c,items,closeFn);
@@ -7330,8 +7378,7 @@ buildAdRows=function(c,items,closeFn){
 };
 
 /* ---------- এডিট করলে ব্যাজের আচরণ ----------
-   অ্যাডমিন এডিট করলে ব্যাজ থেকে যায়।
-   বাড়িওয়ালা নিজে এডিট করলে (ভাড়া/নম্বর বদলাতে পারে) ব্যাজ সরে যায়, অ্যাডমিন আবার যাচাই করবেন। */
+   অ্যাডমিন এডিট করলে ব্যাজ থাকে। বাড়িওয়ালা এডিট করলে ব্যাজ সরে যায়। */
 const _hf=handleFormSubmit;
 handleFormSubmit=function(e){
   const eid=$('editListingId').value,old=eid?listings.find(l=>l.id==eid):null;
@@ -7339,7 +7386,12 @@ handleFormSubmit=function(e){
   const lost=!!(old&&old.verified&&!isAdmin());
   const p=_hf.call(this,e);
   return Promise.resolve(p).then(async r=>{
-    if(keep){try{await patchListing(eid,keep);}catch(_){}}
+    if(keep){
+      try{
+        if(!(await requireAdminAuth()))throw new Error('auth');
+        await patchListing(eid,keep);
+      }catch(_){toast('বিজ্ঞাপন সংরক্ষিত হয়েছে, কিন্তু "যাচাইকৃত" ব্যাজ ফিরিয়ে আনা যায়নি। আবার "যাচাই করুন" চাপুন।','warn',6000);}
+    }
     else if(lost&&$('adModal').classList.contains('hidden'))toast('বিজ্ঞাপন এডিট করায় "যাচাইকৃত" ব্যাজ সরে গেছে। অ্যাডমিন আবার যাচাই করলে ব্যাজ ফিরবে।','info',5000);
     return r;
   });
