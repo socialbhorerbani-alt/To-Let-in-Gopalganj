@@ -7160,5 +7160,193 @@ const first=langOfHash();
 if(first)setTimeout(()=>openPrivacy(first),500);
 })();
 </script>
+<!-- ===== VERIFIED BADGE + POSTED-AGO + VACANCY STATUS + ONE-CLICK RENTED ===== -->
+<style>
+  .uxv-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;padding:.2rem .55rem;border-radius:9999px;background:#2563eb;color:#fff;box-shadow:0 2px 6px rgba(37,99,235,.4)}
+  .uxv-line{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:.5rem;font-size:11px;font-weight:600;color:#64748b}
+  .uxv-st{display:inline-flex;align-items:center;gap:4px;padding:.15rem .55rem;border-radius:9999px;font-weight:800}
+  .uxv-st.free{background:#ecfdf5;color:#047857;border:1px solid #a7f3d0}
+  .uxv-st.rented{background:#fff1f2;color:#be123c;border:1px solid #fecdd3}
+  .uxv-stale{width:100%;font-size:10.5px;font-weight:600;color:#b45309;background:#fffbeb;border:1px solid #fde68a;border-radius:.5rem;padding:.25rem .5rem}
+  .uxv-act{display:flex;gap:6px;flex-wrap:wrap;padding:.6rem .9rem;border-top:1px solid #f1f5f9;background:#fff}
+  .uxv-act button{flex:1;min-height:38px;padding:.4rem .7rem;border-radius:.65rem;font-size:12px;font-weight:800;border:1px solid;cursor:pointer;font-family:inherit;transition:.12s}
+  .uxv-act button:active{transform:scale(.96)}
+  .uxv-act button:disabled{opacity:.6}
+  .uxv-rent{background:#fffbeb;border-color:#fcd34d;color:#b45309}
+  .uxv-rent.on{background:#f1f5f9;border-color:#cbd5e1;color:#475569}
+  .uxv-ver{background:#eff6ff;border-color:#93c5fd;color:#1d4ed8}
+  .uxv-ver.on{background:#fff;border-color:#cbd5e1;color:#64748b}
+</style>
+
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const toast=(m,k,ms)=>(window.uxToast?window.uxToast(m,k,ms):alert(m));
+const bn=n=>String(n).replace(/\d/g,d=>'০১২৩৪৫৬৭৮৯'[d]);
+const DAY=86400000;
+const box=$('listingsContainer');
+
+/* ---------- সময় ---------- */
+function tsOf(it){
+  const t=Number(it.createdAt);if(t>1e12)return t;
+  const i=Number(it.id);return i>1e12?i:0;
+}
+function ago(ts){
+  if(!ts)return '';
+  const s=Math.max(0,(Date.now()-ts)/1000);
+  if(s<60)return 'এইমাত্র';
+  const m=Math.floor(s/60);if(m<60)return bn(m)+' মিনিট আগে';
+  const h=Math.floor(m/60);if(h<24)return bn(h)+' ঘণ্টা আগে';
+  const d=Math.floor(h/24);if(d<30)return bn(d)+' দিন আগে';
+  if(d<365)return bn(Math.floor(d/30))+' মাস আগে';
+  return bn(Math.floor(d/365))+' বছর আগে';
+}
+
+/* ---------- ডেটাবেজে আপডেট ---------- */
+async function patchListing(id,patch){
+  if(isFirebaseReady){
+    await firebaseDb.collection('listings').doc(String(id)).update(patch);
+  }else{
+    const it=listings.find(l=>l.id==id);
+    if(it){Object.assign(it,patch);localStorage.setItem('gopalganj_tolet',JSON.stringify(listings));applyFilters();}
+  }
+}
+
+/* ভাড়া হয়ে গেছে: এক ক্লিকে (মার্ক করার ৭ দিন পরে আগের কোডই নিজে থেকে মুছে দেবে) */
+async function toggleRentedOne(id){
+  const it=listings.find(l=>l.id==id);
+  if(!it||!canManage(it))return toast('আপনার অনুমতি নেই!','err');
+  const on=!it.rented;
+  await patchListing(id,on?{rented:true,rentedAt:Date.now()}:{rented:false,rentedAt:0});
+  toast(on?'বাসাটি "ভাড়া হয়ে গেছে" মার্ক করা হয়েছে। ৭ দিন পরে বিজ্ঞাপনটি নিজে থেকেই মুছে যাবে। ভুল হলে "আবার খালি করুন" চাপুন।':'বাসাটি আবার "খালি আছে" করা হয়েছে।','ok',4500);
+}
+
+/* অ্যাডমিন যাচাই */
+async function toggleVerified(id){
+  if(!isAdmin())return;
+  const it=listings.find(l=>l.id==id);if(!it)return;
+  if(!it.verified){
+    if(!confirm('আপনি কি বাড়িওয়ালার সাথে ফোনে কথা বলে নিশ্চিত হয়েছেন যে বিজ্ঞাপনটি সঠিক এবং বাসাটি সত্যিই খালি?\n\nনিশ্চিত হলে ব্যাজ দিন।'))return;
+    await patchListing(id,{verified:true,verifiedAt:Date.now(),verifiedBy:currentUser.name||'অ্যাডমিন'});
+    toast('"যাচাইকৃত" ব্যাজ দেওয়া হয়েছে।','ok');
+  }else{
+    if(!confirm('যাচাইকৃত ব্যাজটি সরিয়ে দিতে চান?'))return;
+    await patchListing(id,{verified:false,verifiedAt:0,verifiedBy:''});
+    toast('ব্যাজ সরানো হয়েছে।','info');
+  }
+}
+
+/* ---------- কার্ড সাজানো ---------- */
+function decorate(){
+  [...box.children].forEach(card=>{
+    if(card.dataset.uxv)return;
+    const b=card.querySelector('[onclick^="openReviewModal"]');if(!b)return;
+    const m=/openReviewModal\('([^']+)'\)/.exec(b.getAttribute('onclick')||'');if(!m)return;
+    const it=listings.find(l=>String(l.id)===m[1]);if(!it)return;
+    card.dataset.uxv=m[1];
+
+    /* ১) ছবির উপরে "যাচাইকৃত" ব্যাজ */
+    if(it.verified){
+      const top=card.querySelector('.relative');
+      let chips=top&&top.children[1];
+      if(!chips||chips.tagName!=='DIV'||!chips.className.includes('absolute')){
+        chips=document.createElement('div');
+        chips.className='absolute top-2.5 left-2.5 z-10 flex gap-1.5 items-center';
+        if(top)top.appendChild(chips);
+      }
+      chips.classList.add('flex-wrap');chips.style.maxWidth='78%';
+      chips.insertAdjacentHTML('beforeend','<span class="uxv-badge" title="অ্যাডমিন বাড়িওয়ালার সাথে ফোনে কথা বলে যাচাই করেছেন"><i class="fa-solid fa-circle-check"></i> যাচাইকৃত</span>');
+    }
+
+    /* ২) কতদিন আগে পোস্ট + খালি আছে কি না */
+    const info=card.firstElementChild&&card.firstElementChild.children[1];
+    if(info){
+      const ts=tsOf(it),old=ts&&(Date.now()-ts)>30*DAY;
+      let h='<div class="uxv-line">';
+      h+=it.rented?'<span class="uxv-st rented"><i class="fa-solid fa-circle-xmark"></i> ভাড়া হয়ে গেছে</span>':'<span class="uxv-st free"><i class="fa-solid fa-circle-check"></i> এখনো খালি আছে</span>';
+      if(ts)h+='<span><i class="fa-regular fa-clock"></i> পোস্ট: <span data-uxts="'+ts+'">'+ago(ts)+'</span></span>';
+      if(it.verified&&it.verifiedAt)h+='<span class="text-blue-700"><i class="fa-solid fa-phone-volume"></i> যাচাই: <span data-uxts="'+Number(it.verifiedAt)+'">'+ago(Number(it.verifiedAt))+'</span></span>';
+      if(old&&!it.rented)h+='<span class="uxv-stale"><i class="fa-solid fa-triangle-exclamation"></i> বিজ্ঞাপনটি ৩০ দিনের বেশি পুরনো। কল করে খালি আছে কি না নিশ্চিত হয়ে নিন।</span>';
+      h+='</div>';
+      info.insertAdjacentHTML('afterbegin',h);
+    }
+
+    /* ৩) মালিক/অ্যাডমিনের বাটন */
+    if(typeof canManage==='function'&&canManage(it)){
+      let a='<div class="uxv-act">';
+      a+='<button type="button" data-uxa="rent" class="uxv-rent'+(it.rented?' on':'')+'">'+(it.rented?'<i class="fa-solid fa-rotate-left"></i> আবার খালি করুন':'<i class="fa-solid fa-key"></i> ভাড়া হয়ে গেছে')+'</button>';
+      if(isAdmin())a+='<button type="button" data-uxa="ver" class="uxv-ver'+(it.verified?' on':'')+'">'+(it.verified?'<i class="fa-solid fa-ban"></i> যাচাই বাতিল':'<i class="fa-solid fa-circle-check"></i> যাচাই করুন')+'</button>';
+      a+='</div>';
+      card.insertAdjacentHTML('beforeend',a);
+    }
+  });
+}
+new MutationObserver(decorate).observe(box,{childList:true});
+
+box.addEventListener('click',async e=>{
+  const b=e.target.closest('[data-uxa]');if(!b)return;
+  e.stopPropagation();
+  const card=b.closest('[data-uxv]');if(!card)return;
+  b.disabled=true;
+  try{
+    if(b.dataset.uxa==='rent')await toggleRentedOne(card.dataset.uxv);
+    else if(b.dataset.uxa==='ver')await toggleVerified(card.dataset.uxv);
+  }catch(err){console.error(err);toast(fbErrMsg(err,'কাজটি করা যায়নি।'),'err',5000);}
+  finally{b.disabled=false;}
+});
+
+/* "X দিন আগে" লেখা প্রতি মিনিটে নতুন হবে */
+setInterval(()=>{box.querySelectorAll('[data-uxts]').forEach(s=>{s.textContent=ago(Number(s.dataset.uxts));});},60000);
+
+/* লগইন/লগআউটের পর বাটনগুলো ঠিক করতে কার্ড নতুন করে আঁকা */
+const _ua=updateAuthUI;
+updateAuthUI=function(){_ua.apply(this,arguments);applyFilters();};
+
+/* ---------- অ্যাডমিন প্যানেলের বিজ্ঞাপন তালিকায় যাচাই বাটন ---------- */
+const _bar=buildAdRows;
+buildAdRows=function(c,items,closeFn){
+  _bar(c,items,closeFn);
+  if(!isAdmin())return;
+  [...c.children].forEach((row,i)=>{
+    const it=items[i];if(!it||!it.id)return;
+    const bx=row.lastElementChild,h=row.querySelector('h4');
+    if(it.verified&&h)h.insertAdjacentHTML('beforeend',' <span class="text-[9px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold">যাচাইকৃত</span>');
+    const ph=normPhone(it.phone);
+    if(ph){
+      const call=document.createElement('a');
+      call.href='tel:'+ph;call.title='বাড়িওয়ালাকে কল করুন';
+      call.className='px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs rounded-lg';
+      call.innerHTML='<i class="fa-solid fa-phone"></i>';
+      bx.prepend(call);
+    }
+    const v=document.createElement('button');
+    v.type='button';
+    v.className='px-2 py-1 text-[11px] font-bold rounded-lg '+(it.verified?'bg-slate-100 hover:bg-slate-200 text-slate-700':'bg-blue-50 hover:bg-blue-100 text-blue-700');
+    v.textContent=it.verified?'যাচাই বাতিল':'যাচাই করুন';
+    v.onclick=()=>toggleVerified(it.id).catch(err=>toast(fbErrMsg(err,'কাজটি করা যায়নি।'),'err'));
+    bx.prepend(v);
+  });
+};
+
+/* ---------- এডিট করলে ব্যাজের আচরণ ----------
+   অ্যাডমিন এডিট করলে ব্যাজ থেকে যায়।
+   বাড়িওয়ালা নিজে এডিট করলে (ভাড়া/নম্বর বদলাতে পারে) ব্যাজ সরে যায়, অ্যাডমিন আবার যাচাই করবেন। */
+const _hf=handleFormSubmit;
+handleFormSubmit=function(e){
+  const eid=$('editListingId').value,old=eid?listings.find(l=>l.id==eid):null;
+  const keep=(old&&old.verified&&isAdmin())?{verified:true,verifiedAt:old.verifiedAt||Date.now(),verifiedBy:old.verifiedBy||''}:null;
+  const lost=!!(old&&old.verified&&!isAdmin());
+  const p=_hf.call(this,e);
+  return Promise.resolve(p).then(async r=>{
+    if(keep){try{await patchListing(eid,keep);}catch(_){}}
+    else if(lost&&$('adModal').classList.contains('hidden'))toast('বিজ্ঞাপন এডিট করায় "যাচাইকৃত" ব্যাজ সরে গেছে। অ্যাডমিন আবার যাচাই করলে ব্যাজ ফিরবে।','info',5000);
+    return r;
+  });
+};
+
+decorate();
+})();
+</script>
  </body>
 </html>
