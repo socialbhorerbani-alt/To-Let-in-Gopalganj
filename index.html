@@ -7595,5 +7595,244 @@ if(currentUser){asked=true;setTimeout(maybeAsk,6000);}
 paintTitle();
 })();
 </script>
+<!-- ===== DUPLICATE AD + UPLOAD PROGRESS ADD-ON ===== -->
+<style>
+  #upOv{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(5.6rem + env(safe-area-inset-bottom,0px));z-index:250;width:min(94vw,420px);display:none}
+  #upOv.show{display:block}
+  @media(min-width:640px){#upOv{bottom:24px}}
+  .up-card{background:#0f172a;color:#fff;border-radius:1rem;padding:.8rem .9rem;box-shadow:0 12px 34px rgba(2,6,23,.45)}
+  .up-top{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:700;line-height:1.4}
+  .up-ic{width:30px;height:30px;border-radius:9px;background:#059669;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px}
+  .up-pct{margin-left:auto;font-family:monospace;font-size:14px;color:#34d399;flex-shrink:0}
+  .up-bar{height:8px;border-radius:9999px;background:#334155;margin-top:9px;overflow:hidden}
+  .up-fill{height:100%;width:0;background:linear-gradient(90deg,#10b981,#34d399);border-radius:9999px;transition:width .2s}
+  .up-note{font-size:10px;color:#94a3b8;margin-top:6px}
+</style>
+
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const toast=(m,k,ms)=>(window.uxToast?window.uxToast(m,k,ms):alert(m));
+const bn=n=>Number(n).toLocaleString('bn-BD');
+const waitFor=(fn,ms)=>new Promise(res=>{
+  const t0=Date.now();
+  (function tick(){let v;try{v=fn();}catch(_){}if(v)return res(v);if(Date.now()-t0>ms)return res(null);setTimeout(tick,250);})();
+});
+
+/* =====================================================
+   ১. আপলোড অগ্রগতি (ছবি + ভিডিও)
+   ===================================================== */
+document.body.insertAdjacentHTML('beforeend',
+ '<div id="upOv" role="status" aria-live="polite"><div class="up-card">'+
+  '<div class="up-top"><span class="up-ic"><i class="fa-solid fa-cloud-arrow-up"></i></span><span id="upLabel"></span><span id="upPct" class="up-pct">0%</span></div>'+
+  '<div class="up-bar"><div id="upFill" class="up-fill"></div></div>'+
+  '<p class="up-note">আপলোড শেষ না হওয়া পর্যন্ত পেজ বন্ধ করবেন না।</p>'+
+ '</div></div>');
+
+const T={ctx:false,imgs:0,vid:0,imgDone:0,imgFrac:0,imgActive:false,vidOn:false,vidDone:false,vidFrac:0,vidComp:false,vidText:''};
+let hideT=null;
+function resetT(){T.imgDone=0;T.imgFrac=0;T.imgActive=false;T.vidOn=false;T.vidDone=false;T.vidFrac=0;T.vidComp=false;T.vidText='';}
+function paint(){
+  const i=T.ctx?T.imgs:1,v=T.ctx?T.vid:0,total=Math.max(1,i+v);
+  let done=T.imgDone+(T.imgActive?T.imgFrac:0);
+  if(v)done+=T.vidDone?1:(T.vidOn?T.vidFrac:0);
+  const p=Math.max(0,Math.min(100,Math.round(done/total*100)));
+  let label;
+  if(T.vidOn&&!T.vidDone)label=T.vidText;
+  else if(T.imgActive||T.imgDone<i)label='ছবি আপলোড হচ্ছে ('+bn(Math.min(T.imgDone+1,i))+'/'+bn(i)+')';
+  else if(v&&!T.vidDone)label='ভিডিও প্রস্তুত হচ্ছে…';
+  else label='তথ্য সংরক্ষণ হচ্ছে…';
+  $('upLabel').textContent=label;
+  $('upPct').textContent=bn(p)+'%';
+  $('upFill').style.width=p+'%';
+}
+function showOv(){clearTimeout(hideT);$('upOv').classList.add('show');paint();}
+function hideOv(){clearTimeout(hideT);$('upOv').classList.remove('show');resetT();}
+function begin(imgs,vid){clearTimeout(hideT);T.ctx=true;T.imgs=imgs;T.vid=vid?1:0;resetT();}
+function end(){T.ctx=false;hideT=setTimeout(hideOv,450);}
+
+/* ছবি আপলোড (ImgBB): fetch এর বদলে XHR, যাতে শতকরা হার পাওয়া যায় */
+const _fetch=window.fetch.bind(window);
+window.fetch=function(url,opts){
+  if(typeof url==='string'&&url.indexOf('api.imgbb.com')>-1&&opts&&typeof FormData!=='undefined'&&opts.body instanceof FormData){
+    return new Promise((res,rej)=>{
+      if(!T.ctx)resetT();
+      T.imgActive=true;T.imgFrac=0;showOv();
+      const x=new XMLHttpRequest();
+      x.open('POST',url);
+      x.upload.onprogress=e=>{if(e.lengthComputable){T.imgFrac=Math.min(.95,e.loaded/e.total);showOv();}};
+      const fin=()=>{T.imgDone++;T.imgActive=false;T.imgFrac=0;paint();if(!T.ctx)hideT=setTimeout(hideOv,700);};
+      x.onload=()=>{fin();res(new Response(x.responseText,{status:x.status}));};
+      x.onerror=()=>{fin();rej(new TypeError('Network error'));};
+      x.send(opts.body);
+    });
+  }
+  return _fetch(url,opts);
+};
+
+/* ভিডিও (কমপ্রেস + Cloudinary আপলোড): আগের স্ট্যাটাস থেকে অগ্রগতি নেওয়া */
+const _sv=setVidStatus;
+setVidStatus=function(text,pct){
+  _sv.apply(this,arguments);
+  if(text===null||text===undefined){if(T.vidOn&&!T.vidDone){T.vidDone=true;paint();}return;}
+  if(!T.ctx||!T.vid)return;
+  T.vidOn=true;T.vidText=String(text);
+  const p=Math.max(0,Math.min(100,Number(pct)||0))/100;
+  if(/কমপ্রেস/.test(text)){T.vidComp=true;T.vidFrac=p*.5;}
+  else T.vidFrac=T.vidComp?.5+p*.5:p;
+  showOv();
+};
+window.addEventListener('beforeunload',e=>{if($('upOv').classList.contains('show')){e.preventDefault();e.returnValue='';}});
+
+/* =====================================================
+   ২. কপি করে নতুন বিজ্ঞাপন
+   ===================================================== */
+let dup=null;
+const dpNote=document.createElement('p');
+dpNote.id='dpNote';dpNote.className='hidden text-[11px] text-sky-700 font-semibold mt-1.5';
+dpNote.textContent='আগের বিজ্ঞাপনের ছবি কপি হয়েছে। "×" চাপলে বাদ যাবে। নতুন ছবি বাছলে এগুলোর বদলে নতুন ছবিগুলোই যাবে।';
+$('imagePreviewContainer').after(dpNote);
+
+function dupThumbs(){
+  const c=$('imagePreviewContainer');c.innerHTML='';
+  if(!dup||!dup.images.length){c.classList.add('hidden');dpNote.classList.add('hidden');return;}
+  c.classList.remove('hidden');dpNote.classList.remove('hidden');
+  dup.images.forEach((u,i)=>{
+    const t=document.createElement('div');
+    t.className='relative w-12 h-12 rounded-lg overflow-hidden border border-slate-200 shadow-sm';
+    const im=document.createElement('img');im.src=safeUrl(u);im.className='w-full h-full object-cover';
+    const b=document.createElement('button');b.type='button';b.className='ux-rm';b.innerHTML='&times;';b.setAttribute('aria-label','ছবিটি বাদ দিন');
+    b.onclick=ev=>{ev.stopPropagation();dup.images.splice(i,1);dupThumbs();};
+    t.appendChild(im);t.appendChild(b);c.appendChild(t);
+  });
+}
+function setVal(id,v){
+  const el=$(id);if(!el)return;
+  el.value=v==null?'':v;
+  el.dispatchEvent(new Event('input',{bubbles:false})); // শুধু ঘরের নিজস্ব সিঙ্ক চলবে, খসড়া সেভ হবে না
+}
+function dupListing(id){
+  const it=listings.find(l=>String(l.id)===String(id));
+  if(!it)return toast('বিজ্ঞাপনটি পাওয়া যায়নি।','err');
+  if(!currentUser){toast('আগে লগইন করুন।','warn');toggleAuthModal(true);return;}
+  if(!canManage(it))return toast('আপনার অনুমতি নেই!','err');
+
+  /* আগের অসম্পূর্ণ খসড়া যেন কপির সাথে না মেশে */
+  const DK='tolet_ad_draft';let stash=null;
+  try{stash=localStorage.getItem(DK);localStorage.removeItem(DK);}catch(_){}
+  openAdModalForCreate();
+  try{if(stash!==null)localStorage.setItem(DK,stash);}catch(_){}
+  if($('adModal').classList.contains('hidden'))return;
+
+  $('adModalTitle').textContent='কপি করে নতুন বিজ্ঞাপন';
+  setVal('formTitle',it.title);
+  setVal('formAddress',it.address);
+  setVal('formAvailable',it.available);
+  setVal('formPhone',it.phone);
+  setVal('formSpecs',it.specs);
+  setVal('formDesc',it.desc);
+  setVal('formVideoUrl',it.video);
+
+  const cb=$('formRentNegotiable');
+  cb.checked=!!it.rentNegotiable;toggleRentNegotiable();
+  cb.dispatchEvent(new Event('change',{bubbles:false}));
+  if(!it.rentNegotiable)setVal('formRent',it.rent);
+
+  const sel=$('formArea');
+  if([...sel.options].some(o=>o.value===it.area)){sel.value=it.area;sel.dispatchEvent(new Event('change',{bubbles:true}));}
+
+  const want=String(it.type||'').split(/\s*,\s*/).filter(Boolean),box=$('formTypeBox');
+  if(box){
+    [...box.querySelectorAll('label')].forEach(l=>{
+      const c=l.querySelector('input'),on=want.includes(l.textContent.trim());
+      if(c&&c.checked!==on){c.checked=on;c.dispatchEvent(new Event('change'));}
+    });
+    if(!box.querySelector('input:checked')){const f=box.querySelector('input');if(f){f.checked=true;f.dispatchEvent(new Event('change'));}}
+  }
+
+  dup={images:(it.images||[]).filter(u=>u&&u!==DEFAULT_IMG)};
+  dupThumbs();
+  toast('বিজ্ঞাপনের তথ্য কপি হয়েছে। "কবে থেকে খালি", ভাড়া ইত্যাদি দেখে প্রয়োজনে বদলে প্রকাশ করুন।','ok',5000);
+}
+window.duplicateListing=dupListing;
+
+/* ফর্ম বন্ধ/নতুন করে খুললে কপির অবস্থা মুছে যাবে */
+const _tam=toggleAdModal;
+toggleAdModal=function(){dup=null;dpNote.classList.add('hidden');return _tam.apply(this,arguments);};
+
+/* সেভ করার সময়: আপলোড অগ্রগতি + কপি করা ছবি বসানো */
+const _hf=handleFormSubmit;
+handleFormSubmit=async function(e){
+  const editId=$('editListingId').value;
+  const files=$('formImageFiles').files;
+  const vf=$('formVideoFile').files[0];
+  const useImgs=(dup&&!editId&&!files.length)?dup.images.slice():null;
+  const title=$('formTitle').value.trim(),t0=Date.now(),me=currentUser?currentUser.phone:'';
+  begin(files.length,!!vf);
+  let r;
+  try{r=await _hf.call(this,e);}finally{end();}
+  if(useImgs&&useImgs.length&&$('adModal').classList.contains('hidden')){
+    waitFor(()=>listings.find(l=>(l.createdAt||0)>=t0&&l.ownerPhone===me&&l.title===title),8000).then(async L=>{
+      if(!L)return;
+      const onlyDefault=!L.images||!L.images.length||(L.images.length===1&&L.images[0]===DEFAULT_IMG);
+      if(!onlyDefault)return;
+      try{
+        if(isFirebaseReady)await firebaseDb.collection('listings').doc(String(L.id)).update({images:useImgs});
+        else{L.images=useImgs;localStorage.setItem('gopalganj_tolet',JSON.stringify(listings));applyFilters();}
+      }catch(err){console.warn('Copy images notice:',err);}
+    });
+  }
+  return r;
+};
+
+/* পুরনো জিনিস বিক্রির ফর্মেও ছবি আপলোডের অগ্রগতি */
+const mf=$('um_mkForm');
+if(mf&&mf.onsubmit){
+  const _mo=mf.onsubmit;
+  mf.onsubmit=async function(e){
+    const th=$('um_m_thumbs');
+    const n=th?[...th.children].filter(t=>{const i=t.querySelector('img');return i&&/^blob:/.test(i.src);}).length:0;
+    begin(n,false);
+    try{return await _mo.call(mf,e);}finally{end();}
+  };
+}
+
+/* =====================================================
+   ৩. "কপি" বাটন বসানো: অ্যাডমিন/ড্যাশবোর্ড তালিকা + মূল পেজের কার্ড
+   ===================================================== */
+const _bar=buildAdRows;
+buildAdRows=function(c,items,closeFn){
+  _bar.apply(this,arguments);
+  [...c.children].forEach((row,i)=>{
+    const it=items[i];if(!it||!canManage(it))return;
+    const box=row.lastElementChild;if(!box)return;
+    const b=document.createElement('button');
+    b.type='button';b.title='কপি করে নতুন বিজ্ঞাপন';b.setAttribute('aria-label','কপি করে নতুন বিজ্ঞাপন');
+    b.className='px-2 py-1 bg-sky-50 hover:bg-sky-100 text-sky-700 text-xs rounded-lg';
+    b.innerHTML='<i class="fa-regular fa-copy"></i>';
+    b.onclick=()=>{if(closeFn)closeFn();dupListing(it.id);};
+    box.prepend(b);
+  });
+};
+
+const lc=$('listingsContainer');
+function addCardBtns(){
+  [...lc.children].forEach(card=>{
+    const act=card.querySelector('.vx-act');            // শুধু নিজের (বা অ্যাডমিনের) বিজ্ঞাপনে এই সারি থাকে
+    if(!act||act.querySelector('[data-dup]'))return;
+    act.insertAdjacentHTML('beforeend','<button type="button" data-dup="1" class="vx-btn" style="background:#f0f9ff;border-color:#bae6fd;color:#0369a1">⧉ কপি করে নতুন বিজ্ঞাপন</button>');
+  });
+}
+new MutationObserver(addCardBtns).observe(lc,{childList:true});
+addCardBtns();
+lc.addEventListener('click',e=>{
+  const b=e.target.closest('[data-dup]');if(!b)return;
+  e.stopPropagation();
+  const card=b.closest('[data-vid]');
+  if(card)dupListing(card.dataset.vid);
+});
+})();
+</script>
  </body>
 </html>
