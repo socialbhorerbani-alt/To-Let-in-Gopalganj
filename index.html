@@ -7834,5 +7834,22 @@ lc.addEventListener('click',e=>{
 });
 })();
 </script>
+<!-- ===== FIX: এলাকা সার্চ বক্সে আইকন ও লেখা মিলে যাওয়া ঠিক করা ===== -->
+<style>
+  #listingForm .uxs-search input,
+  #um_mkForm .uxm-sw input,
+  #um_rqForm .uxa-search input{
+    padding-left:2.6rem!important;
+    padding-right:2.4rem!important;
+    text-overflow:ellipsis;
+  }
+  #listingForm .uxs-search>i.s,
+  #um_mkForm .uxm-sw>i.s,
+  #um_rqForm .uxa-search>i.s{
+    left:1.5rem!important;
+    z-index:1;
+    pointer-events:none;
+  }
+</style>
  </body>
 </html>
