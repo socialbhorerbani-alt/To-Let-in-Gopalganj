@@ -7851,5 +7851,112 @@ lc.addEventListener('click',e=>{
     pointer-events:none;
   }
 </style>
+<!-- ===== OWNER'S OTHER LISTINGS ADD-ON: বিস্তারিত ভিউতে "এই মালিকের আরও বাসা" ===== -->
+<style>
+  .mo-item{display:flex;gap:10px;align-items:center;width:100%;text-align:left;padding:.55rem;border:1px solid #e2e8f0;border-radius:.85rem;background:#fff;cursor:pointer;font-family:inherit;transition:.12s}
+  .mo-item:hover{background:#f0fdf4;border-color:#a7f3d0}
+  .mo-item:active{transform:scale(.98)}
+  .mo-th{width:58px;height:58px;border-radius:.65rem;object-fit:cover;background:#e2e8f0;flex-shrink:0}
+  .mo-item.mo-off{opacity:.7}
+</style>
+
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const db=$('uxDetailBody');
+if(!db||typeof window.openListingDetail!=='function')return;
+const bn=n=>Number(n).toLocaleString('bn-BD');
+const splitT=v=>String(v||'').split(/\s*,\s*/).filter(Boolean);
+const WEEK=7*86400000,SHOW=3;
+let lastId='';
+
+/* কোন বিজ্ঞাপনের বিস্তারিত খোলা হয়েছে তা মনে রাখা */
+$('listingsContainer').addEventListener('click',e=>{
+  const c=e.target.closest('[data-uxc]');if(c)lastId=String(c.dataset.id);
+},true);
+const _open=window.openListingDetail;
+window.openListingDetail=function(id){lastId=String(id);return _open.apply(this,arguments);};
+
+const expired=l=>!!(l&&l.rented&&l.rentedAt&&Date.now()-l.rentedAt>=WEEK);
+const ownerKey=l=>l.ownerPhone?('o:'+l.ownerPhone):('p:'+normPhone(l.phone));
+
+/* এই মুহূর্তে খোলা বিজ্ঞাপনটি খুঁজে বের করা */
+function currentListing(){
+  const h2=db.querySelector('h2');if(!h2)return null;
+  const t=h2.textContent.trim();
+  const same=l=>String(l.title||'').trim()===t;
+  let it=listings.find(l=>String(l.id)===lastId&&same(l));
+  if(!it){
+    const hid=(/^#ad-(.+)$/.exec(location.hash)||[])[1];
+    if(hid)it=listings.find(l=>String(l.id)===String(hid)&&same(l));
+  }
+  if(!it){
+    let c=listings.filter(same);
+    if(c.length>1){
+      const tel=$('uxDetailBar')&&$('uxDetailBar').querySelector('a[href^="tel:"]');
+      if(tel){const p=normPhone(tel.getAttribute('href').slice(4));const f=c.filter(l=>normPhone(l.phone)===p);if(f.length)c=f;}
+    }
+    it=c[0];
+  }
+  return it||null;
+}
+
+function addOwnerSection(){
+  if(db.querySelector('#moSec'))return;
+  const it=currentListing();if(!it)return;
+  const key=ownerKey(it);
+  const others=listings
+    .filter(l=>String(l.id)!==String(it.id)&&ownerKey(l)===key&&!expired(l))
+    .sort((a,b)=>((!!a.rented)-(!!b.rented))||((b.createdAt||0)-(a.createdAt||0)));
+  if(!others.length)return;
+
+  const sec=document.createElement('div');
+  sec.id='moSec';sec.className='space-y-2';
+  sec.innerHTML='<h4 class="text-sm font-extrabold text-slate-800"><i class="fa-solid fa-house-user text-emerald-600 mr-1.5"></i> এই মালিকের আরও বাসা ('+bn(others.length)+')</h4><div class="space-y-2"></div>';
+  const list=sec.lastElementChild;
+  const rows=[];
+
+  others.forEach((o,i)=>{
+    const img=safeUrl((o.images||[])[0])||DEFAULT_IMG;
+    const b=document.createElement('button');
+    b.type='button';b.className='mo-item'+(o.rented?' mo-off':'')+(i>=SHOW?' hidden':'');
+    const th=document.createElement('img');th.className='mo-th';th.src=img;th.alt='';th.loading='lazy';
+    const info=document.createElement('div');info.className='min-w-0 flex-1';
+    const ttl=document.createElement('p');ttl.className='text-xs font-bold text-slate-800 truncate';ttl.textContent=o.title||'';
+    const sub=document.createElement('p');sub.className='text-[11px] text-slate-500 truncate';
+    sub.textContent=(o.area||'')+(splitT(o.type).length?' • '+splitT(o.type).join(', '):'');
+    const meta=document.createElement('div');meta.className='flex items-center gap-2 mt-0.5';
+    const rent=document.createElement('span');
+    rent.className='text-xs font-extrabold '+(o.rentNegotiable?'text-amber-600':'text-emerald-600');
+    rent.textContent=o.rentNegotiable?'আলোচনা সাপেক্ষে':'৳'+bn(o.rent)+'/মাস';
+    const st=document.createElement('span');
+    st.className='text-[10px] font-bold px-1.5 py-0.5 rounded-full '+(o.rented?'bg-rose-50 text-rose-700':'bg-emerald-50 text-emerald-700');
+    st.textContent=o.rented?'ভাড়া হয়ে গেছে':'খালি';
+    meta.appendChild(rent);meta.appendChild(st);
+    info.appendChild(ttl);info.appendChild(sub);info.appendChild(meta);
+    const go=document.createElement('i');go.className='fa-solid fa-chevron-right text-slate-300 text-xs';
+    b.appendChild(th);b.appendChild(info);b.appendChild(go);
+    b.onclick=()=>{lastId=String(o.id);window.openListingDetail(o.id);};
+    list.appendChild(b);rows.push(b);
+  });
+
+  if(others.length>SHOW){
+    const more=document.createElement('button');
+    more.type='button';more.className='w-full py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold active:scale-95';
+    let open=false;
+    const label=()=>{more.textContent=open?'কম দেখান':'আরও '+bn(others.length-SHOW)+'টি দেখুন';};
+    more.onclick=()=>{open=!open;rows.forEach((r,i)=>{if(i>=SHOW)r.classList.toggle('hidden',!open);});label();};
+    label();sec.appendChild(more);
+  }
+
+  /* ভেতরের কনটেন্ট-বক্সে বসানো (সতর্কতা বার্তার ঠিক আগে), যাতে অন্য অ্যাড-অন গুলো আবার না চলে */
+  const inner=db.lastElementChild;
+  if(inner)inner.insertBefore(sec,inner.lastElementChild);
+}
+
+new MutationObserver(addOwnerSection).observe(db,{childList:true});
+})();
+</script>
  </body>
 </html>
