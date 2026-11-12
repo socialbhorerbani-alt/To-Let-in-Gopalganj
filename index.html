@@ -7958,5 +7958,288 @@ function addOwnerSection(){
 new MutationObserver(addOwnerSection).observe(db,{childList:true});
 })();
 </script>
+<!-- ===== AREA COUNT ADD-ON: এলাকার ড্রপডাউনে "নবীনবাগ (১২)" ===== -->
+<script>
+(function(){
+'use strict';
+const sel=document.getElementById('areaFilter');
+if(!sel)return;
+const bn=n=>Number(n).toLocaleString('bn-BD');
+const WEEK=7*86400000;
+
+/* শুধু "খালি" বিজ্ঞাপন গোনা হবে (ভাড়া হয়ে যাওয়া বা মুছে যাওয়ার সময় পার হওয়াগুলো বাদ) */
+const counted=l=>!l.rented&&!(l.rented&&l.rentedAt&&Date.now()-l.rentedAt>=WEEK);
+
+function paintCounts(){
+  const cnt={};let total=0;
+  (listings||[]).forEach(l=>{
+    if(!counted(l))return;
+    total++;
+    cnt[l.area]=(cnt[l.area]||0)+1;
+  });
+  [...sel.options].forEach(o=>{
+    if(o.value==='all')o.textContent='সব এলাকা ('+bn(total)+')';
+    else o.textContent=o.value+' ('+bn(cnt[o.value]||0)+')';
+  });
+}
+
+/* এলাকার তালিকা নতুন করে সাজানো হলে */
+const _rld=refreshLocationDropdowns;
+refreshLocationDropdowns=function(){
+  const r=_rld.apply(this,arguments);
+  paintCounts();
+  return r;
+};
+
+/* বিজ্ঞাপন লোড/বদল/ফিল্টার হলেই সংখ্যা হালনাগাদ (লাইভ ডেটা আসলেও) */
+const _af=applyFilters;
+applyFilters=function(){
+  const r=_af.apply(this,arguments);
+  paintCounts();
+  return r;
+};
+
+paintCounts();
+})();
+</script>
+<!-- ===== CHAT QUICK REPLIES ADD-ON: নতুন চ্যাটে দ্রুত বাক্য ===== -->
+<style>
+  .qc-chip{display:inline-flex;align-items:center;padding:.5rem .85rem;border-radius:9999px;border:1px solid #a7f3d0;background:#ecfdf5;color:#047857;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;transition:.12s}
+  .qc-chip:hover{background:#d1fae5}
+  .qc-chip:active{transform:scale(.94)}
+  #qcBar{padding:.55rem .75rem .15rem;background:#fff;border-top:1px solid #e2e8f0}
+  #qcBar .qc-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:.4rem;scrollbar-width:none}
+  #qcBar .qc-row::-webkit-scrollbar{display:none}
+</style>
+
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const input=$('chatTextInput'),modal=$('chatModal'),box=$('chatMessagesContainer');
+if(!input||!modal||!box)return;
+
+/* এখানে বাক্য বদলাতে বা যোগ করতে পারবেন */
+const PHRASES=['বাসাটি কি খালি আছে?','ভাড়া কি কমানো যাবে?','কখন দেখতে আসতে পারি?'];
+/* true = চাপলেই সরাসরি পাঠিয়ে দেবে; false = শুধু লেখার ঘরে বসাবে, আপনি "পাঠান" চাপবেন */
+const AUTO_SEND=true;
+
+const bar=document.createElement('div');
+bar.id='qcBar';bar.className='hidden';
+bar.innerHTML='<p class="text-[10px] font-bold text-slate-400 mb-1.5">দ্রুত মেসেজ — চাপলেই পাঠানো হবে:</p><div class="qc-row"></div>';
+const row=bar.lastElementChild;
+PHRASES.forEach(t=>{
+  const b=document.createElement('button');
+  b.type='button';b.className='qc-chip';b.textContent=t;
+  b.onclick=()=>{
+    if(!currentUser||!currentChatKey)return;
+    input.value=t;
+    if(AUTO_SEND){
+      bar.classList.add('hidden');
+      sendTextMessage();
+      setTimeout(update,1800);      // পাঠানো ব্যর্থ হলে বাক্যগুলো আবার ফিরে আসবে
+    }else{
+      input.focus();
+    }
+  };
+  row.appendChild(b);
+});
+input.parentElement.before(bar);     // লেখার ঘরের ঠিক উপরে
+
+/* এই চ্যাটে আগে কোনো মেসেজ আছে কি না */
+function hasMsgs(){
+  if(!currentUser||!currentChatKey)return true;
+  return chats.some(m=>m.roomKey===currentChatKey&&(m.senderPhone===currentUser.phone||m.recipientPhone===currentUser.phone));
+}
+function update(){
+  const open=!modal.classList.contains('hidden');
+  bar.classList.toggle('hidden',!(open&&currentChatKey&&!hasMsgs()));
+}
+
+/* চ্যাট খুললে / মেসেজ আসলে বা গেলে / বন্ধ করলে হালনাগাদ */
+new MutationObserver(update).observe(box,{childList:true});
+new MutationObserver(update).observe(modal,{attributes:true,attributeFilter:['class']});
+update();
+})();
+</script>
+<!-- ===== CHAT MESSAGE STATUS ADD-ON: পাঠানো হচ্ছে / পাঠানো হয়েছে / পৌঁছেছে / দেখেছে (কত আগে) / পাঠানো যায়নি ===== -->
+<style>
+  .qs-line{display:flex;align-items:center;justify-content:flex-end;gap:4px;margin-top:2px;padding:0 4px;font-size:10px;font-weight:700;color:#94a3b8}
+  .qs-pend{color:#f59e0b}
+  .qs-deliv{color:#64748b}
+  .qs-seen{color:#0284c7}
+  .qf-btn{border:0;background:none;cursor:pointer;font-family:inherit;font-size:10px;font-weight:800;text-decoration:underline;padding:0 2px}
+</style>
+
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const modal=$('chatModal'),box=$('chatMessagesContainer');
+if(!modal||!box)return;
+const toast=(m,k,ms)=>(window.uxToast?window.uxToast(m,k,ms):alert(m));
+const bn=n=>Number(n).toLocaleString('bn-BD');
+const DAY=86400000;
+const me=()=>currentUser?currentUser.phone:'';
+
+const inflight=[];          // এখন পাঠানো চলছে এমন মেসেজ
+const failed=[];            // পাঠানো ব্যর্থ মেসেজ (আবার পাঠানোর জন্য)
+const delSet=new Set();     // "পৌঁছেছে" লেখা হয়ে গেছে
+const seenSet=new Set();    // "দেখেছে" লেখা হয়ে গেছে
+let mo=null;
+
+function ago(ts){
+  const s=Math.max(0,Math.floor((Date.now()-Number(ts))/1000));
+  if(s<60)return 'এইমাত্র';
+  const m=Math.floor(s/60);if(m<60)return bn(m)+' মিনিট আগে';
+  const h=Math.floor(m/60);if(h<24)return bn(h)+' ঘণ্টা আগে';
+  return bn(Math.floor(h/24))+' দিন আগে';
+}
+const isPending=m=>inflight.some(e=>m.senderPhone===me()&&e.room===m.roomKey&&Number(m.id)>=e.t0&&Number(m.id)<e.t0+3000);
+
+/* =====================================================
+   ১. পাঠানো: চলছে / সফল / ব্যর্থ ধরা
+   ===================================================== */
+const _pcm=postChatMessage;
+postChatMessage=async function(extra){
+  const ctx={
+    roomKey:currentChatKey,recipientPhone:activeChatRecipientPhone,
+    listingId:activeChatListing?activeChatListing.id:'',listingTitle:activeChatListing?activeChatListing.title:''
+  };
+  const full=Object.assign({},ctx,extra);
+  const e={t0:Date.now(),room:full.roomKey};
+  inflight.push(e);
+  setTimeout(decorate,60);
+  try{
+    await _pcm.call(this,full);
+    return true;
+  }catch(err){
+    console.warn('Message send failed:',err);
+    failed.push({fid:'f'+Date.now()+Math.floor(Math.random()*1000),extra:full});
+    toast('মেসেজ পাঠানো যায়নি। চ্যাটে "আবার পাঠান" চাপুন।','err',4000);
+    return false;     // আগের কোড যেন আলাদা করে ভুল না দেখায়; ব্যর্থ মেসেজ চ্যাটেই লাল হয়ে থাকবে
+  }finally{
+    const i=inflight.indexOf(e);if(i>-1)inflight.splice(i,1);
+    setTimeout(decorate,0);
+  }
+};
+
+async function retry(f){
+  try{
+    await _pcm.call(window,f.extra);
+    const i=failed.indexOf(f);if(i>-1)failed.splice(i,1);
+  }catch(err){
+    console.warn(err);toast('এখনো পাঠানো যায়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন।','err',3500);
+  }
+  decorate();
+}
+box.addEventListener('click',e=>{
+  const row=e.target.closest('[data-qf]');if(!row)return;
+  const f=failed.find(x=>x.fid===row.dataset.qf);if(!f)return;
+  if(e.target.closest('[data-qr]')){retry(f);}
+  else if(e.target.closest('[data-qd]')){failed.splice(failed.indexOf(f),1);decorate();}
+});
+
+/* =====================================================
+   ২. "পৌঁছেছে" ও "দেখেছে" চিহ্ন রেকর্ড করা (প্রাপকের দিক থেকে)
+   ===================================================== */
+function markDelivered(){
+  if(!isFirebaseReady||!currentUser)return;
+  const now=Date.now();
+  const todo=chats.filter(m=>m.recipientPhone===me()&&!m.deliveredAt&&!m.seenAt&&!delSet.has(m.id)&&now-Number(m.id)<30*DAY).slice(0,400);
+  if(!todo.length)return;
+  const b=firebaseDb.batch();
+  todo.forEach(m=>{delSet.add(m.id);m.deliveredAt=now;b.update(firebaseDb.collection('chats').doc(String(m.id)),{deliveredAt:now});});
+  b.commit().catch(err=>console.warn('Delivered mark notice:',err));
+}
+function markSeen(){
+  if(!isFirebaseReady||!currentUser||!currentChatKey||document.hidden||modal.classList.contains('hidden'))return;
+  const now=Date.now();
+  const todo=chats.filter(m=>m.roomKey===currentChatKey&&m.recipientPhone===me()&&!m.seenAt&&!seenSet.has(m.id)).slice(0,400);
+  if(!todo.length)return;
+  const b=firebaseDb.batch();
+  todo.forEach(m=>{
+    seenSet.add(m.id);
+    const d=m.deliveredAt||now;
+    m.seenAt=now;m.deliveredAt=d;
+    b.update(firebaseDb.collection('chats').doc(String(m.id)),{seenAt:now,deliveredAt:d});
+  });
+  b.commit().catch(err=>console.warn('Seen mark notice:',err));
+}
+
+/* =====================================================
+   ৩. চ্যাটে অবস্থা দেখানো
+   ===================================================== */
+function failedBubble(f){
+  const x=f.extra,d=document.createElement('div');
+  d.dataset.qf=f.fid;d.className='flex flex-col items-end';
+  d.innerHTML='<div class="p-2.5 text-xs sm:text-sm rounded-2xl rounded-tr-none max-w-[85%] bg-rose-50 border border-rose-200 text-rose-800"><p class="leading-relaxed break-words"></p></div>'+
+    '<div class="qs-line" style="color:#e11d48"><i class="fa-solid fa-circle-exclamation"></i><span>পাঠানো যায়নি</span>'+
+    '<button type="button" data-qr class="qf-btn" style="color:#be123c">আবার পাঠান</button>'+
+    '<button type="button" data-qd class="qf-btn" style="color:#64748b">মুছুন</button></div>';
+  d.firstChild.firstChild.textContent=x.type==='voice'?'🎙️ ভয়েস মেসেজ ('+(x.duration||'')+')':String(x.text||'');
+  return d;
+}
+function statusHtml(m,isLastSeen){
+  if(!isFirebaseReady)return {c:'',h:'<i class="fa-solid fa-check"></i> পাঠানো হয়েছে'};
+  if(isPending(m))return {c:'qs-pend',h:'<i class="fa-regular fa-clock"></i> পাঠানো হচ্ছে…'+(navigator.onLine===false?' (ইন্টারনেট এলে যাবে)':'')};
+  if(m.seenAt)return {c:'qs-seen',h:'<i class="fa-solid fa-check-double"></i> দেখেছে'+(isLastSeen?' • '+ago(m.seenAt):''),t:'দেখেছেন: '+new Date(Number(m.seenAt)).toLocaleString('bn-BD')};
+  if(m.deliveredAt)return {c:'qs-deliv',h:'<i class="fa-solid fa-check-double"></i> পৌঁছেছে',t:'পৌঁছেছে: '+new Date(Number(m.deliveredAt)).toLocaleString('bn-BD')};
+  return {c:'',h:'<i class="fa-solid fa-check"></i> পাঠানো হয়েছে'};
+}
+function decorate(){
+  if(modal.classList.contains('hidden')||!currentUser||!currentChatKey)return;
+  const rm=chats.filter(m=>m.roomKey===currentChatKey&&(m.senderPhone===me()||m.recipientPhone===me()));
+
+  /* ব্যর্থ মেসেজের লাল বাবল */
+  const wanted=failed.filter(f=>f.extra.roomKey===currentChatKey);
+  const have=[...box.querySelectorAll('[data-qf]')].map(n=>n.dataset.qf).join(',');
+  if(have!==wanted.map(f=>f.fid).join(',')){
+    box.querySelectorAll('[data-qf]').forEach(n=>n.remove());
+    wanted.forEach(f=>box.appendChild(failedBubble(f)));
+    box.scrollTop=box.scrollHeight;
+  }
+
+  /* নিজের মেসেজের নিচে অবস্থা */
+  const kids=[...box.children].filter(c=>!c.dataset.qf);
+  if(kids.length===rm.length){
+    let lastSeen=-1;
+    rm.forEach((m,i)=>{if(m.senderPhone===me()&&m.seenAt)lastSeen=i;});
+    rm.forEach((m,i)=>{
+      if(m.senderPhone!==me())return;
+      const el=kids[i];if(!el)return;
+      let s=el.querySelector('[data-qs]');
+      if(!s){s=document.createElement('div');s.dataset.qs='1';el.appendChild(s);}
+      const st=statusHtml(m,i===lastSeen);
+      s.className='qs-line '+st.c;
+      s.innerHTML=st.h;
+      if(st.t)s.title=st.t;else s.removeAttribute('title');
+    });
+  }
+  if(mo)mo.takeRecords();   // নিজের বদলানো জিনিসে আবার নিজেকে না ডাকা
+}
+
+/* চ্যাট আবার আঁকা হলে / নতুন মেসেজ এলে */
+mo=new MutationObserver(()=>{decorate();markSeen();});
+mo.observe(box,{childList:true});
+
+/* ডেটা (chats) আপডেট হলেই (আগের ব্যাজ-আপডেট ফাংশন প্রতিবার চলে) */
+const _uub=updateUnreadBadge;
+updateUnreadBadge=function(){
+  const r=_uub.apply(this,arguments);
+  try{markDelivered();decorate();markSeen();}catch(err){console.warn(err);}
+  return r;
+};
+
+/* ট্যাবে ফিরলে "দেখেছে" ধরা, আর "কত আগে" লেখা তাজা রাখা */
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){markSeen();decorate();}});
+window.addEventListener('focus',()=>{markSeen();decorate();});
+setInterval(()=>{if(!modal.classList.contains('hidden'))decorate();},30000);
+window.addEventListener('online',decorate);
+window.addEventListener('offline',decorate);
+
+markDelivered();
+})();
+</script>
  </body>
 </html>
