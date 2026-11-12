@@ -7455,5 +7455,145 @@ const pb=document.querySelector('footer > div:last-child > div > a[onclick="open
 if(pb)pb.insertAdjacentHTML('beforebegin','<a href="javascript:void(0)" onclick="openAboutUs()" class="hover:text-emerald-400 underline">আমাদের সম্পর্কে</a><span class="text-slate-600">•</span>');
 })();
 </script>
+<!-- ===== CHAT NOTIFICATION ADD-ON: ট্যাব টাইটেলে মেসেজ সংখ্যা + ব্রাউজার/ফোন পুশ নোটিফিকেশন ===== -->
+<style>
+  #ntBanner{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(5.6rem + env(safe-area-inset-bottom,0px));z-index:46;width:min(94vw,440px);display:none;align-items:center;gap:10px;padding:.7rem .8rem;border-radius:1rem;background:#0f172a;color:#fff;box-shadow:0 10px 30px rgba(2,6,23,.4);font-size:12px;line-height:1.5}
+  #ntBanner.show{display:flex}
+  #ntBanner .ic{width:36px;height:36px;border-radius:10px;background:#059669;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px}
+  #ntBanner button{border:0;cursor:pointer;font-family:inherit;font-weight:800;font-size:11px;border-radius:.6rem;padding:.45rem .7rem}
+  #ntYes{background:#10b981;color:#fff}
+  #ntNo{background:transparent;color:#94a3b8}
+  @media(min-width:640px){#ntBanner{bottom:20px}}
+</style>
+
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const bnN=n=>Number(n).toLocaleString('bn-BD');
+const BASE=document.title;
+const LS_DISMISS='tolet_notif_dismiss';
+const supported='Notification' in window;
+
+/* =====================================================
+   ১. ট্যাব টাইটেলে অপঠিত মেসেজ সংখ্যা (+ ট্যাব লুকানো থাকলে ব্লিংক)
+   ===================================================== */
+let blink=null,flip=false;
+function unreadCount(){
+  if(!currentUser)return 0;
+  const seen=Number(localStorage.getItem('tolet_seen_'+currentUser.phone)||0);
+  return chats.filter(m=>m.recipientPhone===currentUser.phone&&Number(m.id)>seen&&m.roomKey!==currentChatKey).length;
+}
+function paintTitle(){
+  clearInterval(blink);blink=null;
+  const n=unreadCount();
+  if(!n){document.title=BASE;return;}
+  const t='('+bnN(n)+') নতুন মেসেজ';
+  if(document.hidden){
+    document.title='💬 '+t;
+    blink=setInterval(()=>{flip=!flip;document.title=flip?BASE:'💬 '+t;},1500);
+  }else document.title=t+' | '+BASE;
+}
+/* আগের ইনবক্স-ব্যাজ আপডেটের সাথে টাইটেলও আপডেট হবে */
+const _uub=updateUnreadBadge;
+updateUnreadBadge=function(){_uub.apply(this,arguments);paintTitle();};
+document.addEventListener('visibilitychange',paintTitle);
+window.addEventListener('focus',paintTitle);
+
+/* =====================================================
+   ২. পুশ নোটিফিকেশন দেখানো
+   ===================================================== */
+function msgBody(m){
+  if(m.type==='voice')return '🎙️ ভয়েস মেসেজ পাঠিয়েছেন';
+  const t=String(m.text||'');
+  return t.length>90?t.slice(0,90)+'…':t;
+}
+function openFromNotif(m){
+  try{
+    const pn=(users.find(u=>u.phone===m.senderPhone)||{}).name||m.senderName||m.senderPhone;
+    openDirectChat(m.roomKey,pn,m.listingTitle||'',m.senderPhone,m.listingId);
+  }catch(_){openInboxModal();}
+}
+async function showPush(m){
+  if(!supported||Notification.permission!=='granted')return;
+  const title=(m.senderName||'নতুন মেসেজ')+(m.listingTitle?' • '+m.listingTitle:'');
+  const opts={body:msgBody(m),icon:'Website Logo.png',badge:'Website Logo.png',tag:String(m.roomKey),renotify:true,
+    data:{roomKey:m.roomKey,listingId:m.listingId||'',listingTitle:m.listingTitle||'',senderPhone:m.senderPhone,senderName:m.senderName||''}};
+  /* কম্পিউটার: সরাসরি Notification (ক্লিক করলে সেই চ্যাট খুলবে) */
+  try{
+    const n=new Notification(title,opts);
+    n.onclick=()=>{window.focus();openFromNotif(m);n.close();};
+    return;
+  }catch(_){}
+  /* অ্যান্ড্রয়েড Chrome / PWA: service worker দিয়ে */
+  try{
+    const reg=await navigator.serviceWorker.getRegistration();
+    if(reg&&reg.showNotification)reg.showNotification(title,opts);
+  }catch(_){}
+}
+
+/* =====================================================
+   ৩. নতুন মেসেজ ধরা (Firestore লাইভ)
+   ===================================================== */
+if(isFirebaseReady){
+  let first=true;
+  firebaseDb.collection('chats').onSnapshot(snap=>{
+    if(first){first=false;return;}            // পুরনো মেসেজ নিয়ে নোটিফিকেশন নয়
+    snap.docChanges().forEach(ch=>{
+      if(ch.type!=='added')return;
+      const m=ch.doc.data();
+      if(!currentUser||m.recipientPhone!==currentUser.phone)return;   // আমার জন্য নয়
+      if(m.senderPhone===currentUser.phone)return;
+      if(Date.now()-Number(m.id)>120000)return;                        // ২ মিনিটের বেশি পুরনো নয়
+      const viewing=!document.hidden&&currentChatKey===m.roomKey;      // ওই চ্যাট এখনই দেখছেন
+      if(viewing)return;
+      if(document.hidden)showPush(m);
+      else if(window.uxToast)uxToast('💬 '+(m.senderName||'নতুন মেসেজ')+': '+msgBody(m),'info',4500);
+    });
+    setTimeout(paintTitle,150);
+  },err=>console.warn('Chat notify notice:',err));
+}
+
+/* =====================================================
+   ৪. নোটিফিকেশন চালু করার অনুরোধ (লগইনের পর একটি ছোট বার্তা)
+   ===================================================== */
+document.body.insertAdjacentHTML('beforeend',
+ '<div id="ntBanner" role="dialog" aria-label="নোটিফিকেশন চালু করুন">'+
+  '<span class="ic"><i class="fa-solid fa-bell"></i></span>'+
+  '<span class="flex-1">নতুন চ্যাট মেসেজ এলে সাথে সাথে জানতে নোটিফিকেশন চালু করুন।</span>'+
+  '<button type="button" id="ntYes">চালু করুন</button><button type="button" id="ntNo">পরে</button>'+
+ '</div>');
+const banner=$('ntBanner');
+function hideBanner(){banner.classList.remove('show');}
+function maybeAsk(){
+  if(!supported||!currentUser||Notification.permission!=='default')return;
+  const t=Number(localStorage.getItem(LS_DISMISS)||0);
+  if(t&&Date.now()-t<7*86400000)return;                 // "পরে" চাপলে ৭ দিন আর দেখাবে না
+  banner.classList.add('show');
+}
+$('ntNo').onclick=()=>{localStorage.setItem(LS_DISMISS,String(Date.now()));hideBanner();};
+$('ntYes').onclick=async()=>{
+  hideBanner();
+  try{
+    const r=await Notification.requestPermission();
+    if(r==='granted'){
+      if(window.uxToast)uxToast('নোটিফিকেশন চালু হয়েছে। নতুন মেসেজ এলে জানানো হবে।','ok',3500);
+      try{new Notification('টু-লেট গোপালগঞ্জ',{body:'নোটিফিকেশন সফলভাবে চালু হয়েছে ✅',icon:'Website Logo.png'});}catch(_){}
+    }else if(window.uxToast)uxToast('নোটিফিকেশন বন্ধ আছে। ব্রাউজারের সাইট সেটিংস থেকে চালু করতে পারবেন।','warn',5000);
+  }catch(_){}
+};
+/* লগইন করলে/পেজ খুললে কিছুক্ষণ পর একবার জিজ্ঞেস করবে */
+const _ua=updateAuthUI;
+let asked=false;
+updateAuthUI=function(){
+  _ua.apply(this,arguments);
+  paintTitle();
+  if(currentUser&&!asked){asked=true;setTimeout(maybeAsk,6000);}
+  if(!currentUser){hideBanner();asked=false;}
+};
+if(currentUser){asked=true;setTimeout(maybeAsk,6000);}
+paintTitle();
+})();
+</script>
  </body>
 </html>
