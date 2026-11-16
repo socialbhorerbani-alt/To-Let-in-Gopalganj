@@ -8,6 +8,10 @@
 <!-- অ্যাপল ডিভাইসের জন্য (ঐচ্ছিক কিন্তু ভালো) -->
 <link rel="apple-touch-icon" href="Website Logo.png">
   <meta charset="UTF-8">
+  <script>
+    window.__dp=null;
+    window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.__dp=e;});
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#059669">
@@ -4238,8 +4242,8 @@ if(APP){
 }
 
 /* ---------- ওয়েবসাইট মোড: ডাউনলোড পপ-আপ + ফুটার বাটন ---------- */
-let dp=null;
-window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;});
+let dp=window.__dp||null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;window.__dp=e;});
 window.addEventListener('appinstalled',()=>{
   localStorage.setItem(K_INST,'1');dp=null;closePop();
 });
@@ -4294,6 +4298,7 @@ $('appPopLater').onclick=closePop;
 $('appPop').addEventListener('click',e=>{if(e.target.id==='appPop')closePop();});
 
 async function doInstall(){
+  if(!dp&&window.__dp)dp=window.__dp;
   if(dp){
     dp.prompt();
     try{const r=await dp.userChoice;if(r.outcome==='accepted')localStorage.setItem(K_INST,'1');}catch(_){}
