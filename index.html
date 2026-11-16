@@ -4300,19 +4300,31 @@ $('appPop').addEventListener('click',e=>{if(e.target.id==='appPop')closePop();})
 async function doInstall(){
   if(!dp&&window.__dp)dp=window.__dp;
   if(dp){
+    closePop();
     dp.prompt();
     try{const r=await dp.userChoice;if(r.outcome==='accepted')localStorage.setItem(K_INST,'1');}catch(_){}
-    dp=null;closePop();return;
+    dp=null;window.__dp=null;
+    return;
   }
   const h=$('appPopHelp');
-  h.innerHTML=isIOS
-    ? 'iPhone/iPad-এ: Safari ব্রাউজারের নিচের <b>Share (⬆️)</b> বাটনে চাপুন, তারপর <b>"Add to Home Screen"</b> বাছুন।'
-    : 'ব্রাউজারের উপরের <b>মেনু (⋮)</b> খুলে <b>"Install app"</b> অথবা <b>"Add to Home screen"</b> বাছুন। (Chrome ব্যবহার করলে ভালো কাজ করবে)';
+  const desktop=!/android|iphone|ipad|ipod/i.test(navigator.userAgent);
+  let msg;
+  if(isIOS){
+    msg='iPhone/iPad-এ: Safari ব্রাউজারের নিচের <b>Share (⬆️)</b> বাটনে চাপুন, তারপর <b>"Add to Home Screen"</b> বাছুন।';
+  }else if(desktop){
+    msg='কম্পিউটারে: অ্যাড্রেস বারের ডান পাশে <b>ইনস্টল আইকন (⊕)</b> চাপুন, অথবা মেনু (⋮) → <b>"Cast, save and share" → "Install page as app"</b> বাছুন।'+
+        '<br>আইকন না দেখা গেলে অ্যাপটি হয়তো আগেই ইনস্টল করা আছে (chrome://apps দেখুন), অথবা পেজ রিলোড করে আবার চেষ্টা করুন।';
+  }else{
+    msg='ব্রাউজারের উপরের <b>মেনু (⋮)</b> খুলে <b>"Install app"</b> অথবা <b>"Add to Home screen"</b> বাছুন।'+
+        '<br>অপশন না পেলে অ্যাপটি হয়তো আগেই ইনস্টল করা আছে। হোমস্ক্রিন বা অ্যাপ ড্রয়ারে দেখুন।';
+  }
+  h.innerHTML=msg+'<br><button type="button" onclick="location.reload()" style="margin-top:6px;font-weight:800;text-decoration:underline;color:#92400e">↻ পেজ রিলোড করে আবার চেষ্টা করুন</button>';
+  h.style.color='#92400e';
   h.classList.remove('hidden');
   const m=$('appPop');if(m.classList.contains('hidden')){m.classList.remove('hidden');m.classList.add('flex');}
 }
 $('appPopInstall').onclick=doInstall;
-window.installToLetApp=function(){openPop();doInstall();};
+window.installToLetApp=function(){openPop();};
 
 /* ফুটারে বাটন (ডান পাশে, হেল্প ও সাপোর্ট বক্সের নিচে, বড় আকারে) */
 const sup=$('footerDisplayPhone')?$('footerDisplayPhone').closest('.space-y-3'):null;
