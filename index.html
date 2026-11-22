@@ -9233,5 +9233,375 @@ updateAuthUI=function(){_ua.apply(this,arguments);setTimeout(renderAdmin,0);};
 setInterval(()=>{renderTop();renderSide();FEED.forEach(([p,id])=>placeFeed(p,id));},30*60000);
 })();
 </script>
+  <!-- ===== NOTIFICATION CENTER ADD-ON =====
+     সবার শেষের </script> এর পরে, </body> এর ঠিক আগে পেস্ট করুন। আগের কিছু বদলাতে হবে না।
+     কী কী জানাবে:
+       🎯 আপনার বাসার সাথে মেলে এমন নতুন "বাসা চাই" অনুরোধ
+       🏠 আপনার অনুরোধের সাথে মেলে এমন নতুন বাসা
+       ⭐ আপনার বিজ্ঞাপনে নতুন রিভিউ
+       ❤ সেভ করা বাসা ভাড়া হয়ে গেলে / ভাড়া কমলে
+       ✅ আপনার বিজ্ঞাপন "যাচাইকৃত" হলে
+       ⏳ "ভাড়া হয়েছে" মার্ক করা বিজ্ঞাপন ২৪ ঘণ্টার মধ্যে মুছে যাবে
+       💬 নতুন চ্যাট / ভয়েস মেসেজ (তালিকায়; পুশ আগের চ্যাট অ্যাড-অনই দেয়)
+       🛡️ অ্যাডমিনের জন্য: নতুন রিপোর্ট / বিজ্ঞাপনের অনুরোধ / অ্যাকাউন্ট ডিলিটের কারণ
+     ঘণ্টা (🔔) আইকনে সব নোটিফিকেশনের তালিকা + কোনটা চালু/বন্ধ তার সেটিংস থাকবে। -->
+<style>
+  .nt-item{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;padding:.7rem .75rem;border:1px solid #e2e8f0;border-radius:.9rem;background:#fff;cursor:pointer;font-family:inherit;transition:.12s}
+  .nt-item:hover{background:#f0fdf4}
+  .nt-item:active{transform:scale(.985)}
+  .nt-item.un{background:#f0fdf4;border-color:#a7f3d0}
+  .nt-ic{width:34px;height:34px;border-radius:10px;color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px}
+  .nt-dot{width:8px;height:8px;border-radius:9999px;background:#f43f5e;flex-shrink:0;margin-top:6px}
+  .nt-pill{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:#334155;padding:.45rem 0;cursor:pointer}
+</style>
+
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const bn=n=>Number(n).toLocaleString('bn-BD');
+const lsG=(k,f)=>{try{const v=JSON.parse(localStorage.getItem(k));return v==null?f:v;}catch(_){return f;}};
+const lsS=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch(_){}};
+const splitT=v=>String(v||'').split(/\s*,\s*/).filter(Boolean);
+const areasOf=r=>Array.isArray(r.areas)?r.areas.filter(Boolean):splitT(r.area);
+const me=()=>(typeof currentUser!=='undefined'&&currentUser)?currentUser.phone:'';
+const WEEK=7*86400000;
+const waitFor=(fn,ms)=>new Promise(res=>{const t0=Date.now();(function tick(){let v;try{v=fn();}catch(_){}if(v)return res(v);if(Date.now()-t0>ms)return res(null);setTimeout(tick,300);})();});
+
+const KIND={
+  match:{ic:'fa-bullseye',c:'#059669'},
+  review:{ic:'fa-star',c:'#f59e0b'},
+  fav:{ic:'fa-heart',c:'#e11d48'},
+  own:{ic:'fa-circle-info',c:'#0284c7'},
+  admin:{ic:'fa-shield-halved',c:'#7c3aed'},
+  chat:{ic:'fa-comment-dots',c:'#0d9488'}
+};
+const PREF_LABELS=[
+  ['match','🎯 বাসা / অনুরোধ মিলে গেলে'],
+  ['review','⭐ আমার বিজ্ঞাপনে নতুন রিভিউ'],
+  ['fav','❤ সেভ করা বাসার আপডেট (ভাড়া হয়ে গেলে, ভাড়া কমলে)'],
+  ['own','ℹ️ আমার বিজ্ঞাপনের খবর (যাচাইকৃত, মুছে যাওয়ার আগে সতর্কতা)'],
+  ['admin','🛡️ অ্যাডমিন: নতুন রিপোর্ট / বিজ্ঞাপনের অনুরোধ']
+];
+const prefs=()=>Object.assign({match:true,review:true,fav:true,own:true,admin:true},lsG('tolet_nt_prefs',{}));
+
+const st={ph:'',since:0,done:new Set(),log:[],reqMine:[],reqNew:[],prev:null,queue:[],u:[],ft:null,sc:null};
+
+/* =====================================================
+   ১. মিলের হিসাব (আগের সাজেশন অ্যাড-অনের মতোই)
+   ===================================================== */
+function score(R,L){
+  const ar=areasOf(R),rt=splitT(R.type),lt=splitT(L.type);
+  const aOK=!ar.length||ar.includes(L.area);
+  const tOK=!rt.length||rt.some(t=>lt.includes(t));
+  const bOK=!R.budget||L.rentNegotiable||Number(L.rent)<=Number(R.budget);
+  if(!(aOK&&tOK&&bOK))return 0;
+  return 1+(ar.length?2:0)+(rt.length?1:0);
+}
+const short=(s,n)=>{s=String(s||'');return s.length>n?s.slice(0,n)+'…':s;};
+const rentTxt=l=>l.rentNegotiable?'ভাড়া আলোচনা সাপেক্ষে':'৳'+bn(l.rent)+'/মাস';
+
+/* =====================================================
+   ২. ইভেন্ট ধরা (scan): নতুন কিছু পেলে queue-তে রাখে
+   ===================================================== */
+function enqueue(c){
+  if(st.done.has(c.key))return;
+  st.done.add(c.key);
+  st.queue.push(c);
+  clearTimeout(st.ft);st.ft=setTimeout(flush,1300);
+}
+function sched(){clearTimeout(st.sc);st.sc=setTimeout(scan,500);}
+
+function scan(){
+  const ph=me();if(!ph||ph!==st.ph)return;
+  const S=st.since,now=Date.now();
+  const ready=Array.isArray(listings)&&listings.length>0;
+  const myL=ready?listings.filter(l=>l.ownerPhone===ph):[];
+  const myOpen=myL.filter(l=>!l.rented);
+  const myReqs=st.reqMine.filter(r=>r.status!=='done');
+
+  /* ক) আমার বাসার সাথে মেলে এমন নতুন "বাসা চাই" অনুরোধ */
+  if(myOpen.length){
+    st.reqNew.forEach(r=>{
+      if(r.status==='done'||r.ownerPhone===ph)return;
+      let best=null;myOpen.forEach(L=>{const s=score(r,L);if(s>0&&(!best||s>best.s))best={L,s};});
+      if(!best)return;
+      enqueue({key:'m1:'+r.id,kind:'match',group:'m1',
+        title:'🎯 আপনার বাসার জন্য ভাড়াটিয়া পাওয়া গেছে',
+        body:r.name+' • '+(areasOf(r).join(', ')||'যেকোনো এলাকা')+' • বাজেট '+(r.budget?'৳'+bn(r.budget)+' পর্যন্ত':'আলোচনা সাপেক্ষে'),
+        action:'reqs',sum:n=>'🎯 আপনার বাসার সাথে মেলে এমন '+bn(n)+'টি নতুন অনুরোধ',sumBody:'দেখতে চাপুন'});
+    });
+  }
+
+  /* খ) আমার অনুরোধের সাথে মেলে এমন নতুন বাসা */
+  if(ready&&myReqs.length){
+    listings.forEach(l=>{
+      if(l.ownerPhone===ph||l.rented||!(Number(l.createdAt)>S))return;
+      myReqs.forEach(r=>{
+        if(!score(r,l))return;
+        enqueue({key:'m2:'+r.id+':'+l.id,kind:'match',group:'m2',
+          title:'🏠 আপনার চাহিদার মতো বাসা এসেছে',
+          body:short(l.title,50)+' • '+l.area+' • '+rentTxt(l),
+          action:'listing:'+l.id,sum:n=>'🏠 আপনার চাহিদার সাথে মেলে এমন '+bn(n)+'টি নতুন বাসা',sumBody:'বাসার তালিকায় দেখুন',sumAction:'home'});
+      });
+    });
+  }
+
+  if(ready){
+    /* গ) আমার বিজ্ঞাপনে নতুন রিভিউ, যাচাই, মুছে যাওয়ার সতর্কতা */
+    myL.forEach(l=>{
+      (l.reviews||[]).forEach(rv=>{
+        if(!(Number(rv.id)>S)||rv.userPhone===ph)return;
+        enqueue({key:'rv:'+rv.id,kind:'review',group:'rv',
+          title:'⭐ '+(Number(rv.rating)||5)+' স্টার রিভিউ পেয়েছেন',
+          body:short(l.title,36)+': '+short(rv.comment,60),
+          action:'listing:'+l.id,sum:n=>'⭐ আপনার বিজ্ঞাপনে '+bn(n)+'টি নতুন রিভিউ',sumBody:'দেখতে চাপুন'});
+      });
+      if(l.verified&&Number(l.verifiedAt)>S)
+        enqueue({key:'vf:'+l.id,kind:'own',group:'vf',title:'✅ আপনার বিজ্ঞাপন যাচাইকৃত হয়েছে',body:short(l.title,60),action:'listing:'+l.id,sum:n=>'✅ '+bn(n)+'টি বিজ্ঞাপন যাচাইকৃত হয়েছে'});
+      if(l.rented&&l.rentedAt){
+        const left=Number(l.rentedAt)+WEEK-now;
+        if(left>0&&left<=86400000)
+          enqueue({key:'rm:'+l.id,kind:'own',group:'rm',title:'⏳ বিজ্ঞাপনটি ২৪ ঘণ্টার মধ্যে মুছে যাবে',body:short(l.title,60)+' — আবার খালি হলে "আবার খালি করুন" চাপুন',action:'me',sum:n=>'⏳ '+bn(n)+'টি বিজ্ঞাপন শীঘ্রই মুছে যাবে'});
+      }
+    });
+
+    /* ঘ) সেভ করা বাসার আপডেট */
+    const fav=lsG('tolet_favs',[]).map(String);
+    if(fav.length){
+      listings.forEach(l=>{
+        if(!fav.includes(String(l.id))||l.ownerPhone===ph)return;
+        if(l.rented&&Number(l.rentedAt)>S)
+          enqueue({key:'fr:'+l.id,kind:'fav',group:'fr',title:'❤ সেভ করা বাসা ভাড়া হয়ে গেছে',body:short(l.title,60),action:'listing:'+l.id,sum:n=>'❤ সেভ করা '+bn(n)+'টি বাসা ভাড়া হয়ে গেছে'});
+        const p=st.prev&&st.prev[l.id];
+        if(p&&p.rent>0&&!l.rentNegotiable&&!l.rented&&Number(l.rent)>0&&Number(l.rent)<p.rent)
+          enqueue({key:'pd:'+l.id+':'+l.rent,kind:'fav',group:'pd',title:'📉 সেভ করা বাসার ভাড়া কমেছে',body:short(l.title,40)+' • ৳'+bn(p.rent)+' → ৳'+bn(l.rent),action:'listing:'+l.id,sum:n=>'📉 সেভ করা '+bn(n)+'টি বাসার ভাড়া কমেছে'});
+      });
+    }
+    st.prev={};listings.forEach(l=>{st.prev[l.id]={rent:l.rentNegotiable?0:(Number(l.rent)||0)};});
+  }
+
+  /* ঙ) নতুন চ্যাট / ভয়েস (শুধু তালিকায়; পুশ আগের চ্যাট অ্যাড-অন দেয়) */
+  if(typeof chats!=='undefined'&&Array.isArray(chats)){
+    chats.forEach(m=>{
+      if(m.recipientPhone!==ph||m.senderPhone===ph||!(Number(m.id)>S))return;
+      if(typeof currentChatKey!=='undefined'&&currentChatKey===m.roomKey)return;
+      const name=m.senderName||'কেউ';
+      enqueue({key:'ch:'+m.id,kind:'chat',group:'ch:'+m.roomKey,push:false,
+        title:'💬 '+name+(m.listingTitle?' • '+short(m.listingTitle,24):''),
+        body:m.type==='voice'?'🎙️ ভয়েস মেসেজ পাঠিয়েছেন':short(m.text,80),
+        action:'inbox',sum:n=>'💬 '+name+': '+bn(n)+'টি নতুন মেসেজ'});
+    });
+  }
+
+  /* চ) অ্যাডমিন: নতুন রিপোর্ট ও বিজ্ঞাপনের অনুরোধ */
+  if(typeof isAdmin==='function'&&isAdmin()&&typeof reports!=='undefined'&&Array.isArray(reports)){
+    reports.forEach(r=>{
+      if(r.status==='read'||!(Number(r.createdAt||r.id)>S))return;
+      const adv=r.type==='বিজ্ঞাপন অনুরোধ',del=r.type==='অ্যাকাউন্ট ডিলিট';
+      enqueue({key:'rp:'+r.id,kind:'admin',group:'rp'+(adv?'a':del?'d':'r'),
+        title:adv?'📢 নতুন বিজ্ঞাপনের অনুরোধ':del?'👋 একজন অ্যাকাউন্ট মুছেছেন':'🚩 নতুন রিপোর্ট / অভিযোগ',
+        body:(r.name?r.name+' • ':'')+short(String(r.message||'').replace(/\s+/g,' '),80),
+        action:'admin:'+(adv?'adhub':'reports'),
+        sum:n=>(adv?'📢 '+bn(n)+'টি নতুন বিজ্ঞাপনের অনুরোধ':'🚩 '+bn(n)+'টি নতুন রিপোর্ট'),sumBody:'অ্যাডমিন প্যানেলে দেখুন'});
+    });
+  }
+}
+
+/* একসাথে অনেক হলে (যেমন অনেকদিন পর ঢুকলে) একটি সারাংশ নোটিফিকেশন */
+function flush(){
+  const q=st.queue.splice(0);if(!q.length)return;
+  lsS('tolet_nt_done_'+st.ph,[...st.done].slice(-400));
+  const g={};q.forEach(c=>(g[c.group]=g[c.group]||[]).push(c));
+  Object.values(g).forEach(list=>{
+    if(list.length>2){
+      const f=list[0];
+      deliver({kind:f.kind,title:f.sum(list.length),body:f.sumBody||'',action:f.sumAction||f.action,push:f.push});
+    }else list.forEach(deliver);
+  });
+}
+
+/* =====================================================
+   ৩. পৌঁছে দেওয়া: তালিকায় যোগ + টোস্ট (পেজ খোলা) / সিস্টেম নোটিফিকেশন (লুকানো)
+   ===================================================== */
+function deliver(n){
+  if(n.kind!=='chat'&&prefs()[n.kind]===false)return;
+  const item={id:Date.now()+'_'+Math.random().toString(36).slice(2,6),kind:n.kind,title:n.title,body:n.body||'',action:n.action||'',ts:Date.now(),read:false};
+  st.log.unshift(item);st.log=st.log.slice(0,60);
+  lsS('tolet_nt_log_'+st.ph,st.log);
+  paintBadge();
+  if(!$('ntCenter').classList.contains('hidden'))renderList();
+  if(n.push===false)return;
+  if(document.hidden)sys(item);
+  else if(window.uxToast)uxToast(item.title+(item.body?'\n'+item.body:''),'info',6500);
+}
+async function sys(n){
+  if(!('Notification' in window)||Notification.permission!=='granted')return;
+  const o={body:n.body||'',icon:'Website Logo.png',badge:'Website Logo.png',tag:'tolet-'+n.id,data:{a:n.action}};
+  try{ /* কম্পিউটার: সরাসরি */
+    const x=new Notification(n.title,o);
+    x.onclick=()=>{window.focus();markRead(n.id);go(n.action);x.close();};
+    return;
+  }catch(_){}
+  try{ /* অ্যান্ড্রয়েড Chrome / অ্যাপ: service worker দিয়ে */
+    const reg=await navigator.serviceWorker.getRegistration();
+    if(reg&&reg.showNotification)reg.showNotification(n.title,o);
+  }catch(_){}
+}
+
+/* নোটিফিকেশনে চাপলে সংশ্লিষ্ট জায়গায় যাওয়া */
+function go(a){
+  closeC();
+  a=String(a||'');
+  const i=a.indexOf(':'),t=i<0?a:a.slice(0,i),x=i<0?'':a.slice(i+1);
+  if(t==='listing'){
+    waitFor(()=>listings.some(l=>String(l.id)===x),6000).then(ok=>{
+      if(ok&&typeof openListingDetail==='function')openListingDetail(x);
+      else if(window.uxToast)uxToast('বিজ্ঞাপনটি আর পাওয়া যাচ্ছে না।','warn');
+    });
+  }
+  else if(t==='reqs'&&typeof openRentRequests==='function')openRentRequests();
+  else if(t==='inbox')openInboxModal();
+  else if(t==='home'){resetFilters();window.scrollTo({top:0,behavior:'smooth'});}
+  else if(t==='me')openUserDashboard();
+  else if(t==='admin'&&typeof isAdmin==='function'&&isAdmin()){openAdminModal();setTimeout(()=>switchAdminTab(x||'reports'),150);}
+}
+/* সিস্টেম নোটিফিকেশন থেকে পেজ খুললে (?nt=... বা service worker বার্তা) */
+(function(){
+  const p=new URLSearchParams(location.search).get('nt');
+  if(p){
+    const clean=location.pathname+location.hash;history.replaceState(history.state,'',clean);
+    waitFor(()=>me()&&listings.length>0,8000).then(()=>go(p));
+  }
+  if('serviceWorker' in navigator)navigator.serviceWorker.addEventListener('message',e=>{
+    if(e.data&&e.data.type==='tolet-nt')go(e.data.a);
+  });
+})();
+
+/* =====================================================
+   ৪. বেল আইকন + নোটিফিকেশন সেন্টার
+   ===================================================== */
+const ib=document.querySelector('header button[onclick="openInboxModal()"]');
+if(ib)ib.insertAdjacentHTML('afterend',
+ '<button id="ntBell" type="button" class="hidden relative p-2 text-slate-600 hover:text-emerald-600 hover:bg-slate-100 rounded-lg transition" title="নোটিফিকেশন" aria-label="নোটিফিকেশন"><i class="fa-solid fa-bell text-base sm:text-lg"></i>'+
+ '<span id="ntBadge" class="hidden absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 bg-rose-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center border border-white"></span></button>');
+
+document.body.insertAdjacentHTML('beforeend',
+'<div id="ntCenter" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-end sm:items-center justify-center sm:p-4" style="z-index:125">'+
+ '<div class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden" style="max-height:92vh">'+
+  '<div class="px-4 py-3 bg-emerald-700 text-white flex items-center justify-between flex-shrink-0"><h3 class="text-sm sm:text-base font-extrabold"><i class="fa-solid fa-bell mr-1.5"></i> নোটিফিকেশন</h3>'+
+   '<button type="button" id="ntX" aria-label="বন্ধ করুন" class="w-9 h-9 rounded-full bg-white/15 hover:bg-white/30 text-2xl leading-none flex items-center justify-center">&times;</button></div>'+
+  '<div id="ntPerm" class="px-4 py-2.5 border-b border-slate-100 text-xs flex-shrink-0"></div>'+
+  '<div class="px-4 py-2 flex items-center justify-between border-b border-slate-100 flex-shrink-0"><button type="button" id="ntAll" class="text-[11px] font-bold text-emerald-700 underline">সব পড়া হয়েছে</button><button type="button" id="ntClear" class="text-[11px] font-bold text-rose-600 underline">তালিকা মুছুন</button></div>'+
+  '<div id="ntList" class="p-3 overflow-y-auto space-y-2 flex-1" style="-webkit-overflow-scrolling:touch"></div>'+
+  '<details class="border-t border-slate-100 flex-shrink-0"><summary class="px-4 py-3 text-xs font-bold text-slate-700 cursor-pointer"><i class="fa-solid fa-sliders mr-1.5 text-emerald-600"></i> কোন নোটিফিকেশন চান?</summary><div id="ntPrefs" class="px-4 pb-3"></div></details>'+
+ '</div></div>');
+
+const center=$('ntCenter');
+const openC=()=>{
+  if(!me()){if(window.uxToast)uxToast('নোটিফিকেশন দেখতে আগে লগইন করুন।','warn');toggleAuthModal(true);return;}
+  center.classList.remove('hidden');center.classList.add('flex');
+  renderList();paintPerm();paintPrefs();
+};
+function closeC(){center.classList.add('hidden');center.classList.remove('flex');}
+$('ntBell')&&($('ntBell').onclick=openC);
+$('ntX').onclick=closeC;
+center.addEventListener('click',e=>{if(e.target===center)closeC();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!center.classList.contains('hidden'))closeC();});
+window.openNotifCenter=openC;
+
+function paintBadge(){
+  const n=st.log.filter(x=>!x.read).length,b=$('ntBadge'),bell=$('ntBell');
+  if(bell)bell.classList.toggle('hidden',!me());
+  if(b){b.textContent=n>99?'99+':bn(n);b.classList.toggle('hidden',!n);}
+}
+function markRead(id){
+  const it=st.log.find(x=>x.id===id);if(it){it.read=true;lsS('tolet_nt_log_'+st.ph,st.log);paintBadge();}
+}
+function ago(ts){
+  const m=Math.floor(Math.max(0,Date.now()-ts)/60000);
+  if(m<1)return 'এইমাত্র';if(m<60)return bn(m)+' মিনিট আগে';
+  const h=Math.floor(m/60);if(h<24)return bn(h)+' ঘণ্টা আগে';
+  return bn(Math.floor(h/24))+' দিন আগে';
+}
+function renderList(){
+  const box=$('ntList');box.innerHTML='';
+  if(!st.log.length){box.innerHTML='<div class="text-center py-12 text-slate-400"><i class="fa-regular fa-bell-slash text-3xl mb-2 block"></i><p class="text-xs">এখনো কোনো নোটিফিকেশন নেই।<br>বাসা বা অনুরোধ মিললে, রিভিউ বা মেসেজ এলে এখানে দেখা যাবে।</p></div>';return;}
+  st.log.forEach(n=>{
+    const K=KIND[n.kind]||KIND.own;
+    const b=document.createElement('button');b.type='button';b.className='nt-item'+(n.read?'':' un');
+    b.innerHTML='<span class="nt-ic" style="background:'+K.c+'"><i class="fa-solid '+K.ic+'"></i></span>'+
+      '<span class="min-w-0 flex-1"><span class="block text-xs font-bold text-slate-800"></span><span class="block text-[11px] text-slate-600 mt-0.5 break-words"></span><span class="block text-[10px] text-slate-400 mt-1"></span></span>'+(n.read?'':'<span class="nt-dot"></span>');
+    const s=b.querySelectorAll('span.block');
+    s[0].textContent=n.title;s[1].textContent=n.body;s[2].textContent=ago(n.ts);
+    b.onclick=()=>{markRead(n.id);go(n.action);};
+    box.appendChild(b);
+  });
+}
+$('ntAll').onclick=()=>{st.log.forEach(x=>x.read=true);lsS('tolet_nt_log_'+st.ph,st.log);paintBadge();renderList();};
+$('ntClear').onclick=()=>{if(!st.log.length||!confirm('সব নোটিফিকেশন মুছে ফেলবেন?'))return;st.log=[];lsS('tolet_nt_log_'+st.ph,st.log);paintBadge();renderList();};
+
+function paintPrefs(){
+  const p=prefs(),box=$('ntPrefs'),adm=typeof isAdmin==='function'&&isAdmin();
+  box.innerHTML='';
+  PREF_LABELS.forEach(([k,t])=>{
+    if(k==='admin'&&!adm)return;
+    const l=document.createElement('label');l.className='nt-pill';
+    const c=document.createElement('input');c.type='checkbox';c.className='w-4 h-4 rounded';c.checked=p[k]!==false;
+    c.onchange=()=>{const x=prefs();x[k]=c.checked;lsS('tolet_nt_prefs',x);};
+    l.appendChild(c);l.append(t);box.appendChild(l);
+  });
+}
+function paintPerm(){
+  const box=$('ntPerm');
+  if(!('Notification' in window)){box.innerHTML='<p class="text-slate-500">এই ব্রাউজারে সিস্টেম নোটিফিকেশন চলে না। সাইট খোলা থাকলে এখানে ও পপ-আপে দেখাবে। (iPhone-এ Safari থেকে "Add to Home Screen" করে অ্যাপ হিসেবে খুললে চলে।)</p>';return;}
+  const p=Notification.permission;
+  if(p==='granted')box.innerHTML='<div class="flex items-center justify-between gap-2"><span class="text-emerald-700 font-bold"><i class="fa-solid fa-circle-check mr-1"></i> ফোন/কম্পিউটারে নোটিফিকেশন চালু আছে</span><button type="button" id="ntTest" class="px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-[11px] font-bold">টেস্ট করুন</button></div>';
+  else if(p==='denied')box.innerHTML='<p class="text-rose-600 font-semibold"><i class="fa-solid fa-ban mr-1"></i> নোটিফিকেশন বন্ধ করা আছে। ব্রাউজারের ঠিকানার পাশে 🔒 → সাইট সেটিংস থেকে "Notifications" চালু করুন।</p>';
+  else box.innerHTML='<div class="flex items-center justify-between gap-2"><span class="text-slate-600">অ্যাপ বন্ধ থাকলেও (ব্যাকগ্রাউন্ডে) জানতে চালু করুন</span><button type="button" id="ntOn" class="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-[11px] font-bold">চালু করুন</button></div>';
+  const on=$('ntOn');if(on)on.onclick=async()=>{try{await Notification.requestPermission();}catch(_){}paintPerm();};
+  const t=$('ntTest');if(t)t.onclick=()=>{
+    if(window.uxToast)uxToast('৫ সেকেন্ডের মধ্যে অন্য ট্যাব/অ্যাপে চলে যান, তখন সিস্টেম নোটিফিকেশন আসবে।','info',5000);
+    setTimeout(()=>deliver({kind:'own',title:'🔔 টেস্ট নোটিফিকেশন',body:'নোটিফিকেশন ঠিকঠাক কাজ করছে ✅',action:'home'}),5000);
+  };
+}
+
+/* =====================================================
+   ৫. শুরু / লগইন বদলালে রিসেট / লাইভ লিসেনার
+   ===================================================== */
+function init(){
+  const ph=me();
+  if(ph===st.ph){paintBadge();return;}
+  st.u.forEach(f=>{try{f();}catch(_){}});st.u=[];
+  st.ph=ph;st.reqMine=[];st.reqNew=[];st.prev=null;st.queue=[];
+  if(!ph){st.log=[];st.done=new Set();paintBadge();return;}
+  const sk='tolet_nt_since_'+ph;
+  let s=Number(localStorage.getItem(sk)||0);
+  if(!s){s=Date.now();localStorage.setItem(sk,String(s));}      // প্রথমবার: পুরনো কিছু নয়
+  st.since=Math.max(s,Date.now()-30*86400000);
+  st.done=new Set(lsG('tolet_nt_done_'+ph,[]));
+  st.log=lsG('tolet_nt_log_'+ph,[]);
+  paintBadge();
+  if(isFirebaseReady){
+    const c=firebaseDb.collection('rent_requests');
+    st.u.push(c.where('ownerPhone','==',ph).onSnapshot(sn=>{st.reqMine=sn.docs.map(d=>d.data());sched();},()=>{}));
+    st.u.push(c.where('createdAt','>',st.since).onSnapshot(sn=>{st.reqNew=sn.docs.map(d=>d.data()).filter(r=>r.ownerPhone!==ph);sched();},()=>{}));
+  }
+  sched();
+}
+function saveSince(){const ph=st.ph;if(ph)try{localStorage.setItem('tolet_nt_since_'+ph,String(Date.now()-60000));}catch(_){}}
+document.addEventListener('visibilitychange',()=>{if(document.hidden)saveSince();});
+window.addEventListener('pagehide',saveSince);
+setInterval(saveSince,60000);
+
+/* ডেটা বদলালেই (বাসা, রিপোর্ট, চ্যাট, লগইন) স্ক্যান */
+const _af=applyFilters;applyFilters=function(){const r=_af.apply(this,arguments);sched();return r;};
+const _rr=renderReportsList;renderReportsList=function(){const r=_rr.apply(this,arguments);sched();return r;};
+const _ub=updateUnreadBadge;updateUnreadBadge=function(){const r=_ub.apply(this,arguments);sched();return r;};
+const _ua=updateAuthUI;updateAuthUI=function(){const r=_ua.apply(this,arguments);init();return r;};
+init();
+setInterval(sched,10*60000);   // "২৪ ঘণ্টার মধ্যে মুছে যাবে" সতর্কতার জন্য
+})();
+</script>
  </body>
 </html>
