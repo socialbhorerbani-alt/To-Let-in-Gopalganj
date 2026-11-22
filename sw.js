@@ -18,8 +18,9 @@ self.addEventListener('fetch', e => {
 });
 self.addEventListener('notificationclick',e=>{
   e.notification.close();
+  const a=(e.notification.data||{}).a||'';
   e.waitUntil(clients.matchAll({type:'window',includeUncontrolled:true}).then(list=>{
-    for(const c of list){if('focus' in c)return c.focus();}
-    return clients.openWindow('./');
+    for(const c of list){ if('focus' in c){ c.postMessage({type:'tolet-nt',a}); return c.focus(); } }
+    return clients.openWindow('./?nt='+encodeURIComponent(a));
   }));
 });
