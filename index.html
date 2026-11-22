@@ -4895,8 +4895,38 @@ function copyText(t){
   if(navigator.clipboard&&navigator.clipboard.writeText)return navigator.clipboard.writeText(t);
   return new Promise(res=>{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');}catch(_){}ta.remove();res();});
 }
+async function makeOgImage(it){
+  const src=safeUrl((it.images||[])[0]);
+  if(!src||src===DEFAULT_IMG)return '';
+  const r=await fetch(src,{mode:'cors'});
+  if(!r.ok)throw new Error('img');
+  const bmp=await createImageBitmap(await r.blob());
+  const W=1200,H=630,c=document.createElement('canvas');
+  c.width=W;c.height=H;
+  const x=c.getContext('2d');
+  x.fillStyle='#fff';x.fillRect(0,0,W,H);
+  const k=Math.max(W/bmp.width,H/bmp.height),w=bmp.width*k,h=bmp.height*k;
+  x.drawImage(bmp,(W-w)/2,(H-h)/2,w,h);
+  let q=0.8,blob=null;
+  do{
+    blob=await new Promise(res=>c.toBlob(res,'image/jpeg',q));
+    q-=0.1;
+  }while(blob&&blob.size>250*1024&&q>0.2);
+  if(!blob||blob.size>300*1024)throw new Error('big');
+  return await uploadToImgBB(new File([blob],'og.jpg',{type:'image/jpeg'}));
+}
 async function shareAd(id){
   const it=listings.find(l=>String(l.id)===String(id));if(!it)return;
+  if(!it.ogImg&&isFirebaseReady){
+    toast('প্রিভিউ ছবি তৈরি হচ্ছে, একটু অপেক্ষা করুন…','info',3000);
+    try{
+      const og=await makeOgImage(it);
+      if(og){
+        await firebaseDb.collection('listings').doc(String(id)).update({ogImg:og});
+        it.ogImg=og;
+      }
+    }catch(e){console.warn('OG image notice:',e);}
+  }
   const base=location.protocol.indexOf('http')===0?location.origin+location.pathname:location.href.split('#')[0];
   const url=base+'?ad='+encodeURIComponent(id);
   const text=it.title+' — '+(it.rentNegotiable?'ভাড়া আলোচনা সাপেক্ষে':'৳'+bn(it.rent)+'/মাস')+' ('+it.area+')';
