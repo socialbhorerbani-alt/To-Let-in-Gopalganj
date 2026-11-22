@@ -16,11 +16,37 @@ self.addEventListener('fetch', e => {
       .catch(() => caches.match(r).then(m => m || caches.match('./')))
   );
 });
-self.addEventListener('notificationclick',e=>{
-  e.notification.close();
-  const a=(e.notification.data||{}).a||'';
-  e.waitUntil(clients.matchAll({type:'window',includeUncontrolled:true}).then(list=>{
-    for(const c of list){ if('focus' in c){ c.postMessage({type:'tolet-nt',a}); return c.focus(); } }
-    return clients.openWindow('./?nt='+encodeURIComponent(a));
-  }));
+/* ===== BACKGROUND PUSH (FCM) ===== */
+self.addEventListener('push', event => {
+  let p = {};
+  try { p = event.data ? event.data.json() : {}; } catch (_) {}
+  const d = p.data || {}, n = p.notification || {};
+  const title = d.title || n.title || 'টু-লেট গোপালগঞ্জ';
+  const opts = {
+    body: d.body || n.body || '',
+    icon: 'Website Logo.png',
+    badge: 'Website Logo.png',
+    tag: d.tag || undefined,
+    renotify: !!d.tag,
+    vibrate: [200, 100, 200],
+    data: { a: d.a || 'home' }
+  };
+  event.waitUntil((async () => {
+    const cl = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+    // সাইট চোখের সামনে খোলা থাকলে অ্যাপের ভেতরের টোস্টই যথেষ্ট
+    if (cl.some(c => c.visibilityState === 'visible')) return;
+    await self.registration.showNotification(title, opts);
+  })());
+});
+
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  const a = (event.notification.data && event.notification.data.a) || 'home';
+  event.waitUntil((async () => {
+    const cl = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const c of cl) {
+      if ('focus' in c) { await c.focus(); c.postMessage({ type: 'tolet-nt', a }); return; }
+    }
+    await clients.openWindow('./?nt=' + encodeURIComponent(a));
+  })());
 });
