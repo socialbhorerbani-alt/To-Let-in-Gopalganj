@@ -4731,25 +4731,6 @@ handleFormSubmit=async function(e){
 };
 
 /* =====================================================
-   ৪. ছবি আপলোড দ্রুত করা: বড় ছবি অটো ছোট (১৬০০px, JPEG)
-   ===================================================== */
-async function shrink(file){
-  if(!file||!/^image\//.test(file.type)||/gif|svg/.test(file.type)||file.size<500*1024)return file;
-  let bmp;
-  try{bmp=await createImageBitmap(file,{imageOrientation:'from-image'});}
-  catch(_){bmp=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=URL.createObjectURL(file);});}
-  const w0=bmp.width||bmp.naturalWidth,h0=bmp.height||bmp.naturalHeight;
-  const k=Math.min(1,1600/Math.max(w0,h0));
-  const c=document.createElement('canvas');c.width=Math.round(w0*k);c.height=Math.round(h0*k);
-  const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(bmp,0,0,c.width,c.height);
-  const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',0.82));
-  if(!blob||blob.size>=file.size)return file;
-  return new File([blob],(file.name||'photo').replace(/\.\w+$/,'')+'.jpg',{type:'image/jpeg'});
-}
-const _up=uploadToImgBB;
-uploadToImgBB=async function(f){let g=f;try{g=await shrink(f);}catch(_){}return _up(g);};
-
-/* =====================================================
    ৫. স্মার্ট ফিল্টার: ধরন-চিপ, সর্ট, ভাড়ার সীমা, সেভ করা, অ্যাকটিভ ফিল্টার
    ===================================================== */
 const F={max:0,fav:false,sort:'new'};
@@ -4901,18 +4882,22 @@ async function makeOgImage(it){
   const r=await fetch(src,{mode:'cors'});
   if(!r.ok)throw new Error('img');
   const bmp=await createImageBitmap(await r.blob());
-  const W=1200,H=630,c=document.createElement('canvas');
-  c.width=W;c.height=H;
-  const x=c.getContext('2d');
-  x.fillStyle='#fff';x.fillRect(0,0,W,H);
-  const k=Math.max(W/bmp.width,H/bmp.height),w=bmp.width*k,h=bmp.height*k;
-  x.drawImage(bmp,(W-w)/2,(H-h)/2,w,h);
-  let q=0.8,blob=null;
-  do{
-    blob=await new Promise(res=>c.toBlob(res,'image/jpeg',q));
-    q-=0.1;
-  }while(blob&&blob.size>250*1024&&q>0.2);
-  if(!blob||blob.size>300*1024)throw new Error('big');
+  const LIMIT=300*1024;               // শেয়ার প্রিভিউ সর্বোচ্চ ৩০০ KB
+  let W=1200,H=630,blob=null;
+  while(W>=400){
+    const c=document.createElement('canvas');c.width=W;c.height=H;
+    const x=c.getContext('2d');
+    x.fillStyle='#fff';x.fillRect(0,0,W,H);
+    const k=Math.max(W/bmp.width,H/bmp.height),w=bmp.width*k,h=bmp.height*k;
+    x.drawImage(bmp,(W-w)/2,(H-h)/2,w,h);
+    for(let q=0.85;q>=0.4;q-=0.1){
+      blob=await new Promise(res=>c.toBlob(res,'image/jpeg',q));
+      if(blob&&blob.size<=LIMIT)break;
+    }
+    if(blob&&blob.size<=LIMIT)break;
+    W=Math.round(W*0.8);H=Math.round(H*0.8);   // তবুও বড় হলে সাইজ কমিয়ে আবার চেষ্টা
+  }
+  if(!blob||blob.size>LIMIT)throw new Error('big');
   return await uploadToImgBB(new File([blob],'og.jpg',{type:'image/jpeg'}));
 }
 async function shareAd(id){
@@ -4928,7 +4913,7 @@ async function shareAd(id){
     }catch(e){console.warn('OG image notice:',e);}
   }
   const base=location.protocol.indexOf('http')===0?location.origin+location.pathname:location.href.split('#')[0];
-  const url=base+'?ad='+encodeURIComponent(id);
+  const url=base+'?ad='+encodeURIComponent(id)+'&s=1';
   const text=it.title+' — '+(it.rentNegotiable?'ভাড়া আলোচনা সাপেক্ষে':'৳'+bn(it.rent)+'/মাস')+' ('+it.area+')';
   if(navigator.share){
     try{await navigator.share({title:it.title,text,url});return;}
