@@ -9603,5 +9603,61 @@ init();
 setInterval(sched,10*60000);   // "২৪ ঘণ্টার মধ্যে মুছে যাবে" সতর্কতার জন্য
 })();
 </script>
+  <!-- ===== BACKGROUND PUSH (FCM) CLIENT ===== -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
+<script>
+(function(){
+'use strict';
+const VAPID_KEY='এখানে_ধাপ_১_এর_VAPID_KEY_বসান';
+if(typeof isFirebaseReady==='undefined'||!isFirebaseReady)return;
+if(!('serviceWorker' in navigator)||!('Notification' in window))return;
+if(!firebase.messaging||!firebase.messaging.isSupported())return;
+
+let busy=false,lastKey='';
+const timeout=(p,ms)=>Promise.race([p,new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),ms))]);
+
+async function setup(){
+  if(busy||!VAPID_KEY||VAPID_KEY.indexOf('এখানে')===0)return;
+  const ph=currentUser&&currentUser.phone;
+  if(!ph||Notification.permission!=='granted'){window.__fcmOn=false;return;}
+  busy=true;
+  try{
+    const reg=await timeout(navigator.serviceWorker.ready,8000);
+    const token=await firebase.messaging().getToken({vapidKey:VAPID_KEY,serviceWorkerRegistration:reg});
+    if(!token)return;
+    const key=ph+'|'+token;
+    if(key!==lastKey){
+      await firebaseDb.collection('push_tokens').doc(token).set({
+        token,phone:ph,ua:navigator.userAgent.slice(0,120),updatedAt:Date.now()
+      });
+      lastKey=key;
+      localStorage.setItem('tolet_fcm_token',token);
+    }
+    window.__fcmOn=true;
+  }catch(e){console.warn('Push setup notice:',e);}
+  finally{busy=false;}
+}
+
+/* লগইন হলে / পারমিশন দিলে / ট্যাবে ফিরলে টোকেন রেজিস্টার */
+const _ua=updateAuthUI;
+updateAuthUI=function(){const r=_ua.apply(this,arguments);setTimeout(setup,300);return r;};
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)setup();});
+document.addEventListener('click',e=>{if(e.target.closest('#ntYes,#ntOn'))setTimeout(setup,3000);},true);
+if(navigator.permissions&&navigator.permissions.query){
+  navigator.permissions.query({name:'notifications'}).then(p=>{p.onchange=setup;}).catch(()=>{});
+}
+setInterval(setup,10*60000);
+
+/* লগআউট হলে এই ডিভাইসে আর অন্যের নোটিফিকেশন যাবে না */
+const _lo=logout;
+logout=function(){
+  const t=localStorage.getItem('tolet_fcm_token');
+  if(t)firebaseDb.collection('push_tokens').doc(t).delete().catch(()=>{});
+  lastKey='';window.__fcmOn=false;
+  return _lo.apply(this,arguments);
+};
+setTimeout(setup,1500);
+})();
+</script>
  </body>
 </html>
