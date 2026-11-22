@@ -4826,7 +4826,7 @@ function skeleton(){
 }
 
 /* ডিপ-লিংক: #ad-<id> খুললে সরাসরি ওই বাসার বিস্তারিত */
-let pendingAd=(/^#ad-(.+)$/.exec(location.hash)||[])[1]||null;
+let pendingAd=(new URLSearchParams(location.search).get('ad')||(/^#ad-(.+)$/.exec(location.hash)||[])[1]||'').replace(/[^\w-]/g,'')||null;
 
 const rentAsc=i=>i.rentNegotiable?Infinity:(Number(i.rent)||0);
 const avgOf=i=>{const r=i.reviews||[];return r.length?r.reduce((a,x)=>a+Number(x.rating||5),0)/r.length:0;};
@@ -4898,7 +4898,7 @@ function copyText(t){
 async function shareAd(id){
   const it=listings.find(l=>String(l.id)===String(id));if(!it)return;
   const base=location.protocol.indexOf('http')===0?location.origin+location.pathname:location.href.split('#')[0];
-  const url=base+'#ad-'+id;
+  const url=base+'?ad='+encodeURIComponent(id);
   const text=it.title+' — '+(it.rentNegotiable?'ভাড়া আলোচনা সাপেক্ষে':'৳'+bn(it.rent)+'/মাস')+' ('+it.area+')';
   if(navigator.share){
     try{await navigator.share({title:it.title,text,url});return;}
