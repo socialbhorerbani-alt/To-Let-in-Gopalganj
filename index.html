@@ -7618,7 +7618,7 @@ if(isFirebaseReady){
       if(Date.now()-Number(m.id)>120000)return;                        // ২ মিনিটের বেশি পুরনো নয়
       const viewing=!document.hidden&&currentChatKey===m.roomKey;      // ওই চ্যাট এখনই দেখছেন
       if(viewing)return;
-      if(document.hidden)showPush(m);
+      if(document.hidden&&!window.__fcmOn)showPush(m);
       else if(window.uxToast)uxToast('💬 '+(m.senderName||'নতুন মেসেজ')+': '+msgBody(m),'info',4500);
     });
     setTimeout(paintTitle,150);
@@ -9432,7 +9432,7 @@ function deliver(n){
   paintBadge();
   if(!$('ntCenter').classList.contains('hidden'))renderList();
   if(n.push===false)return;
-  if(document.hidden)sys(item);
+  if(document.hidden&&!window.__fcmOn)sys(item);
   else if(window.uxToast)uxToast(item.title+(item.body?'\n'+item.body:''),'info',6500);
 }
 async function sys(n){
@@ -9608,6 +9608,62 @@ setInterval(sched,10*60000);   // "২৪ ঘণ্টার মধ্যে ম
 <script>
 (function(){
 'use strict';
+const VAPID_KEY='BOA0qyGH7TbfAKH3KBJg_SorcsyEGQaMUhi7tMaMdM3B5_YCN8ILGPjyYqXuOAyM9Noeg1WwQX2IogzfbLSqS54';
+if(typeof isFirebaseReady==='undefined'||!isFirebaseReady)return;
+if(!('serviceWorker' in navigator)||!('Notification' in window))return;
+if(!firebase.messaging||!firebase.messaging.isSupported())return;
+
+let busy=false,lastKey='';
+const timeout=(p,ms)=>Promise.race([p,new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),ms))]);
+
+async function setup(){
+  if(busy||!VAPID_KEY||VAPID_KEY.indexOf('এখানে')===0)return;
+  const ph=currentUser&&currentUser.phone;
+  if(!ph||Notification.permission!=='granted'){window.__fcmOn=false;return;}
+  busy=true;
+  try{
+    const reg=await timeout(navigator.serviceWorker.ready,8000);
+    const token=await firebase.messaging().getToken({vapidKey:VAPID_KEY,serviceWorkerRegistration:reg});
+    if(!token)return;
+    const key=ph+'|'+token;
+    if(key!==lastKey){
+      await firebaseDb.collection('push_tokens').doc(token).set({
+        token,phone:ph,ua:navigator.userAgent.slice(0,120),updatedAt:Date.now()
+      });
+      lastKey=key;
+      localStorage.setItem('tolet_fcm_token',token);
+    }
+    window.__fcmOn=true;
+  }catch(e){console.warn('Push setup notice:',e);}
+  finally{busy=false;}
+}
+
+/* লগইন হলে / পারমিশন দিলে / ট্যাবে ফিরলে টোকেন রেজিস্টার */
+const _ua=updateAuthUI;
+updateAuthUI=function(){const r=_ua.apply(this,arguments);setTimeout(setup,300);return r;};
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)setup();});
+document.addEventListener('click',e=>{if(e.target.closest('#ntYes,#ntOn'))setTimeout(setup,3000);},true);
+if(navigator.permissions&&navigator.permissions.query){
+  navigator.permissions.query({name:'notifications'}).then(p=>{p.onchange=setup;}).catch(()=>{});
+}
+setInterval(setup,10*60000);
+
+/* লগআউট হলে এই ডিভাইসে আর অন্যের নোটিফিকেশন যাবে না */
+const _lo=logout;
+logout=function(){
+  const t=localStorage.getItem('tolet_fcm_token');
+  if(t)firebaseDb.collection('push_tokens').doc(t).delete().catch(()=>{});
+  lastKey='';window.__fcmOn=false;
+  return _lo.apply(this,arguments);
+};
+setTimeout(setup,1500);
+})();
+</script>
+<!-- ===== BACKGROUND PUSH (FCM) CLIENT ===== -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
+<script>
+(function(){
+'use strict';
 const VAPID_KEY='এখানে_ধাপ_১_এর_VAPID_KEY_বসান';
 if(typeof isFirebaseReady==='undefined'||!isFirebaseReady)return;
 if(!('serviceWorker' in navigator)||!('Notification' in window))return;
@@ -9657,6 +9713,34 @@ logout=function(){
   return _lo.apply(this,arguments);
 };
 setTimeout(setup,1500);
+})();
+</script>
+<!-- ===== PUSH TRIGGER: কিছু ঘটলে Worker-কে জানানো ===== -->
+<script>
+(function(){
+'use strict';
+const WORKER='https://tolet-push.social-bhorerbani.workers.dev';
+if(typeof isFirebaseReady==='undefined'||!isFirebaseReady)return;
+const DR=firebase.firestore&&firebase.firestore.DocumentReference&&firebase.firestore.DocumentReference.prototype;
+if(!DR){console.warn('Push trigger: DocumentReference পাওয়া যায়নি');return;}
+
+function ping(ref,kind,data){
+  try{
+    const col=ref.parent.id,id=ref.id;
+    let ev=null;
+    if((col==='chats'||col==='rent_requests'||col==='reports')&&kind==='set')ev='new';
+    else if(col==='listings'){
+      if(kind==='set')ev='new';
+      else if(data&&typeof data==='object'&&'reviews' in data)ev='review';
+      else if(data&&typeof data==='object'&&data.verified===true)ev='verified';
+    }
+    if(!ev)return;
+    fetch(WORKER,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({c:col,id:id,ev:ev}),keepalive:true}).catch(()=>{});
+  }catch(_){}
+}
+const _set=DR.set,_upd=DR.update;
+DR.set=function(data){const p=_set.apply(this,arguments);Promise.resolve(p).then(()=>ping(this,'set',data)).catch(()=>{});return p;};
+DR.update=function(data){const p=_upd.apply(this,arguments);Promise.resolve(p).then(()=>ping(this,'update',data)).catch(()=>{});return p;};
 })();
 </script>
  </body>
