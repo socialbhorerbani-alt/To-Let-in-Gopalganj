@@ -9743,5 +9743,890 @@ DR.set=function(data){const p=_set.apply(this,arguments);Promise.resolve(p).then
 DR.update=function(data){const p=_upd.apply(this,arguments);Promise.resolve(p).then(()=>ping(this,'update',data)).catch(()=>{});return p;};
 })();
 </script>
+<!-- ===== TO-LET PHOTO SCAN ADD-ON =====
+     সবার শেষের </script> এর পরে, </body> এর ঠিক আগে পেস্ট করুন। আগের কিছু বদলাতে বা মুছতে হবে না।
+     কাজ: To-Let বোর্ডের ছবি দিলে -> ছবির লেখা পড়ে (OCR) -> ফিল্ড একটা একটা করে পূরণ হয় ->
+          এডিট করার মতো প্রিভিউ -> "প্রকাশ করুন" চাপলে আগের বিজ্ঞাপন ফর্ম দিয়েই সেভ হয়। -->
+<style>
+  #scModal .sc-f{border-radius:.9rem;padding:.2rem .1rem;transition:background .3s}
+  #scModal .sc-flash{animation:scFlash 1s ease}
+  @keyframes scFlash{0%{background:#bbf7d0}100%{background:transparent}}
+  #scModal .sc-miss .um-in{border-color:#f43f5e}
+  #scModal label.sc-l{display:block;font-size:12.5px;font-weight:700;color:#334155;margin-bottom:.3rem}
+  .sc-ok{color:#047857}.sc-guess{color:#b45309}.sc-miss-t{color:#e11d48}.sc-edit{color:#64748b}
+</style>
+
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const toast=(m,k,ms)=>(window.uxToast?window.uxToast(m,k,ms):alert(m));
+const bn=n=>Number(n).toLocaleString('bn-BD');
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const bnD=s=>String(s==null?'':s).replace(/[০-৯]/g,d=>String(d.charCodeAt(0)-0x09E6));
+const typeList=()=>[...$('typeFilter').options].map(o=>o.value).filter(v=>v&&v!=='all');
+const S={file:null,url:'',types:[],manualTitle:false,busy:false,raw:''};
+const TESS='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
+
+/* ---------- UI কাঠামো ---------- */
+const fld=(k,label,inner)=>'<div id="sc_w_'+k+'" class="sc-f"><label class="sc-l">'+label+'</label>'+inner+'<p id="sc_b_'+k+'" class="text-[10.5px] font-bold mt-1 min-h-[14px]"></p></div>';
+document.body.insertAdjacentHTML('beforeend',
+'<div id="scModal" class="fixed inset-0 hidden flex-col bg-slate-50 overflow-y-auto" style="z-index:140;-webkit-overflow-scrolling:touch">'+
+ '<header class="sticky top-0 z-20 bg-white/95 backdrop-blur shadow-sm border-b border-slate-100" style="padding-top:env(safe-area-inset-top,0px)"><div class="max-w-3xl mx-auto px-3 h-16 flex items-center justify-between">'+
+  '<div class="flex items-center gap-2"><div class="w-10 h-10 bg-emerald-600 text-white rounded-xl flex items-center justify-center text-lg"><i class="fa-solid fa-camera-viewfinder fa-camera"></i></div>'+
+  '<div><span class="text-base font-bold text-slate-900 block leading-tight">ছবি থেকে বিজ্ঞাপন</span><span class="text-[10px] text-slate-500">To-Let বোর্ডের ছবি → অটো ফিল</span></div></div>'+
+  '<button type="button" id="scX" aria-label="বন্ধ করুন" class="w-10 h-10 rounded-full bg-slate-100 hover:bg-rose-100 hover:text-rose-600 text-slate-600 text-2xl leading-none flex items-center justify-center">&times;</button>'+
+ '</div></header>'+
+ '<main class="max-w-3xl mx-auto w-full px-3 py-4 space-y-4 pb-32">'+
+  /* ধাপ ১: ছবি বাছা */
+  '<section id="scPick" class="bg-white border border-slate-100 rounded-2xl p-5 text-center space-y-3 shadow-sm">'+
+   '<div class="w-16 h-16 mx-auto rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-3xl"><i class="fa-solid fa-camera"></i></div>'+
+   '<h2 class="font-extrabold text-slate-900">To-Let বোর্ডের ছবি দিন</h2>'+
+   '<p class="text-xs text-slate-500 leading-relaxed">ফোন নম্বর, ভাড়া ও এলাকা যেন ছবিতে স্পষ্ট থাকে। আমরা লেখা পড়ে ফর্ম পূরণ করে দেব, আপনি দেখে ঠিক করে প্রকাশ করবেন।</p>'+
+   '<div class="flex flex-col sm:flex-row gap-2 justify-center">'+
+    '<button type="button" id="scCam" class="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold active:scale-95"><i class="fa-solid fa-camera mr-1.5"></i> ক্যামেরায় তুলুন</button>'+
+    '<button type="button" id="scGal" class="px-5 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold active:scale-95"><i class="fa-regular fa-image mr-1.5"></i> গ্যালারি থেকে বাছুন</button></div>'+
+   '<input type="file" id="scFileCam" accept="image/*" capture="environment" class="hidden"><input type="file" id="scFileGal" accept="image/*" class="hidden">'+
+  '</section>'+
+  /* ধাপ ২: অগ্রগতি + প্রিভিউ + এডিট */
+  '<section id="scWork" class="hidden space-y-4">'+
+   '<div id="scProgBox" class="bg-slate-900 text-white rounded-2xl p-3.5 space-y-2"><div class="flex items-center gap-2 text-xs font-bold"><i class="fa-solid fa-wand-magic-sparkles text-emerald-400"></i><span id="scStatus">শুরু হচ্ছে…</span><span id="scPct" class="ml-auto font-mono text-emerald-400"></span></div>'+
+    '<div class="h-2 rounded-full bg-slate-700 overflow-hidden"><div id="scBar" class="h-full bg-emerald-400" style="width:0;transition:width .25s"></div></div>'+
+    '<p class="text-[10px] text-slate-400">প্রথমবার বাংলা ভাষার ডেটা নামাতে একটু সময় লাগে। পেজ বন্ধ করবেন না।</p></div>'+
+   '<div><h3 class="text-sm font-extrabold text-slate-800 mb-2"><i class="fa-regular fa-eye text-emerald-600 mr-1.5"></i> বিজ্ঞাপন এভাবে দেখাবে</h3><div id="scCard"></div></div>'+
+   '<div class="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm space-y-3" id="scForm">'+
+    '<h3 class="text-sm font-extrabold text-slate-800"><i class="fa-solid fa-pen text-emerald-600 mr-1.5"></i> তথ্য দেখে নিন, দরকারে বদলান</h3>'+
+    fld('phone','যোগাযোগের মোবাইল *','<input id="sc_phone" type="tel" inputmode="numeric" placeholder="017XXXXXXXX" class="um-in">')+
+    fld('rent','মাসিক ভাড়া (টাকা) *','<input id="sc_rent" type="number" min="1" placeholder="৬৫০০" class="um-in"><label class="flex items-center gap-1.5 mt-1.5 text-[11px] text-slate-600 cursor-pointer"><input type="checkbox" id="sc_neg" class="w-3.5 h-3.5"> ভাড়া আলোচনা সাপেক্ষে</label>')+
+    fld('types','ভাড়ার ধরন * <span class="text-slate-400 font-medium">(একাধিক বাছা যায়)</span>','<div id="sc_types" class="flex flex-wrap gap-1.5"></div>')+
+    fld('area','এলাকা *','<select id="sc_area" class="um-in"></select>')+
+    fld('address','বিস্তারিত ঠিকানা','<input id="sc_address" maxlength="200" class="um-in" placeholder="উদা: ৫ নং রোড, মসজিদের পাশে">')+
+    fld('available','কবে থেকে খালি? *','<input id="sc_available" maxlength="60" class="um-in"><div class="flex flex-wrap gap-1.5 mt-1.5" id="sc_availQ"></div>')+
+    fld('specs','রুমের বিবরণ','<input id="sc_specs" maxlength="200" class="um-in" placeholder="২ বেড, ১ বাথ, ১ বারান্দা">')+
+    fld('title','বিজ্ঞাপনের শিরোনাম *','<input id="sc_title" maxlength="100" class="um-in">')+
+    fld('desc','অন্যান্য বিবরণ','<textarea id="sc_desc" rows="2" maxlength="1000" class="um-in"></textarea>')+
+    '<label class="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer"><input type="checkbox" id="sc_attach" class="w-4 h-4" checked> এই ছবিটি বিজ্ঞাপনের ছবি হিসেবে যুক্ত করুন</label>'+
+    '<details class="text-xs"><summary class="cursor-pointer font-bold text-slate-600">ছবি থেকে পড়া মূল লেখা দেখুন</summary><pre id="scRaw" class="mt-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg whitespace-pre-wrap break-words text-[11px] text-slate-600" style="font-family:inherit"></pre>'+
+     '<button type="button" id="scRawAdd" class="mt-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold">এই লেখা বিবরণে যুক্ত করুন</button></details>'+
+   '</div>'+
+  '</section>'+
+ '</main>'+
+ '<div id="scBarBtm" class="hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur border-t border-slate-200 px-3 pt-3" style="padding-bottom:calc(.75rem + env(safe-area-inset-bottom,0px))"><div class="max-w-3xl mx-auto flex gap-2">'+
+  '<button type="button" id="scAgain" class="px-4 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold active:scale-95"><i class="fa-solid fa-rotate-left mr-1"></i> নতুন ছবি</button>'+
+  '<button type="button" id="scPub" class="flex-1 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold active:scale-95 shadow-md shadow-emerald-200"><i class="fa-solid fa-paper-plane mr-1.5"></i> বিজ্ঞাপন প্রকাশ করুন</button></div></div>'+
+'</div>');
+
+/* ---------- খোলা / বন্ধ ---------- */
+function openScan(){
+  if(!currentUser){toast('বিজ্ঞাপন দিতে আগে লগইন করুন।','warn');toggleAuthModal(true);return;}
+  resetAll();
+  const m=$('scModal');m.classList.remove('hidden');m.classList.add('flex');m.scrollTop=0;
+  document.body.style.overflow='hidden';
+}
+function closeScan(){
+  const m=$('scModal');m.classList.add('hidden');m.classList.remove('flex');
+  const other=[...document.querySelectorAll('.fixed.inset-0')].some(x=>x!==m&&!x.classList.contains('hidden')&&getComputedStyle(x).display!=='none');
+  document.body.style.overflow=other?'hidden':'';
+}
+window.openPhotoScan=openScan;
+$('scX').onclick=()=>{if(S.busy&&!confirm('ছবি পড়া চলছে, বন্ধ করবেন?'))return;closeScan();};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('scModal').classList.contains('hidden')&&!S.busy)closeScan();});
+
+function resetAll(){
+  if(S.url)URL.revokeObjectURL(S.url);
+  Object.assign(S,{file:null,url:'',types:[],manualTitle:false,busy:false,raw:''});
+  $('scPick').classList.remove('hidden');$('scWork').classList.add('hidden');$('scBarBtm').classList.add('hidden');
+  ['phone','rent','address','available','specs','title','desc'].forEach(k=>$('sc_'+k).value='');
+  $('sc_neg').checked=false;$('sc_rent').disabled=false;
+  $('sc_area').innerHTML='<option value="">— বাছুন —</option>'+locations.map(l=>'<option value="'+esc(l)+'">'+esc(l)+'</option>').join('');
+  document.querySelectorAll('[id^=sc_b_]').forEach(b=>b.textContent='');
+  document.querySelectorAll('.sc-miss').forEach(w=>w.classList.remove('sc-miss'));
+  drawTypes();drawCard();
+}
+$('scCam').onclick=()=>$('scFileCam').click();
+$('scGal').onclick=()=>$('scFileGal').click();
+$('scAgain').onclick=()=>{if(!S.busy)resetAll();};
+['scFileCam','scFileGal'].forEach(id=>$(id).onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)startScan(f);});
+
+/* ---------- OCR ---------- */
+function loadTess(){
+  if(window.Tesseract)return Promise.resolve();
+  return new Promise((res,rej)=>{const s=document.createElement('script');s.src=TESS;s.onload=res;s.onerror=()=>rej(new Error('OCR লাইব্রেরি লোড হয়নি। ইন্টারনেট দেখুন।'));document.head.appendChild(s);});
+}
+async function prep(file){
+  const bmp=await createImageBitmap(file);
+  const k=Math.min(1,1800/Math.max(bmp.width,bmp.height));
+  const c=document.createElement('canvas');c.width=Math.round(bmp.width*k);c.height=Math.round(bmp.height*k);
+  const x=c.getContext('2d');try{x.filter='grayscale(1) contrast(1.35)';}catch(_){}
+  x.drawImage(bmp,0,0,c.width,c.height);return c;
+}
+function prog(text,p){$('scStatus').textContent=text;if(p!=null){const v=Math.round(p*100);$('scPct').textContent=bn(v)+'%';$('scBar').style.width=v+'%';}}
+
+async function startScan(file){
+  if(!file.type.startsWith('image/'))return toast('শুধু ছবি দিন।','warn');
+  resetAll();
+  S.file=file;S.url=URL.createObjectURL(file);S.busy=true;
+  $('scPick').classList.add('hidden');$('scWork').classList.remove('hidden');
+  $('scProgBox').classList.remove('hidden');drawCard();
+  let text='';
+  try{
+    prog('OCR প্রস্তুত হচ্ছে…',.03);
+    await loadTess();
+    const canvas=await prep(file);
+    const r=await Tesseract.recognize(canvas,'ben+eng',{logger:m=>{
+      const p=m.progress||0;
+      if(/loading/.test(m.status))prog('ভাষার ডেটা নামছে (প্রথমবার সময় লাগে)…',.05+p*.25);
+      else if(m.status==='recognizing text')prog('ছবির লেখা পড়া হচ্ছে…',.3+p*.65);
+    }});
+    text=(r&&r.data&&r.data.text)||'';
+  }catch(err){
+    console.warn('OCR notice:',err);
+    toast((err&&err.message)||'ছবি পড়া যায়নি। নিজে তথ্য লিখে নিন।','err',5000);
+  }
+  S.raw=text.trim();$('scRaw').textContent=S.raw||'(কোনো লেখা পাওয়া যায়নি)';
+  $('scBarBtm').classList.remove('hidden');
+  prog('ফিল্ড পূরণ হচ্ছে…',.97);
+  await fillSeq(parse(text));
+  S.busy=false;
+  prog(S.raw?'শেষ! নিচের তথ্য দেখে ঠিক করুন, তারপর প্রকাশ করুন।':'লেখা পড়া যায়নি — নিচে নিজে লিখুন।',1);
+  $('scForm').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+/* ---------- লেখা থেকে তথ্য বের করা ---------- */
+function parse(raw){
+  const t=bnD(raw).replace(/[|_]/g,' ');
+  const lines=t.split(/\n+/).map(s=>s.replace(/\s+/g,' ').trim()).filter(Boolean);
+  const d={ph:{v:'',s:'miss'},rent:{v:0,s:'miss'},neg:false,types:{v:[],s:'miss'},area:{v:'',s:'miss'},address:{v:'',s:'miss'},available:{v:'',s:'miss'},specs:{v:'',s:'miss'}};
+
+  /* ফোন */
+  const phRe=/(?:\+?88[\s-]?)?0?1[3-9](?:[\s\-.]?\d){8}/g;
+  const phones=[...new Set((t.match(phRe)||[]).map(normPhone).filter(validPhone))];
+  if(phones.length)d.ph={v:phones[0],s:'ok'};
+  const t2=t.replace(phRe,' ');
+
+  /* ভাড়া */
+  d.neg=/আলোচনা|negotiab|nego\b/i.test(t);
+  const num=s=>Number(String(s).replace(/,/g,''));
+  const ok=n=>n>=500&&n<=500000;
+  let m=/(?:ভাড়া|rent|tk|taka|টাকা|৳)\D{0,12}(\d[\d,]{2,6})/i.exec(t2)||/(\d[\d,]{2,6})\s*(?:\/-|টাকা|tk|taka|৳)/i.exec(t2);
+  if(m&&ok(num(m[1])))d.rent={v:num(m[1]),s:'ok'};
+  else{const c=(t2.match(/\d[\d,]{3,6}/g)||[]).map(num).filter(n=>n>=1000&&n<=200000);if(c.length)d.rent={v:c[0],s:'guess'};}
+  if(d.neg&&d.rent.s==='miss')d.rent={v:0,s:'ok'};
+
+  /* ধরন */
+  const opts=typeList(),found=[];
+  [['ফ্যামিলি',/ফ্যামিলি|ফ্যামেলি|পরিবার|family/i],['ব্যাচেলর',/ব্যাচেলর|ব্যাচেলার|বেচেলর|bachelor|ছাত্র|student/i],['মেস',/মেস|mess|সিট|seat/i],['সাবলেট',/সাবলেট|সাব-লেট|sublet/i]].forEach(([key,re])=>{
+    if(!re.test(t))return;const o=opts.find(x=>x.includes(key));if(o&&!found.includes(o))found.push(o);
+  });
+  if(found.length)d.types={v:found,s:'ok'};
+
+  /* এলাকা (বানান/স্পেস ছাড়াও মিলবে) */
+  const flat=s=>String(s).replace(/[\s\-.,()]/g,'').toLowerCase(),T=flat(t);
+  let best='',bl=0;
+  locations.forEach(loc=>{
+    const names=[loc,loc.replace(/\(.*?\)/g,''),(/\((.*?)\)/.exec(loc)||[])[1]].filter(Boolean).map(flat);
+    names.forEach(n=>{if(n.length>=3&&T.includes(n)&&n.length>bl){best=loc;bl=n.length;}});
+  });
+  if(best)d.area={v:best,s:'ok'};
+
+  /* ঠিকানা */
+  const al=lines.find(l=>/রোড|road|বাড়ি|বাসা নং|হোল্ডিং|পাশে|সামনে|মোড়|গলি|বাজার|নং/i.test(l)&&!phRe.test(l));
+  phRe.lastIndex=0;
+  if(al)d.address={v:al.slice(0,120),s:'guess'};
+
+  /* কবে থেকে খালি */
+  const vl=lines.find(l=>/তারিখ|থেকে|হইতে|খালি/.test(l)&&l.length<=60&&!/\d{9,}/.test(l));
+  if(/এখনই|এখনি|immediate/i.test(t))d.available={v:'এখনই খালি আছে',s:'ok'};
+  else if(vl&&/তারিখ|থেকে|হইতে/.test(vl))d.available={v:vl.replace(/[^\u0980-\u09FF\w\s\/\-]/g,'').trim(),s:'guess'};
+  else d.available={v:'এখনই খালি আছে',s:'guess'};
+
+  /* রুমের বিবরণ */
+  const sp=[];
+  const bed=/(\d+)\s*(?:টি\s*)?(?:বেড|রুম|bed|room)/i.exec(t2),bath=/(\d+)\s*(?:টি\s*)?(?:বাথ|bath|টয়লেট)/i.exec(t2),bal=/(\d+)?\s*(?:টি\s*)?(?:বারান্দা|ব্যালকনি|balcon)/i.exec(t2);
+  if(bed)sp.push(bed[1]+' বেড');if(bath)sp.push(bath[1]+' বাথ');if(bal)sp.push((bal[1]||'১')+' বারান্দা');
+  [['গ্যাস',/গ্যাস|gas/i,'গ্যাস সংযোগ'],['লিফট',/লিফট|lift/i,'লিফট'],['পার্কিং',/পার্কিং|parking/i,'পার্কিং'],['ওয়াইফাই',/ওয়াইফাই|wifi|wi-fi/i,'ওয়াইফাই'],['সিসিটিভি',/সিসি|cctv/i,'সিসিটিভি'],['জেনারেটর',/জেনারেটর|generator/i,'জেনারেটর'],['ফার্নিশড',/ফার্নিশড|furnish/i,'ফার্নিশড']].forEach(x=>{if(x[1].test(t2))sp.push(x[2]);});
+  if(sp.length)d.specs={v:sp.join(', '),s:'ok'};
+  return d;
+}
+
+/* ---------- একটা একটা করে ফিল ---------- */
+const BADGE={ok:['✓ ছবি থেকে পাওয়া গেছে','sc-ok'],guess:['~ অনুমান করা হয়েছে — দেখে নিন','sc-guess'],miss:['! পাওয়া যায়নি — নিজে লিখুন','sc-miss-t']};
+function badge(k,s){
+  const b=$('sc_b_'+k);if(!b)return;
+  if(s==='edit'){b.className='text-[10.5px] font-bold mt-1 sc-edit';b.textContent='✎ আপনি বদলিয়েছেন';return;}
+  b.className='text-[10.5px] font-bold mt-1 '+BADGE[s][1];b.textContent=BADGE[s][0];
+  $('sc_w_'+k).classList.toggle('sc-miss',s==='miss');
+}
+async function fillSeq(d){
+  const steps=[
+   ['phone','ফোন নম্বর',d.ph,()=>{$('sc_phone').value=d.ph.v;}],
+   ['rent','ভাড়া',d.rent,()=>{$('sc_neg').checked=d.neg&&!d.rent.v;$('sc_rent').disabled=$('sc_neg').checked;$('sc_rent').value=d.rent.v||'';}],
+   ['types','ভাড়ার ধরন',d.types,()=>{S.types=d.types.v.slice();drawTypes();}],
+   ['area','এলাকা',d.area,()=>{$('sc_area').value=d.area.v;}],
+   ['address','ঠিকানা',d.address,()=>{$('sc_address').value=d.address.v;}],
+   ['available','কবে থেকে খালি',d.available,()=>{$('sc_available').value=d.available.v;}],
+   ['specs','রুমের বিবরণ',d.specs,()=>{$('sc_specs').value=d.specs.v;}],
+   ['title','শিরোনাম',{s:'guess'},()=>{autoTitle();}]
+  ];
+  for(const [k,label,info,apply] of steps){
+    prog('পূরণ হচ্ছে: '+label+'…',null);
+    apply();badge(k,info.s);
+    const w=$('sc_w_'+k);w.classList.remove('sc-flash');void w.offsetWidth;w.classList.add('sc-flash');
+    drawCard();await sleep(420);
+  }
+}
+
+/* ---------- ফর্মের আচরণ ---------- */
+function drawTypes(){
+  const box=$('sc_types');box.innerHTML='';
+  typeList().forEach(t=>{
+    const on=S.types.includes(t),b=document.createElement('button');
+    b.type='button';b.className='um-chip'+(on?' on':'');b.textContent=(on?'✓ ':'')+t;
+    b.onclick=()=>{S.types=on?S.types.filter(x=>x!==t):[...S.types,t];drawTypes();badge('types','edit');autoTitle();drawCard();};
+    box.appendChild(b);
+  });
+}
+const AV=['এখনই খালি আছে','এই মাসের শেষে','আগামী মাসের ১ তারিখ থেকে'];
+AV.forEach(v=>{const b=document.createElement('button');b.type='button';b.className='um-chip q';b.textContent=v;b.onclick=()=>{$('sc_available').value=v;badge('available','edit');drawCard();};$('sc_availQ').appendChild(b);});
+function autoTitle(){
+  if(S.manualTitle)return;
+  const bed=($('sc_specs').value.split(',').map(s=>s.trim()).find(s=>/বেড/.test(s)))||'';
+  const a=$('sc_area').value;
+  $('sc_title').value=S.types.length?(S.types.join('/')+' ভাড়া'+(bed?' ('+bed+')':'')+(a?' — '+a:'')):'';
+}
+$('scForm').addEventListener('input',e=>{
+  const id=e.target.id||'';
+  if(id==='sc_title'&&e.isTrusted)S.manualTitle=true;
+  if(id==='sc_neg'){$('sc_rent').disabled=e.target.checked;if(e.target.checked)$('sc_rent').value='';}
+  if(id==='sc_specs'||id==='sc_area')autoTitle();
+  const k=id.replace('sc_','');
+  if(e.isTrusted&&$('sc_b_'+k)&&k!=='attach'&&k!=='neg'){badge(k,'edit');$('sc_w_'+k).classList.remove('sc-miss');}
+  if(id==='sc_neg')badge('rent','edit');
+  drawCard();
+});
+$('scForm').addEventListener('change',e=>{if(e.target.id==='sc_area'){autoTitle();badge('area','edit');$('sc_w_area').classList.remove('sc-miss');drawCard();}});
+$('scRawAdd').onclick=()=>{
+  const d=$('sc_desc'),add=S.raw.replace(/\s+/g,' ').slice(0,400);
+  if(!add)return;d.value=(d.value?d.value+'\n':'')+add;d.dispatchEvent(new Event('input',{bubbles:true}));
+};
+
+/* ---------- লাইভ প্রিভিউ কার্ড ---------- */
+function drawCard(){
+  const v=id=>$(id).value.trim(),neg=$('sc_neg').checked,rent=Number($('sc_rent').value)||0;
+  const ph=normPhone(v('sc_phone'));
+  const rentH=neg?'<span class="text-sm font-extrabold text-amber-600">আলোচনা সাপেক্ষে</span>':(rent?'<span class="text-sm font-extrabold text-emerald-600">৳'+bn(rent)+'</span><span class="text-[10px] text-slate-500">/মাস</span>':'<span class="text-xs text-slate-400">ভাড়া দেওয়া হয়নি</span>');
+  const ph0='<span class="text-slate-300">—</span>';
+  $('scCard').innerHTML='<div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden max-w-sm">'+
+   '<div class="relative h-44 bg-slate-900">'+(S.url?'<img src="'+S.url+'" alt="" class="w-full h-full object-cover">':'<div class="w-full h-full flex items-center justify-center text-slate-500"><i class="fa-regular fa-image text-3xl"></i></div>')+
+   '<div class="absolute top-2.5 left-2.5 flex flex-wrap gap-1.5">'+S.types.map(t=>'<span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full border bg-white/95 text-emerald-700 border-emerald-200">'+esc(t)+'</span>').join('')+'</div></div>'+
+   '<div class="p-3.5 space-y-1"><div class="flex items-center justify-between gap-2"><span class="text-[11px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded"><i class="fa-regular fa-clock mr-1"></i>'+(esc(v('sc_available'))||ph0)+'</span><span class="text-[11px] text-emerald-700 font-semibold"><i class="fa-solid fa-location-dot"></i> '+(esc($('sc_area').value)||ph0)+'</span></div>'+
+   '<h3 class="font-bold text-slate-900 text-sm">'+(esc(v('sc_title'))||'<span class="text-slate-300">শিরোনাম</span>')+'</h3>'+
+   (v('sc_address')?'<p class="text-[11px] text-slate-500"><i class="fa-solid fa-map-pin text-rose-500 mr-1"></i>'+esc(v('sc_address'))+'</p>':'')+
+   (v('sc_specs')?'<p class="text-xs text-slate-600 bg-slate-50 p-2 rounded-lg">'+esc(v('sc_specs'))+'</p>':'')+
+   (v('sc_desc')?'<p class="text-xs text-slate-500 line-clamp-2">'+esc(v('sc_desc'))+'</p>':'')+'</div>'+
+   '<div class="px-3.5 py-2.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between"><div>'+rentH+'</div><span class="bg-emerald-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg"><i class="fa-solid fa-phone mr-1"></i>'+(esc(ph)||'কল')+'</span></div></div>';
+}
+
+/* ---------- প্রকাশ: আগের বিজ্ঞাপন ফর্মেই বসিয়ে সেভ ---------- */
+function collect(){
+  return {types:S.types.slice(),area:$('sc_area').value,address:$('sc_address').value.trim(),neg:$('sc_neg').checked,
+    rent:Number($('sc_rent').value)||0,available:$('sc_available').value.trim(),phone:normPhone($('sc_phone').value),
+    specs:$('sc_specs').value.trim(),desc:$('sc_desc').value.trim(),title:$('sc_title').value.trim()};
+}
+$('scPub').onclick=async()=>{
+  if(S.busy)return;
+  const d=collect(),bad=[];
+  if(!validPhone(d.phone))bad.push('phone');
+  if(!d.neg&&!(d.rent>0))bad.push('rent');
+  if(!d.types.length)bad.push('types');
+  if(!d.area)bad.push('area');
+  if(!d.available)bad.push('available');
+  if(!d.title)bad.push('title');
+  document.querySelectorAll('.sc-miss').forEach(w=>w.classList.remove('sc-miss'));
+  if(bad.length){
+    bad.forEach(k=>{$('sc_w_'+k).classList.add('sc-miss');badge(k,'miss');});
+    $('sc_w_'+bad[0]).scrollIntoView({behavior:'smooth',block:'center'});
+    return toast('লাল চিহ্নিত ঘরগুলো পূরণ করুন।','warn',3000);
+  }
+  const attach=$('sc_attach').checked&&S.file,file=S.file;
+  closeScan();
+  await pushToForm(d,attach?file:null);
+};
+function setV(id,v){const el=$(id);if(!el)return;el.value=v==null?'':v;el.dispatchEvent(new Event('input',{bubbles:true}));}
+async function pushToForm(d,file){
+  try{localStorage.removeItem('tolet_ad_draft');}catch(_){}
+  openAdModalForCreate();
+  if($('adModal').classList.contains('hidden'))return;
+  await sleep(120);
+  setV('formTitle',d.title);setV('formAddress',d.address);setV('formAvailable',d.available);
+  setV('formPhone',d.phone);setV('formSpecs',d.specs);setV('formDesc',d.desc);
+  const cb=$('formRentNegotiable');cb.checked=d.neg;toggleRentNegotiable();cb.dispatchEvent(new Event('change',{bubbles:true}));
+  if(!d.neg)setV('formRent',d.rent);
+  const sel=$('formArea');
+  if([...sel.options].some(o=>o.value===d.area)){sel.value=d.area;sel.dispatchEvent(new Event('change',{bubbles:true}));}
+  const box=$('formTypeBox');
+  if(box)[...box.querySelectorAll('label')].forEach(l=>{
+    const c=l.querySelector('input'),want=d.types.includes(l.textContent.trim());
+    if(c&&c.checked!==want){c.checked=want;c.dispatchEvent(new Event('change',{bubbles:true}));}
+  });
+  if(file){
+    try{const dt=new DataTransfer();dt.items.add(file);const fi=$('formImageFiles');fi.files=dt.files;fi.dispatchEvent(new Event('change',{bubbles:true}));}catch(_){}
+  }
+  /* ফর্মের ধাপগুলো পার করে সরাসরি শেষ ধাপে; কোনো ধাপে তথ্য বাদ থাকলে সেখানেই থেমে লাল চিহ্ন দেখাবে */
+  for(let i=0;i<4;i++){
+    const nx=$('uxNext');
+    if(!nx||nx.classList.contains('hidden'))break;
+    nx.click();await sleep(140);
+  }
+  const sb=$('submitBtn');
+  if(sb&&!sb.classList.contains('hidden')){sb.click();}
+  else toast('কিছু তথ্য বাকি আছে — ফর্মের লাল ঘরটি পূরণ করে প্রকাশ করুন।','warn',5000);
+}
+
+/* ---------- প্রবেশপথ: বিজ্ঞাপন ফর্ম, "+" মেনু, হিরো ---------- */
+const stepper=document.querySelector('#listingForm .ux-stepper');
+const entry='<button type="button" data-scan="1" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl border-2 border-dashed border-emerald-300 bg-emerald-50 hover:bg-emerald-100 active:scale-[.99] transition"><span class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-lg flex-shrink-0"><i class="fa-solid fa-camera"></i></span><span><b class="block text-sm text-emerald-900">To-Let বোর্ডের ছবি দিয়ে অটো ফিল</b><small class="text-[11px] text-emerald-700">ছবি তুললেই ফোন, ভাড়া, এলাকা নিজে পূরণ হবে</small></span></button>';
+if(stepper)stepper.insertAdjacentHTML('afterend','<div class="mt-3">'+entry+'</div>');
+else $('listingForm').insertAdjacentHTML('afterbegin',entry);
+document.addEventListener('click',e=>{if(e.target.closest('[data-scan]')&&!e.target.closest('#scModal')){e.preventDefault();openScan();}});
+const sheet=$('uxpSheet');
+if(sheet){
+  const x=sheet.querySelector('[data-a="x"]');
+  if(x)x.insertAdjacentHTML('beforebegin','<button type="button" class="uxp-item" data-a="scan"><span class="uxp-ic" style="background:#059669"><i class="fa-solid fa-camera"></i></span><span><b>ছবি থেকে বিজ্ঞাপন (অটো ফিল)</b><small>To-Let বোর্ডের ছবি দিন, বাকিটা আমরা করব</small></span></button>');
+  sheet.addEventListener('click',e=>{if(e.target.closest('[data-a="scan"]'))setTimeout(openScan,80);});
+}
+})();
+</script>
+<!-- ===== AD SYSTEM PRO ADD-ON =====
+     সবার শেষের </script> এর পরে, </body> এর ঠিক আগে পেস্ট করুন। আগের কিছু বদলাতে বা মুছতে হবে না।
+     সরিয়ে দিলে সাইট আগের মতোই চলবে। একই ডেটাবেজ (site_settings/ads_hub) ব্যবহার করে, তাই আগের এডগুলো যেমন আছে তেমনই থাকবে।
+     কী কী নতুন:
+       অ্যাডমিন: ছবির মতো বড় কার্ডে জায়গা বাছা, প্রস্তাবিত সাইজ, ছবি টেনে/বেছে দিলে নিজে সাইজমতো কেটে নেওয়া,
+                 ছবির মাপ যাচাই, লিংকে ফোন নম্বর লিখলেই হোয়াটসঅ্যাপ লিংক, মেয়াদ এক ক্লিকে (৭/১৫/৩০ দিন...),
+                 লাইভ প্রিভিউ, বিজ্ঞাপনদাতার তথ্য ও টাকার হিসাব, সার্চ ও ফিল্টার,
+                 মেয়াদ শেষ হওয়ার আগে "শীঘ্রই শেষ" চিহ্ন ও এক ক্লিকে মেয়াদ বাড়ানো, বিজ্ঞাপনদাতাকে পাঠানোর রিপোর্ট কপি।
+       সাইট: টপ/সাইডবার এডে ছোট "বিজ্ঞাপন" লেবেল।
+       "বিজ্ঞাপন দিন" পেজ: অনুরোধ পাঠানোর পর এক ক্লিকে হোয়াটসঅ্যাপে তথ্যসহ বার্তা পাঠানোর বাটন। -->
+<style>
+  .ap-stat{background:#fff;border:1px solid #e2e8f0;border-radius:.9rem;padding:.65rem .4rem;text-align:center}
+  .ap-stat b{display:block;font-size:19px;color:#059669}
+  .ap-stat span{font-size:10px;color:#64748b;font-weight:600}
+  .ap-b{font-size:10px;font-weight:800;padding:1px 8px;border-radius:9999px;white-space:nowrap}
+  .ap-live{background:#ecfdf5;color:#047857;border:1px solid #a7f3d0}
+  .ap-soon{background:#fffbeb;color:#b45309;border:1px solid #fcd34d}
+  .ap-off{background:#f1f5f9;color:#64748b;border:1px solid #cbd5e1}
+  .ap-wait{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe}
+  .ap-exp{background:#fff1f2;color:#be123c;border:1px solid #fecdd3}
+  .ap-btn{padding:.4rem .65rem;border-radius:.6rem;font-size:11px;font-weight:800;border:0;cursor:pointer;font-family:inherit}
+  .ap-btn:active{transform:scale(.94)}
+  .ap-card{display:flex;gap:10px;padding:.7rem;background:#fff;border:1px solid #e2e8f0;border-radius:1rem}
+  .ap-card.dim{opacity:.65}
+  .ap-th{width:68px;height:68px;border-radius:.7rem;background:#f1f5f9;object-fit:contain;flex-shrink:0}
+  .ap-bar{height:5px;border-radius:9999px;background:#e2e8f0;overflow:hidden;margin-top:5px}
+  .ap-bar i{display:block;height:100%;background:#10b981;border-radius:9999px}
+  .ap-bar.soon i{background:#f59e0b}.ap-bar.exp i{background:#f43f5e}
+  .ap-sec{background:#fff;border:1px solid #f1f5f9;border-radius:1rem;padding:1rem;box-shadow:0 1px 3px rgba(15,23,42,.05)}
+  .ap-sec h4{font-size:14px;font-weight:800;color:#0f172a;margin-bottom:.15rem}
+  .ap-sec .sub{font-size:11.5px;color:#64748b;margin-bottom:.7rem}
+  .ap-slot{display:flex;gap:10px;align-items:center;text-align:left;padding:.7rem;border:2px solid #e2e8f0;border-radius:.9rem;background:#fff;cursor:pointer;font-family:inherit;transition:.12s}
+  .ap-slot.on{border-color:#059669;background:#ecfdf5}
+  .ap-slot:active{transform:scale(.97)}
+  .ap-slot .ic{width:38px;height:38px;border-radius:10px;color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .ap-sz{min-width:78px;padding:.5rem .6rem;border:2px solid #e2e8f0;border-radius:.75rem;background:#fff;color:#64748b;font-size:11px;font-weight:700;text-align:center;cursor:pointer;font-family:inherit;position:relative}
+  .ap-sz.on{border-color:#059669;background:#ecfdf5;color:#047857}
+  .ap-sz em{position:absolute;top:-8px;right:-4px;background:#f59e0b;color:#fff;font-style:normal;font-size:8.5px;padding:0 6px;border-radius:9999px}
+  .ap-drop{width:100%;display:flex;flex-direction:column;align-items:center;gap:3px;border:2px dashed #cbd5e1;border-radius:1rem;padding:1.1rem .75rem;background:#f8fafc;color:#475569;cursor:pointer;font-family:inherit}
+  .ap-drop:hover,.ap-drop.over{border-color:#10b981;background:#ecfdf5}
+  .ap-drop i{font-size:24px;color:#059669}
+  .ap-pv{border:1px solid #cbd5e1;border-radius:.5rem;background:#f8fafc;overflow:hidden;width:100%}
+  .ap-empty{border-style:dashed;display:flex;align-items:center;justify-content:center;font-size:11px;color:#94a3b8}
+  .ap-info{font-size:11px;font-weight:700;margin-top:6px}
+  .ap-ok{color:#047857}.ap-warn{color:#b45309}.ap-bad{color:#e11d48}
+  #hubTop a,#hubTop>div>div{position:relative}
+  #hubSide>div{position:relative}
+  #hubTop a::after,#hubSide>div::after{content:'বিজ্ঞাপন';position:absolute;top:5px;right:7px;font-size:9px;font-weight:700;background:rgba(15,23,42,.62);color:#fff;padding:1px 7px;border-radius:9999px;pointer-events:none;z-index:2}
+</style>
+
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const host=$('adminAdhubSection');
+if(!host||typeof isAdmin!=='function')return;
+const toast=(m,k,ms)=>(window.uxToast?window.uxToast(m,k,ms):alert(m));
+const bn=n=>Number(n).toLocaleString('bn-BD');
+const bnD=s=>String(s).replace(/\d/g,d=>'০১২৩৪৫৬৭৮৯'[d]);
+const lsG=(k,f)=>{try{const v=JSON.parse(localStorage.getItem(k));return v==null?f:v;}catch(_){return f;}};
+
+/* ================= ডেটা ================= */
+const SL={
+  top:{t:'টপ ব্যানার',ic:'fa-panorama',c:'#059669',d:'সাইটের একদম উপরে, ঢুকলেই চোখে পড়ে',rec:'728x90'},
+  side:{t:'সাইডবার',ic:'fa-rectangle-ad',c:'#0284c7',d:'বাসার তালিকার পাশে',rec:'300x250'},
+  feed:{t:'তালিকার মাঝে',ic:'fa-table-list',c:'#7c3aed',d:'কার্ডগুলোর মাঝে পুরো চওড়ায়',rec:'728x90'},
+  pop:{t:'পপ-আপ',ic:'fa-bullhorn',c:'#f59e0b',d:'সাইটে ঢুকলে একবার',rec:'420'}
+};
+const SZ={
+  top:['728x90','970x90','970x250','468x60','320x100','320x50'],
+  side:['300x250','336x280','300x600','160x600','120x600','250x250','200x200','120x90','120x60','88x31'],
+  feed:['728x90','970x90','970x250','468x60','336x280','300x250','320x100'],
+  pop:['320','420','540','680']
+};
+const POPN={'320':'ছোট','420':'মাঝারি','540':'বড়','680':'অনেক বড়'};
+const PAGES=[['ls','বাসা ভাড়া'],['mk','পুরনো জিনিস'],['rq','বাসা চাই']];
+const DURS=[['7','৭ দিন'],['15','১৫ দিন'],['30','১ মাস'],['90','৩ মাস'],['180','৬ মাস'],['0','সীমাহীন'],['c','নিজে বাছব']];
+const MN=['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
+const szTxt=(s,v)=>s==='pop'?(POPN[v]||'মাঝারি')+' ('+v+'px)':String(v).replace('x','×')+' px';
+const dimOf=(s,v)=>{const m=/^(\d+)x(\d+)$/.exec(v||'');return m?[+m[1],+m[2]]:[300,250];};
+
+/* তারিখ */
+const p2=n=>String(n).padStart(2,'0');
+const ymd=d=>d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate());
+const today=()=>ymd(new Date());
+const pd=s=>{const a=String(s).split('-').map(Number);return new Date(a[0],a[1]-1,a[2]);};
+const addDays=(s,n)=>{const d=pd(s);d.setDate(d.getDate()+n);return ymd(d);};
+const diff=(a,b)=>Math.round((pd(b)-pd(a))/86400000);
+const fmt=s=>{const d=pd(s);return bnD(d.getDate())+' '+MN[d.getMonth()]+' '+bnD(d.getFullYear());};
+
+function status(a){
+  const t=today();
+  if(!a.active)return {k:'off',t:'বন্ধ'};
+  if(a.start&&t<a.start)return {k:'wait',t:'শুরু হয়নি'};
+  if(a.end&&t>a.end)return {k:'exp',t:'মেয়াদ শেষ'};
+  if(a.end&&diff(t,a.end)<=2)return {k:'soon',t:'শীঘ্রই শেষ'};
+  return {k:'live',t:'চালু'};
+}
+const isLive=a=>{const k=status(a).k;return k==='live'||k==='soon';};
+
+/* ================= হাব ডেটা ও সংরক্ষণ ================= */
+let hub=lsG('tolet_ads_hub',[]),stats=lsG('tolet_ad_stats',{}),statsOn=false;
+let q='',flt='all',slotF='all';
+if(isFirebaseReady){
+  firebaseDb.collection('site_settings').doc('ads_hub').onSnapshot(d=>{
+    hub=(d.exists&&Array.isArray(d.data().ads))?d.data().ads:[];
+    render();
+  },()=>{});
+}
+async function persist(list){
+  if(!isAdmin())throw new Error('শুধু অ্যাডমিন করতে পারবেন।');
+  if(isFirebaseReady)await firebaseDb.collection('site_settings').doc('ads_hub').set({ads:list,updatedAt:Date.now()});
+  else{localStorage.setItem('tolet_ads_hub',JSON.stringify(list));toast('সংরক্ষিত হয়েছে। সাইটে দেখতে পেজ রিলোড করুন।','info',4000);}
+  hub=list;render();
+}
+function startStats(){
+  if(statsOn||!isFirebaseReady||!isAdmin())return;
+  statsOn=true;
+  firebaseDb.collection('ad_stats').onSnapshot(s=>{stats={};s.forEach(d=>stats[d.id]=Number(d.data().clicks)||0);render();},()=>{statsOn=false;});
+}
+const fail=(e,m)=>{console.error(e);toast((e&&e.message&&!e.code)?e.message:fbErrMsg(e,m||'সংরক্ষণ ব্যর্থ হয়েছে।'),'err',5000);};
+
+/* ================= অ্যাডমিন তালিকা (নতুন) ================= */
+host.insertAdjacentHTML('afterbegin',
+'<div id="ap_root" class="space-y-3">'+
+ '<div id="ap_stats" class="grid grid-cols-2 sm:grid-cols-5 gap-2"></div>'+
+ '<div id="ap_warn" class="hidden bg-amber-50 border border-amber-200 text-amber-900 text-xs rounded-xl p-3 font-semibold"></div>'+
+ '<div class="flex flex-col sm:flex-row gap-2">'+
+  '<div class="relative flex-1"><i class="fa-solid fa-magnifying-glass absolute left-3 top-3.5 text-slate-400 text-sm"></i><input id="ap_q" class="um-in" style="padding-left:2.25rem" placeholder="এডের নাম বা বিজ্ঞাপনদাতা খুঁজুন..."></div>'+
+  '<select id="ap_slotF" class="um-in sm:w-44"><option value="all">সব জায়গা</option>'+Object.keys(SL).map(k=>'<option value="'+k+'">'+SL[k].t+'</option>').join('')+'</select>'+
+  '<button type="button" id="ap_new" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold active:scale-95 whitespace-nowrap"><i class="fa-solid fa-plus mr-1"></i> নতুন এড</button></div>'+
+ '<div id="ap_flt" class="flex flex-wrap gap-1.5"></div>'+
+ '<div id="ap_list" class="space-y-2"></div>'+
+'</div>');
+['ah_stats','ah_form','ah_list'].forEach(id=>{const e=$(id);if(e)e.style.display='none';});
+if($('ah_filters')&&$('ah_filters').parentElement)$('ah_filters').parentElement.style.display='none';
+
+function render(){
+  if(!$('ap_list')||!isAdmin())return;
+  const t=today();
+  const liveN=hub.filter(isLive).length,soonN=hub.filter(a=>status(a).k==='soon').length,expN=hub.filter(a=>status(a).k==='exp').length;
+  const clicks=hub.reduce((n,a)=>n+(stats[a.id]||0),0);
+  const income=hub.reduce((n,a)=>n+(Number(a.amount)||0),0);
+  $('ap_stats').innerHTML=[[hub.length,'মোট এড'],[liveN,'এখন চালু'],[soonN,'শীঘ্রই শেষ'],[clicks,'মোট ক্লিক'],['৳'+bn(income),'মোট আয় (লেখা)']]
+    .map(x=>'<div class="ap-stat"><b>'+(typeof x[0]==='number'?bn(x[0]):x[0])+'</b><span>'+x[1]+'</span></div>').join('');
+  const w=$('ap_warn'),need=hub.filter(a=>['soon','exp'].includes(status(a).k)&&a.active);
+  if(need.length){w.classList.remove('hidden');w.innerHTML='<i class="fa-solid fa-bell mr-1"></i> '+bn(need.length)+'টি এডের মেয়াদ শেষ হয়েছে বা হতে চলেছে। নিচে "মেয়াদ বাড়ান" বাটন চাপুন।';}
+  else w.classList.add('hidden');
+  const FL=[['all','সব'],['live','চালু'],['soon','শীঘ্রই শেষ'],['off','বন্ধ/অপেক্ষায়'],['exp','মেয়াদ শেষ']];
+  $('ap_flt').innerHTML='';
+  FL.forEach(([k,l])=>{
+    const b=document.createElement('button');b.type='button';b.className='um-chip'+(flt===k?' on':'');b.textContent=l;
+    b.onclick=()=>{flt=k;render();};$('ap_flt').appendChild(b);
+  });
+  const ql=q.toLowerCase();
+  const L=hub.filter(a=>{
+    const k=status(a).k;
+    if(flt==='live'&&!(k==='live'||k==='soon'))return false;
+    if(flt==='soon'&&k!=='soon')return false;
+    if(flt==='off'&&!(k==='off'||k==='wait'))return false;
+    if(flt==='exp'&&k!=='exp')return false;
+    if(slotF!=='all'&&a.slot!==slotF)return false;
+    if(ql&&![a.title,a.advertiser,a.advPhone,a.note].some(x=>String(x||'').toLowerCase().includes(ql)))return false;
+    return true;
+  });
+  const box=$('ap_list');box.innerHTML='';
+  if(!L.length){box.innerHTML='<div class="text-center py-10 text-slate-400"><i class="fa-regular fa-rectangle-list text-3xl mb-2 block"></i><p class="text-xs">'+(hub.length?'এই ফিল্টারে কোনো এড নেই।':'এখনো কোনো এড নেই। "নতুন এড" চাপুন।')+'</p></div>';return;}
+  L.forEach(a=>box.appendChild(card(a)));
+}
+function card(a){
+  const st=status(a),S=SL[a.slot]||SL.side,img=safeUrl(a.imageUrl),clicks=stats[a.id]||0;
+  let bar='',left='';
+  if(a.end){
+    const tot=a.start?diff(a.start,a.end)+1:0,t=today();
+    const rem=diff(t,a.end);
+    left=rem>=0?'বাকি '+bn(rem+1)+' দিন':'শেষ হয়েছে '+bn(-rem)+' দিন আগে';
+    if(tot>0){const used=Math.max(0,Math.min(tot,diff(a.start,t)+1));bar='<div class="ap-bar '+(st.k==='soon'?'soon':st.k==='exp'?'exp':'')+'"><i style="width:'+Math.round(used/tot*100)+'%"></i></div>';}
+  }else left='মেয়াদ: সীমাহীন';
+  const d=document.createElement('div');
+  d.className='ap-card'+((st.k==='off'||st.k==='exp')?' dim':'');d.dataset.id=a.id;
+  d.innerHTML=
+   (img?'<img class="ap-th" src="'+img+'" alt="" onerror="this.style.visibility=\'hidden\'">':'<div class="ap-th flex items-center justify-center"><i class="fa-solid fa-bullhorn text-slate-300 text-xl"></i></div>')+
+   '<div class="min-w-0 flex-1">'+
+    '<div class="flex flex-wrap items-center gap-1.5"><b class="text-xs text-slate-800 truncate" style="max-width:200px">'+esc(a.title||'(নাম নেই)')+'</b><span class="ap-b ap-'+st.k+'">'+st.t+'</span></div>'+
+    '<p class="text-[11px] text-slate-500 mt-0.5">'+S.t+' • '+esc(szTxt(a.slot,a.size))+(a.slot==='feed'?' • '+esc(PAGES.filter(p=>(a.pages&&a.pages.length?a.pages:['ls','mk','rq']).includes(p[0])).map(p=>p[1]).join(', ')):'')+'</p>'+
+    (a.advertiser?'<p class="text-[11px] text-slate-600"><i class="fa-solid fa-user text-[9px] mr-1"></i>'+esc(a.advertiser)+(a.advPhone?' • '+esc(a.advPhone):'')+(Number(a.amount)?' • ৳'+bn(a.amount):'')+'</p>':'')+
+    '<p class="text-[10px] text-slate-400">'+(a.start?fmt(a.start):'এখনই')+' → '+(a.end?fmt(a.end):'সীমাহীন')+' • '+left+' • ক্লিক: '+bn(clicks)+'</p>'+bar+
+    '<div class="flex flex-wrap gap-1 mt-2">'+
+     '<button type="button" data-a="tog" class="ap-btn '+(a.active?'bg-amber-50 text-amber-700':'bg-emerald-50 text-emerald-700')+'">'+(a.active?'বন্ধ করুন':'চালু করুন')+'</button>'+
+     '<button type="button" data-a="ren" class="ap-btn '+((st.k==='soon'||st.k==='exp')?'bg-emerald-600 text-white':'bg-emerald-50 text-emerald-700')+'"><i class="fa-solid fa-clock-rotate-left mr-1"></i>মেয়াদ বাড়ান</button>'+
+     '<button type="button" data-a="edit" class="ap-btn bg-blue-50 text-blue-700"><i class="fa-solid fa-pen"></i></button>'+
+     '<button type="button" data-a="dup" class="ap-btn bg-sky-50 text-sky-700" title="কপি"><i class="fa-regular fa-copy"></i></button>'+
+     '<button type="button" data-a="rep" class="ap-btn bg-violet-50 text-violet-700" title="রিপোর্ট কপি"><i class="fa-solid fa-file-lines"></i></button>'+
+     '<button type="button" data-a="up" class="ap-btn bg-slate-100 text-slate-600">▲</button><button type="button" data-a="down" class="ap-btn bg-slate-100 text-slate-600">▼</button>'+
+     '<button type="button" data-a="del" class="ap-btn bg-rose-50 text-rose-600"><i class="fa-solid fa-trash"></i></button></div></div>';
+  return d;
+}
+$('ap_q').oninput=e=>{q=e.target.value.trim();render();};
+$('ap_slotF').onchange=e=>{slotF=e.target.value;render();};
+$('ap_new').onclick=()=>openForm(null);
+
+function move(id,dir){
+  const i=hub.findIndex(a=>a.id==id);if(i<0)return;
+  let j=i+dir;while(j>=0&&j<hub.length&&hub[j].slot!==hub[i].slot)j+=dir;
+  if(j<0||j>=hub.length)return;
+  const l=hub.slice();[l[i],l[j]]=[l[j],l[i]];persist(l).catch(e=>fail(e));
+}
+async function renew(a){
+  const n=prompt('কত দিন বাড়াবেন? (সংখ্যা লিখুন, যেমন: ৭, ১৫, ৩০)','30');
+  if(n===null)return;
+  const days=Number(String(n).replace(/[০-৯]/g,d=>String(d.charCodeAt(0)-0x09E6)));
+  if(!(days>0&&days<=730))return toast('সঠিক দিন লিখুন (১ থেকে ৭৩০)।','warn');
+  const t=today();
+  const base=(a.end&&a.end>=t)?a.end:t;
+  const ad=Object.assign({},a,{end:addDays(base,days),active:true});
+  if(!ad.start||ad.start>t)ad.start=ad.start&&ad.start>t?ad.start:t;
+  await persist(hub.map(x=>x.id==a.id?ad:x));
+  toast('মেয়াদ বেড়ে '+fmt(ad.end)+' পর্যন্ত হয়েছে।','ok',3500);
+}
+function reportText(a){
+  const S=SL[a.slot]||SL.side;
+  return 'টু-লেট গোপালগঞ্জ — বিজ্ঞাপন রিপোর্ট\n'+
+   'বিজ্ঞাপন: '+(a.title||'—')+'\nজায়গা: '+S.t+' ('+szTxt(a.slot,a.size)+')\n'+
+   'মেয়াদ: '+(a.start?fmt(a.start):'—')+' থেকে '+(a.end?fmt(a.end):'সীমাহীন')+'\n'+
+   'মোট ক্লিক: '+bn(stats[a.id]||0)+'\nঅবস্থা: '+status(a).t+'\n\nধন্যবাদ!';
+}
+$('ap_list').addEventListener('click',async e=>{
+  const b=e.target.closest('[data-a]'),r=e.target.closest('[data-id]');if(!b||!r||!isAdmin())return;
+  const id=r.dataset.id,a=hub.find(x=>x.id==id);if(!a)return;
+  try{
+    const k=b.dataset.a;
+    if(k==='edit')openForm(a);
+    else if(k==='up')move(id,-1);
+    else if(k==='down')move(id,1);
+    else if(k==='tog')await persist(hub.map(x=>x.id==id?Object.assign({},x,{active:!x.active}):x));
+    else if(k==='ren')await renew(a);
+    else if(k==='dup'){await persist([...hub,Object.assign({},a,{id:String(Date.now()),title:(a.title||'এড')+' (কপি)',active:false,createdAt:Date.now()})]);toast('কপি তৈরি হয়েছে (বন্ধ অবস্থায়)। এডিট করে চালু করুন।','ok',3500);}
+    else if(k==='rep'){const t=reportText(a);try{await navigator.clipboard.writeText(t);}catch(_){const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');}catch(__){}ta.remove();}toast('রিপোর্ট কপি হয়েছে। বিজ্ঞাপনদাতাকে পাঠাতে পারেন।','ok',3000);}
+    else if(k==='del'){if(confirm('এডটি মুছে ফেলবেন?'))await persist(hub.filter(x=>x.id!=id));}
+  }catch(err){fail(err,'কাজটি করা যায়নি।');}
+});
+
+/* ================= নতুন/এডিট ফর্ম (পূর্ণ পেজ) ================= */
+const IN='um-in';
+document.body.insertAdjacentHTML('beforeend',
+'<div id="apModal" class="fixed inset-0 hidden flex-col bg-slate-50 overflow-y-auto" style="z-index:150;-webkit-overflow-scrolling:touch">'+
+ '<header class="sticky top-0 z-20 bg-white/95 backdrop-blur shadow-sm border-b border-slate-100"><div class="max-w-3xl mx-auto px-3 h-14 flex items-center justify-between"><h3 id="apTitleH" class="text-sm sm:text-base font-extrabold text-slate-900"></h3>'+
+  '<button type="button" id="apX" aria-label="বন্ধ করুন" class="w-10 h-10 rounded-full bg-slate-100 hover:bg-rose-100 hover:text-rose-600 text-slate-600 text-2xl leading-none flex items-center justify-center">&times;</button></div></header>'+
+ '<main class="max-w-3xl mx-auto w-full px-3 py-4 space-y-3.5 pb-32">'+
+  '<section class="ap-sec"><h4>১. কোথায় দেখাবে?</h4><p class="sub">একটি জায়গা বাছুন</p><div id="apSlots" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div></section>'+
+  '<section class="ap-sec"><h4>২. সাইজ</h4><p class="sub">না জানলে "প্রস্তাবিত" চিহ্নিতটিই রাখুন</p><div id="apSizes" class="flex flex-wrap gap-2.5 pt-2"></div></section>'+
+  '<section class="ap-sec space-y-3"><div><h4>৩. ছবি ও লিংক</h4><p class="sub" id="apImgSub">ছবি দিলে সাইজমতো নিজে কেটে নেওয়া হবে</p></div>'+
+   '<button type="button" id="apDrop" class="ap-drop"><i class="fa-solid fa-cloud-arrow-up"></i><b class="text-sm">ছবি বাছুন বা এখানে টেনে আনুন</b><span class="text-[11px] text-slate-500">JPG / PNG</span></button>'+
+   '<input type="file" id="apFile" accept="image/*" class="hidden">'+
+   '<input type="url" id="apImg" class="'+IN+'" placeholder="অথবা ছবির লিংক: https://...">'+
+   '<label class="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer"><input type="checkbox" id="apFit" class="w-4 h-4 rounded" checked> ছবি নিজে থেকে সাইজমতো কেটে নিন (প্রস্তাবিত)</label>'+
+   '<p id="apImgInfo" class="ap-info"></p>'+
+   '<div><label class="block text-xs font-bold text-slate-600 mb-1">এডের নাম / শিরোনাম</label><input id="apTitle" maxlength="80" class="'+IN+'" placeholder="উদা: ব্র্যান্ড প্রমোশন"></div>'+
+   '<div><label class="block text-xs font-bold text-slate-600 mb-1">ক্লিক করলে কোথায় যাবে? <span class="text-slate-400 font-medium">(লিংক অথবা শুধু ফোন নম্বর)</span></label><input id="apLink" class="'+IN+'" placeholder="https://facebook.com/... অথবা 017XXXXXXXX"><p id="apLinkInfo" class="ap-info"></p></div>'+
+   '<div id="apBodyWrap" class="hidden"><label class="block text-xs font-bold text-slate-600 mb-1">পপ-আপের মেসেজ</label><textarea id="apBody" rows="2" maxlength="300" class="'+IN+'"></textarea></div></section>'+
+  '<section class="ap-sec"><h4>৪. কতদিন চলবে?</h4><p class="sub">মেয়াদ শেষ হলে এড নিজেই বন্ধ হয়ে যাবে</p><div id="apDur" class="flex flex-wrap gap-1.5"></div>'+
+   '<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3"><div><label class="block text-xs font-bold text-slate-600 mb-1">শুরু</label><input type="date" id="apStart" class="'+IN+'"></div><div><label class="block text-xs font-bold text-slate-600 mb-1">শেষ</label><input type="date" id="apEnd" class="'+IN+'"></div></div>'+
+   '<p id="apRange" class="ap-info ap-ok"></p>'+
+   '<label class="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer mt-2"><input type="checkbox" id="apActive" class="w-4 h-4 rounded" checked> এডটি চালু রাখুন</label></section>'+
+  '<section id="apPagesSec" class="ap-sec hidden"><h4>কোন পেজে দেখাবে?</h4><p class="sub">কিছু না বাছলে তিন পেজেই দেখাবে</p><div id="apPages" class="flex flex-wrap gap-1.5"></div></section>'+
+  '<details class="ap-sec"><summary class="cursor-pointer text-sm font-extrabold text-slate-800">৫. বিজ্ঞাপনদাতার তথ্য <span class="text-[11px] font-medium text-slate-400">(ঐচ্ছিক, শুধু আপনি দেখবেন)</span></summary>'+
+   '<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3"><input id="apAdv" class="'+IN+'" maxlength="60" placeholder="নাম / প্রতিষ্ঠান"><input id="apAdvPh" type="tel" inputmode="numeric" class="'+IN+'" placeholder="মোবাইল নম্বর"><input id="apAmt" type="number" min="0" class="'+IN+'" placeholder="টাকা (পেয়েছেন/পাবেন)"><input id="apNote" class="'+IN+'" maxlength="120" placeholder="নোট"></div></details>'+
+  '<section class="ap-sec"><h4><i class="fa-regular fa-eye text-emerald-600 mr-1"></i> লাইভ প্রিভিউ</h4><div id="apPrev" class="pt-2"></div></section>'+
+ '</main>'+
+ '<div class="fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur border-t border-slate-200 px-3 pt-3" style="padding-bottom:calc(.75rem + env(safe-area-inset-bottom,0px))"><div class="max-w-3xl mx-auto flex gap-2">'+
+  '<button type="button" id="apCancel" class="px-4 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold active:scale-95">বাতিল</button>'+
+  '<button type="button" id="apSave" class="flex-1 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold active:scale-95 shadow-md shadow-emerald-200"><i class="fa-solid fa-check mr-1.5"></i> সংরক্ষণ করুন</button></div></div>'+
+'</div>');
+
+let F={};
+const fresh=()=>({id:null,slot:'top',size:'728x90',title:'',imageUrl:'',file:null,fileUrl:'',target:'',pages:[],body:'',dur:'30',start:today(),end:'',active:true,advertiser:'',advPhone:'',amount:'',note:'',fit:true,dim:null});
+
+function shape(slot,v){
+  let w,h;if(slot==='pop'){w=Number(v);h=w*.75;}else{[w,h]=dimOf(slot,v);}
+  const s=Math.min(1,64/w,36/h);
+  return '<i style="display:block;width:'+Math.max(10,Math.round(w*s))+'px;height:'+Math.max(6,Math.round(h*s))+'px;border:1.5px solid currentColor;border-radius:3px;margin:0 auto 4px;opacity:.7"></i>';
+}
+function drawSlots(){
+  const b=$('apSlots');b.innerHTML='';
+  Object.keys(SL).forEach(k=>{
+    const S=SL[k],x=document.createElement('button');x.type='button';x.className='ap-slot'+(F.slot===k?' on':'');
+    x.innerHTML='<span class="ic" style="background:'+S.c+'"><i class="fa-solid '+S.ic+'"></i></span><span><b class="block text-sm text-slate-800">'+S.t+'</b><small class="text-[11px] text-slate-500">'+S.d+'</small></span>';
+    x.onclick=()=>{
+      F.slot=k;if(!SZ[k].includes(F.size))F.size=SL[k].rec;
+      drawAll();
+    };
+    b.appendChild(x);
+  });
+}
+function drawSizes(){
+  const b=$('apSizes');b.innerHTML='';
+  SZ[F.slot].forEach(v=>{
+    const x=document.createElement('button');x.type='button';x.className='ap-sz'+(F.size===v?' on':'');
+    x.innerHTML=(SL[F.slot].rec===v?'<em>প্রস্তাবিত</em>':'')+shape(F.slot,v)+(F.slot==='pop'?(POPN[v]):v.replace('x','×'));
+    x.onclick=()=>{F.size=v;drawSizes();info();prev();};
+    b.appendChild(x);
+  });
+}
+function drawDur(){
+  const b=$('apDur');b.innerHTML='';
+  DURS.forEach(([k,l])=>{
+    const x=document.createElement('button');x.type='button';x.className='um-chip'+(F.dur===k?' on':'');x.textContent=(F.dur===k?'✓ ':'')+l;
+    x.onclick=()=>{F.dur=k;if(k!=='c'){if(!F.start)F.start=today();F.end=k==='0'?'':addDays(F.start,Number(k)-1);}syncDates();drawDur();};
+    b.appendChild(x);
+  });
+}
+function syncDates(){
+  $('apStart').value=F.start||'';$('apEnd').value=F.end||'';
+  $('apEnd').disabled=F.dur!=='c'&&F.dur!=='0'?false:false;
+  const r=$('apRange');
+  if(F.start&&F.end&&F.end<F.start){r.className='ap-info ap-bad';r.textContent='শেষের তারিখ শুরুর আগে হতে পারে না।';return;}
+  r.className='ap-info ap-ok';
+  r.textContent='চলবে: '+(F.start?fmt(F.start):'এখনই')+' থেকে '+(F.end?fmt(F.end)+' পর্যন্ত ('+bn(diff(F.start||today(),F.end)+1)+' দিন)':'সীমাহীন');
+}
+function drawPages(){
+  $('apPagesSec').classList.toggle('hidden',F.slot!=='feed');
+  const b=$('apPages');b.innerHTML='';
+  PAGES.forEach(([k,l])=>{
+    const on=F.pages.includes(k),x=document.createElement('button');x.type='button';x.className='um-chip'+(on?' on':'');x.textContent=(on?'✓ ':'')+l;
+    x.onclick=()=>{F.pages=on?F.pages.filter(v=>v!==k):[...F.pages,k];drawPages();};
+    b.appendChild(x);
+  });
+}
+function drawAll(){
+  drawSlots();drawSizes();drawPages();
+  $('apBodyWrap').classList.toggle('hidden',F.slot!=='pop');
+  $('apFit').parentElement.classList.toggle('hidden',F.slot==='pop');
+  $('apImgSub').textContent=F.slot==='pop'?'ছবি ঐচ্ছিক (শিরোনাম ও মেসেজ থাকলেই চলবে)':'ছবি দিলে সাইজমতো নিজে কেটে নেওয়া হবে';
+  info();prev();
+}
+
+/* ছবির মাপ যাচাই */
+function probe(src){
+  F.dim=null;
+  if(!src){info();return;}
+  const im=new Image();
+  im.onload=()=>{F.dim=[im.naturalWidth,im.naturalHeight];info();};
+  im.onerror=()=>{F.dim=null;info(true);};
+  im.src=src;
+}
+function info(err){
+  const el=$('apImgInfo');
+  if(err){el.className='ap-info ap-bad';el.textContent='ছবিটি খোলা যাচ্ছে না। লিংক বা ফাইল দেখুন।';prev();return;}
+  if(!F.dim){el.className='ap-info';el.textContent='';prev();return;}
+  const [iw,ih]=F.dim;let msg='ছবির মাপ: '+iw+'×'+ih,cls='ap-ok';
+  if(F.slot!=='pop'){
+    const [w,h]=dimOf(F.slot,F.size),d=Math.abs((iw/ih)/(w/h)-1);
+    if(d<.08)msg+=' • ✓ সাইজের সাথে মিলেছে';
+    else if(F.file&&F.fit&&F.file.type!=='image/gif')msg+=' • ✂ সংরক্ষণের সময় '+w+'×'+h+' অনুপাতে নিজে কেটে নেওয়া হবে';
+    else{msg+=' • ⚠ অনুপাত মেলেনি, ছবি ছোট বা ফাঁকা দেখাতে পারে';cls='ap-warn';}
+    if(iw<w*.7){msg+=' • ⚠ ছবির মান কম, ঝাপসা দেখাতে পারে';cls='ap-warn';}
+  }
+  el.className='ap-info '+cls;el.textContent=msg;prev();
+}
+function prev(){
+  const box=$('apPrev'),src=F.fileUrl||safeUrl(F.imageUrl);
+  if(F.slot==='pop'){
+    box.innerHTML='<div style="max-width:'+Math.min(Number(F.size)||420,340)+'px" class="mx-auto bg-white rounded-2xl border border-slate-200 overflow-hidden shadow">'+(src?'<img src="'+src+'" alt="" style="width:100%;max-height:190px;object-fit:cover;display:block">':'')+'<div class="p-3 text-center space-y-1"><b class="text-sm text-slate-800">'+(esc(F.title)||'শিরোনাম')+'</b><p class="text-xs text-slate-500" style="white-space:pre-line">'+esc(F.body)+'</p></div></div>';
+    return;
+  }
+  const [w,h]=dimOf(F.slot,F.size),lab={top:'সাইটের উপরে',side:'তালিকার পাশে',feed:'তালিকার মাঝে'}[F.slot];
+  const cover=F.file&&F.fit&&F.file.type!=='image/gif';
+  box.innerHTML='<p class="text-[10px] font-bold text-slate-400 mb-1">'+lab+' এভাবে দেখাবে (আসল মাপ '+w+'×'+h+')</p>'+
+   '<div class="ap-pv '+(src?'':'ap-empty')+'" style="max-width:'+Math.min(w,420)+'px;aspect-ratio:'+w+'/'+h+'">'+(src?'<img src="'+src+'" alt="" style="width:100%;height:100%;object-fit:'+(cover?'cover':'contain')+';display:block">':'<span>ছবি দিলে এখানে দেখা যাবে</span>')+'</div>';
+}
+
+/* লিংক: ফোন নম্বর → হোয়াটসঅ্যাপ, ডোমেইন → https */
+function normLink(v){
+  v=String(v||'').trim();if(!v)return {u:'',m:''};
+  const dg=v.replace(/[০-৯]/g,d=>String(d.charCodeAt(0)-0x09E6));
+  if(/^[\d\s+\-]+$/.test(dg)&&validPhone(normPhone(dg)))return {u:'https://wa.me/88'+normPhone(dg),m:'✓ হোয়াটসঅ্যাপ লিংক হবে'};
+  if(/^https?:\/\//i.test(v)){const u=safeUrl(v);return u?{u,m:'✓ লিংক ঠিক আছে'}:{u:'',m:'bad'};}
+  if(/^[\w-]+(\.[\w-]+)+(\/\S*)?$/i.test(v)){const u=safeUrl('https://'+v);return u?{u,m:'✓ https:// যোগ করা হবে'}:{u:'',m:'bad'};}
+  return {u:'',m:'bad'};
+}
+function linkInfo(){
+  const el=$('apLinkInfo'),r=normLink($('apLink').value);
+  if(!$('apLink').value.trim()){el.className='ap-info';el.textContent='';return;}
+  if(r.m==='bad'){el.className='ap-info ap-bad';el.textContent='লিংক সঠিক নয়। উদা: facebook.com/page বা 017XXXXXXXX';}
+  else{el.className='ap-info ap-ok';el.textContent=r.m;}
+}
+
+/* ছবি বাছা / টেনে আনা */
+function pickFile(f){
+  if(!f)return;
+  if(!/^image\//.test(f.type))return toast('শুধু ছবি দিন।','warn');
+  if(F.fileUrl)URL.revokeObjectURL(F.fileUrl);
+  F.file=f;F.fileUrl=URL.createObjectURL(f);F.imageUrl='';$('apImg').value='';
+  $('apDrop').querySelector('b').textContent='✓ '+f.name.slice(0,36)+' (বদলাতে চাপুন)';
+  probe(F.fileUrl);
+}
+$('apDrop').onclick=()=>$('apFile').click();
+$('apFile').onchange=e=>{const f=e.target.files[0];e.target.value='';pickFile(f);};
+['dragover','dragenter'].forEach(ev=>$('apDrop').addEventListener(ev,e=>{e.preventDefault();$('apDrop').classList.add('over');}));
+['dragleave','drop'].forEach(ev=>$('apDrop').addEventListener(ev,e=>{e.preventDefault();$('apDrop').classList.remove('over');}));
+$('apDrop').addEventListener('drop',e=>{const f=e.dataTransfer&&e.dataTransfer.files[0];pickFile(f);});
+$('apImg').oninput=e=>{
+  F.imageUrl=e.target.value.trim();
+  if(F.imageUrl){F.file=null;if(F.fileUrl){URL.revokeObjectURL(F.fileUrl);F.fileUrl='';}$('apDrop').querySelector('b').textContent='ছবি বাছুন বা এখানে টেনে আনুন';}
+  clearTimeout(F._t);F._t=setTimeout(()=>probe(safeUrl(F.imageUrl)),350);
+};
+$('apFit').onchange=e=>{F.fit=e.target.checked;info();};
+$('apTitle').oninput=e=>{F.title=e.target.value;prev();};
+$('apBody').oninput=e=>{F.body=e.target.value;prev();};
+$('apLink').oninput=linkInfo;
+$('apStart').onchange=e=>{
+  F.start=e.target.value;
+  if(F.dur!=='c'&&F.dur!=='0'&&F.start)F.end=addDays(F.start,Number(F.dur)-1);
+  syncDates();
+};
+$('apEnd').onchange=e=>{F.end=e.target.value;F.dur='c';drawDur();syncDates();};
+$('apActive').onchange=e=>{F.active=e.target.checked;};
+
+function openForm(a){
+  F=fresh();
+  if(a){
+    Object.assign(F,{id:a.id,slot:a.slot,size:a.size||SL[a.slot].rec,title:a.title||'',imageUrl:a.imageUrl||'',target:a.targetUrl||'',pages:(a.pages||[]).slice(),body:a.body||'',start:a.start||'',end:a.end||'',active:!!a.active,advertiser:a.advertiser||'',advPhone:a.advPhone||'',amount:a.amount||'',note:a.note||''});
+    if(!a.end)F.dur='0';
+    else{const n=a.start?diff(a.start,a.end)+1:0;const m=DURS.find(d=>d[0]==String(n)&&d[0]!=='0'&&d[0]!=='c');F.dur=m?m[0]:'c';}
+  }
+  $('apTitleH').innerHTML='<i class="fa-solid fa-rectangle-ad text-emerald-600 mr-1.5"></i> '+(a?'এড এডিট করুন':'নতুন এড যোগ করুন');
+  $('apTitle').value=F.title;$('apImg').value=F.imageUrl;$('apLink').value=F.target;$('apBody').value=F.body;
+  $('apAdv').value=F.advertiser;$('apAdvPh').value=F.advPhone;$('apAmt').value=F.amount;$('apNote').value=F.note;
+  $('apActive').checked=F.active;$('apFit').checked=true;
+  $('apDrop').querySelector('b').textContent='ছবি বাছুন বা এখানে টেনে আনুন';
+  drawAll();drawDur();
+  if(!a){F.end=addDays(F.start,29);}
+  syncDates();linkInfo();
+  probe(safeUrl(F.imageUrl));
+  const m=$('apModal');m.classList.remove('hidden');m.classList.add('flex');m.scrollTop=0;
+}
+function closeForm(){
+  if(F.fileUrl)URL.revokeObjectURL(F.fileUrl);
+  const m=$('apModal');m.classList.add('hidden');m.classList.remove('flex');
+}
+$('apX').onclick=closeForm;$('apCancel').onclick=closeForm;
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('apModal').classList.contains('hidden'))closeForm();});
+
+/* ছবি সাইজমতো কেটে নেওয়া */
+async function fitFile(file,sw,sh){
+  const bmp=await createImageBitmap(file);
+  const s=Math.min(2,1600/sw),W=Math.round(sw*s),H=Math.round(sh*s);
+  const c=document.createElement('canvas');c.width=W;c.height=H;
+  const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,W,H);
+  const k=Math.max(W/bmp.width,H/bmp.height),dw=bmp.width*k,dh=bmp.height*k;
+  x.drawImage(bmp,(W-dw)/2,(H-dh)/2,dw,dh);
+  let blob=await new Promise(r=>c.toBlob(r,'image/jpeg',.88));
+  if(blob&&blob.size>1500000)blob=await new Promise(r=>c.toBlob(r,'image/jpeg',.7));
+  if(!blob)throw new Error('ছবি প্রস্তুত করা যায়নি।');
+  return new File([blob],'ad.jpg',{type:'image/jpeg'});
+}
+
+/* সংরক্ষণ */
+$('apSave').onclick=async()=>{
+  if(!isAdmin())return;
+  const title=$('apTitle').value.trim().slice(0,80),body=$('apBody').value.trim().slice(0,300);
+  const lr=normLink($('apLink').value);
+  if($('apLink').value.trim()&&lr.m==='bad')return toast('ক্লিক লিংক সঠিক নয়। উদা: facebook.com/page বা 017XXXXXXXX','warn');
+  if(F.start&&F.end&&F.end<F.start)return toast('শেষের তারিখ শুরুর আগে হতে পারে না।','warn');
+  const hasImg=!!(F.file||safeUrl(F.imageUrl));
+  if(F.slot!=='pop'&&!hasImg)return toast('এডের ছবি দিন (ফাইল অথবা লিংক)।','warn');
+  if(F.slot==='pop'&&!hasImg&&!title&&!body)return toast('পপ-আপে ছবি, শিরোনাম বা মেসেজের একটি অন্তত দিন।','warn');
+  const b=$('apSave'),old=b.innerHTML;b.disabled=true;b.textContent='সংরক্ষণ হচ্ছে...';
+  try{
+    let img=safeUrl(F.imageUrl);
+    if(F.file){
+      let f=F.file;
+      if(F.slot!=='pop'&&F.fit&&f.type!=='image/gif'){const [w,h]=dimOf(F.slot,F.size);f=await fitFile(f,w,h);}
+      img=await uploadToImgBB(f);
+    }
+    const prevAd=F.id?hub.find(a=>a.id==F.id):null;
+    const ad=Object.assign({},prevAd||{},{
+      id:F.id?String(F.id):String(Date.now()),slot:F.slot,title,imageUrl:img,targetUrl:lr.u,size:F.size,
+      pages:F.slot==='feed'?F.pages.slice():[],body:F.slot==='pop'?body:'',
+      start:$('apStart').value||'',end:$('apEnd').value||'',active:$('apActive').checked,
+      advertiser:$('apAdv').value.trim().slice(0,60),advPhone:$('apAdvPh').value.trim().slice(0,20),
+      amount:Number($('apAmt').value)||0,note:$('apNote').value.trim().slice(0,120),
+      createdAt:prevAd?prevAd.createdAt:Date.now()
+    });
+    await persist(F.id?hub.map(a=>a.id==F.id?ad:a):[...hub,ad]);
+    closeForm();toast('এড সংরক্ষিত হয়েছে।','ok',2500);
+  }catch(err){fail(err,'সংরক্ষণ ব্যর্থ হয়েছে।');}
+  finally{b.disabled=false;b.innerHTML=old;}
+};
+
+/* ট্যাব খুললে */
+const _sw=switchAdminTab;
+switchAdminTab=function(t){_sw.apply(this,arguments);if(t==='adhub'){startStats();render();}};
+const _ua=updateAuthUI;
+updateAuthUI=function(){const r=_ua.apply(this,arguments);setTimeout(render,0);return r;};
+setInterval(render,10*60000);
+render();
+})();
+</script>
+
+<!-- "বিজ্ঞাপন দিন" পেজ: অনুরোধ পাঠানোর পর হোয়াটসঅ্যাপে সরাসরি পাঠানোর বাটন -->
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const f=$('advForm');
+if(!f||typeof f.onsubmit!=='function'||!$('advDone'))return;
+const _o=f.onsubmit;
+f.onsubmit=async function(e){
+  const snap={
+    name:$('advName').value.trim(),phone:$('advPhone').value.trim(),biz:$('advBiz').value.trim(),msg:$('advMsg').value.trim(),
+    where:[...document.querySelectorAll('#advChoices .um-chip.on')].map(b=>b.textContent.replace(/^✓\s*/,'').trim()).join(', ')
+  };
+  const r=await _o.call(f,e);
+  if($('advDone').classList.contains('hidden'))return r;
+  const wa=String((typeof adSettings!=='undefined'&&adSettings&&adSettings.footerWa)||'').replace(/[^0-9]/g,'');
+  const old=$('advWaDone');if(old)old.remove();
+  if(wa){
+    const text='আসসালামু আলাইকুম, আমি টু-লেট গোপালগঞ্জে বিজ্ঞাপন দিতে চাই।\nনাম: '+snap.name+'\nমোবাইল: '+snap.phone+(snap.biz?'\nপ্রতিষ্ঠান: '+snap.biz:'')+(snap.where?'\nজায়গা: '+snap.where:'')+(snap.msg?'\n'+snap.msg:'');
+    const a=document.createElement('a');
+    a.id='advWaDone';a.target='_blank';a.rel='noopener noreferrer';
+    a.href='https://wa.me/'+wa+'?text='+encodeURIComponent(text);
+    a.className='inline-flex items-center justify-center gap-2 mt-2 px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold active:scale-95';
+    a.innerHTML='<i class="fa-brands fa-whatsapp"></i> হোয়াটসঅ্যাপে এখনই জানান (দ্রুত সাড়া পাবেন)';
+    const again=$('advAgain');
+    if(again)again.before(a);else $('advDone').appendChild(a);
+  }
+  return r;
+};
+})();
+</script>
  </body>
 </html>
